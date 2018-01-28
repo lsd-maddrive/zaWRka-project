@@ -10,4 +10,5 @@ mkdir -p deps/stlink/build && cd deps/stlink/build && cmake -D CMAKE_INSTALL_PRE
 
 sudo make install
 
-echo "Pls, setup your PATH=$INSTALL_PATH/bin"
+echo "PATH=\$PATH:$INSTALL_PATH/bin"
+echo "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/local/stlink/lib"
