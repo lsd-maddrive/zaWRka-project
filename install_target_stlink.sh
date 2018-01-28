@@ -1,0 +1,13 @@
+#!/bin/bash
+
+mkdir -p deps
+
+git -C deps/stlink pull || git -C deps clone https://github.com/texane/stlink.git
+
+INSTALL_PATH=/usr/local/stlink
+
+mkdir -p deps/stlink/build && cd deps/stlink/build && cmake -D CMAKE_INSTALL_PREFIX=$INSTALL_PATH .. && cmake --build . -- -j`nproc`
+
+sudo make install
+
+echo "Pls, setup your PATH=$INSTALL_PATH/bin"
