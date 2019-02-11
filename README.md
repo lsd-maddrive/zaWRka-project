@@ -1,8 +1,10 @@
 # MadDrive project
 
 Проект под командной разработкой, направленный на участие в ежегодных соревнованиях Profest AutoNet 18+  
-Некоторые [правила оформления](https://github.com/serykhelena/wr8_2019/blob/development/docs/dev_rules.md)
 
+Некоторые [правила оформления](https://github.com/serykhelena/AutoNetChallenge/blob/develop/controller_wr_driver/docs/dev_rules.md)
+
+[Регламент соревнований 2019](http://russianrobotics.ru/upload/iblock/039/039d37ea649e49ed2f50210e415bdd6c.pdf)
 
 Полезные ссылки:
 * [F767ZI Reference manual (RM)](http://www.st.com/content/ccc/resource/technical/document/reference_manual/group0/96/8b/0d/ec/16/22/43/71/DM00224583/files/DM00224583.pdf/jcr:content/translations/en.DM00224583.pdf)
