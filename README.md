@@ -1,6 +1,6 @@
-# wr8_2019 project
+# MadDrive project
 
-Проект под командной разработкой  
+Проект под командной разработкой, направленный на участие в ежегодных соревнованиях Profest AutoNet 18+  
 Некоторые [правила оформления](https://github.com/serykhelena/wr8_2019/blob/development/docs/dev_rules.md)
 
 
