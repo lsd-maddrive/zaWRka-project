@@ -50,5 +50,17 @@ encoderValue_t getEncoderDirectionState( void );
  */
 encoderValue_t getEncoderDistanceCm( void );
 
+/**
+ * @brief   Get speed [ticks per second]
+ * @return  (int) absolute speed TPS
+ */
+rawEncoderValue_t getEncoderSpeedTPS( void );
+
+/**
+ * @brief   Get speed [revs per second]
+ * @return  (int) absolute speed RPS
+ */
+encoderValue_t getEncoderSpeedRPS( void );
+
 
 #endif /* INCLUDE_ENCODER_H_ */

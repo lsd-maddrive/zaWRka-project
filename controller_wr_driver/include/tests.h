@@ -24,11 +24,16 @@ void testWheelsControlRoutines( void );
 /*** Encoder tests ***/
 /*********************/
 
-/*
- * @brief   Routine of encoder testing
- * @note    The routine has internal infinite loop
+/**
+ * @brief   Test ticks and revs counting, also direction detection
+ * @note    chprintf works only when encoder is rotation
  */
-void testEncoderRoutine( void );
+void testEncoderCommonRoutine( void );
+
+/**
+ * @brief   Test speed detection [TPS, RPS, MPS, MPM, KPH]
+ */
+void testEncoderSpeedRoutine( void );
 
 /****************************/
 /*** Remote Control tests ***/
@@ -39,6 +44,9 @@ void testEncoderRoutine( void );
  *          and strictly depended on time
  */
 void testRemoteControlRoutine( void );
+
+
+
 
 
 
@@ -54,12 +62,14 @@ static inline void testsRoutines( void )
 
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ENCODER )
 
-    testEncoderRoutine( );
+    testEncoderCommonRoutine( );
 
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RC )
 
     testRemoteControlRoutine( );
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_ENCODER )
 
+    testEncoderSpeedRoutine( );
 #endif
 }
 

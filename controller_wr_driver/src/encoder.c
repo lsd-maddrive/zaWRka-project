@@ -20,14 +20,41 @@ rawEncoderValue_t   prev_enc_state      = 0;
 
 rawEncoderValue_t   encoder_decode_table[4] = {0, 1, 3, 2};
 
+/***    GPT Configuration Zone    ***/
 
-//GPTConfig gpt3conf = {
-//    .frequency    = 10000,
-//    .callback     = NULL,
-//    .cr2          = 0,
-//    .dier         = 0
-//};
+#define gptFreq     100000 // 1 Hz => 1 s
+#define gpt10ms     (int)( gptFreq * 0.01 )
 
+static GPTDriver    *gptDriver  =   &GPTD2;
+
+rawEncoderValue_t   ticks_per_sec      = 0;
+rawEncoderValue_t   prev_trg_counter   = 0;
+
+encoderValue_t      revs_per_sec       = 0;
+encoderValue_t      prev_rev_number    = 0;
+
+
+static void gpt2_cb (GPTDriver *gptd)
+{
+    gptd = gptd;
+
+    ticks_per_sec  = abs( enc_trigger_counter - prev_trg_counter );
+    revs_per_sec   = abs( enc_rev_number - prev_rev_number );
+
+
+    prev_trg_counter = enc_trigger_counter;
+    prev_rev_number  = enc_rev_number;
+    palToggleLine( LINE_LED2 );
+
+
+}
+
+static const GPTConfig gpt2cfg = {
+  .frequency =  gptFreq,
+  .callback  =  gpt2_cb,
+  .cr2       =  0,
+  .dier      =  0U
+};
 
 /**
  * @brief   Get decimal values depends on 2 channels encoder state
@@ -131,6 +158,10 @@ void encoderInit( void )
 
     extStart( &EXTD1, &extcfg );
 
+    /* Start working GPT driver in asynchronous mode */
+    gptStart( gptDriver, &gpt2cfg );
+    gptStartContinuous( gptDriver, gptFreq );
+
     /* Set initialization flag */
 
     isInitialized = true;
@@ -190,3 +221,20 @@ encoderValue_t getEncoderDistanceCm( void )
     return distance;
 }
 
+/**
+ * @brief   Get speed [ticks per second]
+ * @return  (int) absolute speed TPS
+ */
+rawEncoderValue_t getEncoderSpeedTPS( void )
+{
+  return ticks_per_sec;
+}
+
+/**
+ * @brief   Get speed [revs per second]
+ * @return  (int) absolute speed RPS
+ */
+encoderValue_t getEncoderSpeedRPS( void )
+{
+  return revs_per_sec;
+}

@@ -11,10 +11,11 @@
 #define     PROGRAM_ROUTINE_TEST_LL_DRIVER              1
 #define     PROGRAM_ROUTINE_TEST_RAW_LL_DRIVE           2
 #define     PROGRAM_ROUTINE_TEST_ENCODER                3
-#define     PROGRAM_ROUTINE_TEST_RC                     4
+#define     PROGRAM_ROUTINE_TEST_SPEED_ENCODER          4
+#define     PROGRAM_ROUTINE_TEST_RC                     5
 
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_RC
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_SPEED_ENCODER
 
 
 /**************/
