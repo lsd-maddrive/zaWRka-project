@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<launch>
+ 
+  <include file="$(find wr8_description)/launch/gazebo.launch">
+<!--     <arg name="rviz_gui" value="false" /> -->
+    <arg name="x" value="0" />
+    <!-- Set this in range [0; -2] -->
+    <arg name="y" value="0" />  
+    <!-- <arg name="gz_gui" value="true" /> -->
+    <arg name="native_odom" value="true" />
+  </include>
+
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find wr8_navigation)/maps/map2.yaml" />
+
+  <include file="$(find wr8_navigation)/launch/amcl.launch">
+
+  </include>
+
+  <include file="$(find wr8_navigation)/launch/move_base.launch">
+    <arg name="base_frame" value="base_footprint" />
+    <arg name="odom_topic" value="ackermann_drive_controller/odom" />
+    <arg name="cmd_topic" value="ackermann_drive_controller/cmd_vel" />
+  </include>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find wr8_navigation)/rviz/amcl.rviz" />
+
+</launch>

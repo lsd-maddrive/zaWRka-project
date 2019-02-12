@@ -1,0 +1,693 @@
+<?xml version='1.0'?>
+<%
+	wall_height = 2.5
+	wall_thickness = 0.1
+
+  column_sz = 0.1
+
+  deg_90 = 1.57079632679
+%>
+<sdf version='1.6'>
+  <model name='RFMaze'>
+
+
+    <link name='Wall_0'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size>14 <%= wall_thickness %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size>14 <%= wall_thickness %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>7 0 0 0 0 0</pose>
+    </link>
+    <link name='Wall_1'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size>14 <%= wall_thickness %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size>14 <%= wall_thickness %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>0 7 0 0 0 <%= deg_90 %></pose>
+    </link>
+    <link name='Wall_2'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size>14 <%= wall_thickness %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size>14 <%= wall_thickness %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>7 14 0 0 0 0</pose>
+    </link>
+
+    <link name='Wall_3'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size>8 <%= wall_thickness %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size>8 <%= wall_thickness %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>14 10 0 0 0 <%= deg_90 %></pose>
+    </link>
+    <link name='BoxH_0'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size>4 2 <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size>4 2 <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>12 7 0 0 0 0</pose>
+    </link>
+    <link name='BoxV_1'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size>2 6 <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size>2 6 <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>3 3 0 0 0 0</pose>
+    </link>
+    <link name='BoxV_2'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size>2 4 <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size>2 4 <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>7 4 0 0 0 0</pose>
+    </link>
+    <link name='BoxV_3'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size>2 4 <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size>2 4 <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>7 10 0 0 0 0</pose>
+    </link>
+    <link name='BoxV_4'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size>2 4 <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size>2 4 <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>3 10 0 0 0 0</pose>
+    </link>
+    <link name='Box_4'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size>2 2 <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size>2 2 <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>11 11 0 0 0 0</pose>
+    </link>
+    <link name='Column_0'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>10 0 0 0 0 0</pose>
+    </link>
+    <link name='Column_1'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>10 1 0 0 0 0</pose>
+    </link>
+    <link name='Column_2'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>10 2 0 0 0 0</pose>
+    </link>
+    <link name='Column_3'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>11 2 0 0 0 0</pose>
+    </link>
+    <link name='Column_4'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>12 2 0 0 0 0</pose>
+    </link>
+    <link name='Column_5'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>13 2 0 0 0 0</pose>
+    </link>
+    <link name='Column_6'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>14 2 0 0 0 0</pose>
+    </link>
+    <link name='Column_7'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>14 1 0 0 0 0</pose>
+    </link>
+    <link name='Column_8'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>14 0 0 0 0 0</pose>
+    </link>
+
+    <link name='Column_9'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>10 6 0 0 0 0</pose>
+    </link>
+    <link name='Column_10'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>10 5 0 0 0 0</pose>
+    </link>
+    <link name='Column_11'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>10 4 0 0 0 0</pose>
+    </link>
+    <link name='Column_12'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>11 4 0 0 0 0</pose>
+    </link>
+    <link name='Column_13'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>12 4 0 0 0 0</pose>
+    </link>
+    <link name='Column_14'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>13 4 0 0 0 0</pose>
+    </link>
+    <link name='Column_15'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>14 4 0 0 0 0</pose>
+    </link>
+    <link name='Column_16'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>14 5 0 0 0 0</pose>
+    </link>
+    <link name='Column_17'>
+      <collision name='col'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='vis'>
+        <geometry>
+          <box>
+            <size><%= column_sz %> <%= column_sz %> <%= wall_height %></size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Grey</name>
+          </script>
+          <ambient>1 1 1 1</ambient>
+        </material>
+      </visual>
+      <pose>14 6 0 0 0 0</pose>
+    </link>
+
+
+    <static>1</static>
+    <pose>-1 -1 0 0 0 0</pose>
+  </model>
+</sdf>
