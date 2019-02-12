@@ -35,6 +35,9 @@ void testEncoderCommonRoutine( void );
  */
 void testEncoderSpeedRoutine( void );
 
+
+void testOdometryRoutine( void );
+
 /****************************/
 /*** Remote Control tests ***/
 /****************************/
@@ -70,6 +73,9 @@ static inline void testsRoutines( void )
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_ENCODER )
 
     testEncoderSpeedRoutine( );
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ODOMETRY )
+
+    testOdometryRoutine( );
 #endif
 }
 

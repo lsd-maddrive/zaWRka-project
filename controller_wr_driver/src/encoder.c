@@ -1,11 +1,11 @@
 #include <tests.h>
 #include <encoder.h>
+//#include <math.h> // does not work
 
 #define MAX_TICK_NUM        360
 
 /* need checking, maybe should 0.105 / 6 */
 #define GAIN                0.105
-#define WHEEL_RADIUS        4
 
 #define ENCODER_GREEN_LINE  PAL_LINE( GPIOD, 3 )
 #define ENCODER_WHITE_LINE  PAL_LINE( GPIOD, 4 )
@@ -33,17 +33,27 @@ rawEncoderValue_t   prev_trg_counter   = 0;
 encoderValue_t      revs_per_sec       = 0;
 encoderValue_t      prev_rev_number    = 0;
 
+encSpeedValue_t     speed_cmps         = 0;
+encoderValue_t      prev_dist          = 0;
+
 
 static void gpt2_cb (GPTDriver *gptd)
 {
     gptd = gptd;
 
+    int32_t cur_dist = getEncoderDistanceCm();
+    int32_t t_period = 1; // 1 sec
     ticks_per_sec  = abs( enc_trigger_counter - prev_trg_counter );
     revs_per_sec   = abs( enc_rev_number - prev_rev_number );
 
 
     prev_trg_counter = enc_trigger_counter;
     prev_rev_number  = enc_rev_number;
+
+    speed_cmps       = abs( (cur_dist - prev_dist ) * t_period );
+
+    prev_dist = cur_dist;
+
     palToggleLine( LINE_LED2 );
 
 
@@ -217,7 +227,7 @@ encoderValue_t getEncoderDistanceCm( void )
     encoderValue_t distance = 0;
     encoderValue_t revs = 0;
     revs = getEncoderRevNumber( );
-    distance = revs * 2 * 3.14 * WHEEL_RADIUS * GAIN;
+    distance = revs * 2 * 3.14 * WHEEL_RADIUS_CM * GAIN;
     return distance;
 }
 
@@ -237,4 +247,34 @@ rawEncoderValue_t getEncoderSpeedTPS( void )
 encoderValue_t getEncoderSpeedRPS( void )
 {
   return revs_per_sec;
+}
+
+/**
+ * @brief   Get speed [cm per second]
+ * @return  (int) absolute speed CMPS
+ */
+encSpeedValue_t getEncWheelSpeedCmPS( void )
+{
+    return speed_cmps;
+}
+
+/**
+ * @brief   Get speed [metr per second]
+ * @return  absolute speed MPS
+ */
+float getEncWheelSpeedMPS( void )
+{
+    /***    cm/s => m/s  ***/
+    return ( speed_cmps * 0.01 );
+}
+
+/**
+ * @brief   Get speed [km per second]
+ * @return  absolute speed KPS
+ */
+float getEncWheelSpeedKPH( void )
+{
+    float wheel_speed_mps = getEncWheelSpeedMPS( );
+    /***  m/s => km/h  ***/
+    return( wheel_speed_mps * 0.001 * 3600 );
 }

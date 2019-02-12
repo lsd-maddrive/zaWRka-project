@@ -61,6 +61,9 @@ void testEncoderSpeedRoutine( void )
 
     rawEncoderValue_t       enc_speed_tps       = 0;
     encoderValue_t          enc_speed_rps       = 0;
+    encSpeedValue_t         wheel_speed_cmps    = 0;
+    float                   wheel_speed_mps     = 0;
+    float                   wheel_speed_kmph    = 0;
 
     uint32_t                counter             = 0;
 
@@ -70,13 +73,16 @@ void testEncoderSpeedRoutine( void )
     {
         counter += 1;
 
-        enc_speed_tps       = getEncoderSpeedTPS();
-        enc_speed_rps       = getEncoderSpeedRPS();
+        enc_speed_tps       = getEncoderSpeedTPS( );
+        enc_speed_rps       = getEncoderSpeedRPS( );
+        wheel_speed_cmps    = getEncWheelSpeedCmPS( );
+        wheel_speed_mps     = getEncWheelSpeedMPS( );
+        wheel_speed_kmph    = getEncWheelSpeedKPH( );
 
         if( counter == 20 )
         {
-            chprintf( (BaseSequentialStream *)&SD7, "TPS:(%d)\tRPS:(%d)\n\r\t",
-                      enc_speed_tps, enc_speed_rps );
+            chprintf( (BaseSequentialStream *)&SD7, "TPS:(%d)\tRPS:(%d)\tCMPS:(%d)MPS:(%d)\tKPS:(%d)\n\r\t",
+                      enc_speed_tps, enc_speed_rps, wheel_speed_cmps, (int)( wheel_speed_mps * 100 ), (int)( wheel_speed_kmph * 100 ) );
 
             counter = 0;
         }

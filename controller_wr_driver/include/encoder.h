@@ -2,8 +2,9 @@
 #define INCLUDE_ENCODER_H_
 
 /*** Variables ***/
-typedef uint32_t rawEncoderValue_t;
-typedef uint32_t encoderValue_t;
+typedef int32_t rawEncoderValue_t;
+typedef int32_t encoderValue_t;
+typedef int32_t encSpeedValue_t;
 
 /**
  * @brief   Initialize periphery connected to encoder control
@@ -62,5 +63,22 @@ rawEncoderValue_t getEncoderSpeedTPS( void );
  */
 encoderValue_t getEncoderSpeedRPS( void );
 
+/**
+ * @brief   Get speed [cm per second]
+ * @return  (int) absolute speed CMPS
+ */
+encSpeedValue_t getEncWheelSpeedCmPS( void );
+
+/**
+ * @brief   Get speed [metr per second]
+ * @return  absolute speed MPS
+ */
+float getEncWheelSpeedMPS( void );
+
+/**
+ * @brief   Get speed [km per second]
+ * @return  absolute speed KPS
+ */
+float getEncWheelSpeedKPH( void );
 
 #endif /* INCLUDE_ENCODER_H_ */
