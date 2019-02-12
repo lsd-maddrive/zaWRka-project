@@ -44,8 +44,8 @@ TebLocalPlannerROS:
     free_goal_vel: False
 
     # Obstacles
-
     min_obstacle_dist: 0.5
+
     include_costmap_obstacles: True
     costmap_obstacles_behind_robot_dist: 1.0
     obstacle_poses_affected: 5

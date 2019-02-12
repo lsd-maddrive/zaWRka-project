@@ -29,7 +29,10 @@
     args="ackermann_joint_state_controller
           ackermann_drive_controller"/>
 
+  <!-- Precise setup for simulator -->
   <param name="ackermann_drive_controller/enable_odom_tf" value="$(arg native_odom)" />
+  <remap from="ackermann_drive_controller/cmd_vel" to="car/cmd_vel" />
+  <remap from="ackermann_drive_controller/reset_odom" to="car/reset_odom" />
 
   <arg name="gz_gui" default="false" />
   <arg name="rviz_gui" default="false" />

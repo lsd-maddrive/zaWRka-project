@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-  <node name="gui_server"  pkg="wr8_software"  type="gui_server" output="screen" respawn="false" >
-  </node>
-</launch>
