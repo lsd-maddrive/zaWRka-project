@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ENCODER_H_
-#define INCLUDE_ENCODER_H_
+#ifndef INCLUDE_ODOMETRY_UNIT_H_
+#define INCLUDE_ODOMETRY_UNIT_H_
 
 /*** Variables ***/
 typedef int32_t rawEncoderValue_t;
@@ -65,20 +65,49 @@ encoderValue_t getEncoderSpeedRPS( void );
 
 /**
  * @brief   Get speed [cm per second]
- * @return  (int) absolute speed CMPS
+ * @return  speed CMPS
  */
-encSpeedValue_t getEncWheelSpeedCmPS( void );
+float getEncWheelSpeedCmPS( void );
 
 /**
  * @brief   Get speed [metr per second]
- * @return  absolute speed MPS
+ * @return  speed MPS
  */
 float getEncWheelSpeedMPS( void );
 
 /**
  * @brief   Get speed [km per second]
- * @return  absolute speed KPS
+ * @return  speed KPS
  */
 float getEncWheelSpeedKPH( void );
 
-#endif /* INCLUDE_ENCODER_H_ */
+/**
+ * @brief   Get orientation of Object
+ * @note    tetta value is updated each 10 ms
+ * @return  tetta angle in radians [rad]
+ */
+double getObjTetaAngleRad( void );
+
+/**
+ * @brief   Get orientation of Object
+ * @note    tetta value is updated each 10 ms
+ * @return  tetta angle in degrees [deg]
+ */
+double getObjTettaAngleDeg( void );
+
+/**
+ * @brief   Get X coordinate of Object
+ * @note    X value is updated each 10 ms
+ * @return  X value in meters [m]
+ */
+double getObjPosX( void );
+
+/**
+ * @brief   Get Y coordinate of Object
+ * @note    Y value is updated each 10 ms
+ * @return  Y value in meters [m]
+ */
+double getObjPosY( void );
+
+
+#endif /* INCLUDE_ODOMETRY_UNIT_H_ */

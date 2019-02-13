@@ -1,12 +1,11 @@
 #include <tests.h>
-#include <encoder.h>
+#include <odometry_unit.h>
 
 
 static const SerialConfig sdcfg = {
   .speed = 115200,
   .cr1 = 0, .cr2 = 0, .cr3 = 0
 };
-
 
 /**
  * @brief   Test ticks and revs counting, also direction detection
@@ -87,6 +86,44 @@ void testEncoderSpeedRoutine( void )
             counter = 0;
         }
 
+        chThdSleepMilliseconds( 10 );
+    }
+}
+
+
+
+void testOdometryRoutine( void )
+{
+    sdStart( &SD7, &sdcfg );
+    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
+    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
+
+
+    chprintf( (BaseSequentialStream *)&SD7, "TEST ODOMETRY\n\r" );
+
+    float   tetta_deg       = 0;
+    double  tetta_rad       = 0;
+
+    double  test_x          = 0;
+    double  test_y          = 0;
+
+    uint32_t test_counter   = 0;
+
+    while( 1 )
+    {
+        test_counter += 1;
+
+        tetta_rad   = getObjTetaAngleRad( );
+        tetta_deg   = getObjTettaAngleDeg( );
+        test_x      = getObjPosX( );
+        test_y      = getObjPosY( );
+
+        if( test_counter == 30)
+        {
+          chprintf( (BaseSequentialStream *)&SD7, "T:(%d)[rad]\tT:(%d)[deg]\tX:(%d)[m]\tY:(%d)[m]\n\r",
+                    (int)tetta_rad, (int)tetta_deg, (int)test_x, (int)test_y );
+
+        }
         chThdSleepMilliseconds( 10 );
     }
 }

@@ -1,6 +1,6 @@
 #include <tests.h>
-#include <encoder.h>
-//#include <math.h> // does not work
+#include <odometry_unit.h>
+#include <math.h>
 
 #define MAX_TICK_NUM        360
 
@@ -22,10 +22,10 @@ rawEncoderValue_t   encoder_decode_table[4] = {0, 1, 3, 2};
 
 /***    GPT Configuration Zone    ***/
 
-#define gptFreq     100000 // 1 Hz => 1 s
+#define gptFreq     1000 // 100 Hz => 0,01 s => 10 ms
 #define gpt10ms     (int)( gptFreq * 0.01 )
 
-static GPTDriver    *gptDriver  =   &GPTD2;
+static GPTDriver    *gptDriver              =   &GPTD2;
 
 rawEncoderValue_t   ticks_per_sec      = 0;
 rawEncoderValue_t   prev_trg_counter   = 0;
@@ -33,29 +33,65 @@ rawEncoderValue_t   prev_trg_counter   = 0;
 encoderValue_t      revs_per_sec       = 0;
 encoderValue_t      prev_rev_number    = 0;
 
-encSpeedValue_t     speed_cmps         = 0;
+float               speed_cm_per_sec   = 0;
+float               speed_m_per_sec    = 0;
+
 encoderValue_t      prev_dist          = 0;
 
+uint32_t            gpt_counter        = 0;
+
+double               tetta_rad_angle_per_sec = 0;
+double               tetta_deg_angle_per_sec = 0;
+
+double               x_pos_m = 0;
+double               y_pos_m = 0;
 
 static void gpt2_cb (GPTDriver *gptd)
 {
     gptd = gptd;
 
-    int32_t cur_dist = getEncoderDistanceCm();
-    int32_t t_period = 1; // 1 sec
-    ticks_per_sec  = abs( enc_trigger_counter - prev_trg_counter );
-    revs_per_sec   = abs( enc_rev_number - prev_rev_number );
+    gpt_counter += 1;
 
+    int32_t cur_dist    = getEncoderDistanceCm();
+
+    float t_period      = 0.1; // 10 ms
+
+    /***    Get speed in ticks and revs        ***/
+    ticks_per_sec  = (enc_trigger_counter - prev_trg_counter) * t_period * 1000;
+    revs_per_sec   = enc_rev_number - prev_rev_number;
 
     prev_trg_counter = enc_trigger_counter;
     prev_rev_number  = enc_rev_number;
+    /*********************************************/
 
-    speed_cmps       = abs( (cur_dist - prev_dist ) * t_period );
+    /***    Get speed in cm/s and m/s          ***/
+    /*  [cm/10ms] * 1000 = [cm/c]   */
+    speed_cm_per_sec    = (cur_dist - prev_dist ) * t_period * 1000;
+    /*  [cm/s] * 0.01 = [m/s]       */
+    speed_m_per_sec     = speed_cm_per_sec * 0.01;
 
     prev_dist = cur_dist;
+    /*********************************************/
+
+    /***        Tetta calculation              ***/
+    /* steer_angle = getSteerAngleRadValue() !!!!! need to add !!!*/
+    float steer_angl_rad = 0; // just to avoid errors!!!
+    tetta_rad_angle_per_sec +=  ((speed_m_per_sec * tan( steer_angl_rad )) / WHEEL_BASE_M) * t_period * 1000;
+    tetta_deg_angle_per_sec = tetta_rad_angle_per_sec * 180 / 3.14;
+    /*OR*/
+    /*tetta_grad_angle_per_sec = tetta_rad_angle_per_sec * 57.3;*/
+    if(tetta_deg_angle_per_sec == 360) tetta_rad_angle_per_sec = 0;
+    /**********************************************/
+
+    /***        X calculation                  ***/
+    x_pos_m += (speed_m_per_sec * cos(tetta_rad_angle_per_sec)) * t_period * 1000;
+    /*********************************************/
+
+    /***        Y calculation                  ***/
+    y_pos_m += (speed_m_per_sec * sin(tetta_rad_angle_per_sec)) * t_period * 1000;
+    /*********************************************/
 
     palToggleLine( LINE_LED2 );
-
 
 }
 
@@ -78,7 +114,6 @@ rawEncoderValue_t getEncoderState( void )
 
     return res_enc;
 }
-
 
 
 static void extcb1(EXTDriver *extp, expchannel_t channel)
@@ -251,30 +286,69 @@ encoderValue_t getEncoderSpeedRPS( void )
 
 /**
  * @brief   Get speed [cm per second]
- * @return  (int) absolute speed CMPS
+ * @return  speed CMPS
  */
-encSpeedValue_t getEncWheelSpeedCmPS( void )
+float getEncWheelSpeedCmPS( void )
 {
-    return speed_cmps;
+    return speed_cm_per_sec;
 }
 
 /**
  * @brief   Get speed [metr per second]
- * @return  absolute speed MPS
+ * @return  speed MPS
  */
 float getEncWheelSpeedMPS( void )
 {
-    /***    cm/s => m/s  ***/
-    return ( speed_cmps * 0.01 );
+    return speed_m_per_sec;
 }
 
 /**
  * @brief   Get speed [km per second]
- * @return  absolute speed KPS
+ * @return  speed KPS
  */
 float getEncWheelSpeedKPH( void )
 {
-    float wheel_speed_mps = getEncWheelSpeedMPS( );
     /***  m/s => km/h  ***/
-    return( wheel_speed_mps * 0.001 * 3600 );
+    return( speed_m_per_sec * 0.001 * 3600 );
+}
+
+
+/**
+ * @brief   Get orientation of Object
+ * @note    tetta value is updated each 10 ms
+ * @return  tetta angle in radians [rad]
+ */
+double getObjTetaAngleRad( void )
+{
+    return tetta_rad_angle_per_sec;
+}
+
+/**
+ * @brief   Get orientation of Object
+ * @note    tetta value is updated each 10 ms
+ * @return  tetta angle in degrees [deg]
+ */
+double getObjTettaAngleDeg( void )
+{
+    return tetta_deg_angle_per_sec;
+}
+
+/**
+ * @brief   Get X coordinate of Object
+ * @note    X value is updated each 10 ms
+ * @return  X value in meters [m]
+ */
+double getObjPosX( void )
+{
+    return x_pos_m;
+}
+
+/**
+ * @brief   Get Y coordinate of Object
+ * @note    Y value is updated each 10 ms
+ * @return  Y value in meters [m]
+ */
+double getObjPosY( void )
+{
+    return y_pos_m;
 }

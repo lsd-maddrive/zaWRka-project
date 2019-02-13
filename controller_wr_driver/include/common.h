@@ -54,5 +54,6 @@
 
 #define WHEEL_RADIUS_CM     4
 #define WHEEL_BASE_CM       30
+#define WHEEL_BASE_M        0.3
 
 #endif /* INCLUDE_COMMON_H_ */
