@@ -1,11 +1,24 @@
 #include <tests.h>
 #include <lld_encoder.h>
 
-#define MAX_TICK_NUM        360
+#define MAX_TICK_NUM        500
 
 
 #define ENCODER_GREEN_LINE  PAL_LINE( GPIOD, 3 )
 #define ENCODER_WHITE_LINE  PAL_LINE( GPIOD, 4 )
+
+rawEncoderValue_t   enc_trg_cntr    = 0;
+rawEncoderValue_t   enc_revs_cntr   = 0;
+
+EncoderValue_t      enc_rev_number      = 0;
+EncoderValue_t      enc_dir             = 0;
+
+rawEncoderValue_t   enc_table_val       = 0;
+rawEncoderValue_t   curr_enc_state      = 0;
+rawEncoderValue_t   prev_enc_state      = 0;
+
+
+rawEncoderValue_t   enc_decode_table[4] = {0, 1, 3, 2};
 
 /**
  * @brief   Get decimal values depends on 2 channels encoder state
@@ -20,23 +33,24 @@ rawEncoderValue_t getEncoderState( void )
     return res_enc;
 }
 
+
+
+
 static void extcb1(EXTDriver *extp, expchannel_t channel)
 {
     (void)extp;
     (void)channel;
 
-    enc_trigger_counter += 1;
+    enc_trg_cntr += 1;
 
-#if 0
-    if( enc_trigger_counter > (MAX_TICK_NUM * 2) )      enc_trigger_counter = 0;
 
     uint8_t i = 0;
 
-    rawEncoderValue_t encoder_state = getEncoderState( );
+    rawEncoderValue_t enc_state = getEncoderState( );
 
     for( i = 0; i < 4; i++ )
     {
-        if( encoder_state == encoder_decode_table[i])
+        if( enc_state == enc_decode_table[i])
         {
             curr_enc_state = i;
             break;
@@ -56,19 +70,31 @@ static void extcb1(EXTDriver *extp, expchannel_t channel)
 
     prev_enc_state = curr_enc_state;
 
-    enc_trigger_counter += 1;
 
-    if( enc_trigger_counter > (MAX_TICK_NUM * 2) )      enc_trigger_counter = 0;
-    if( enc_trigger_counter == (MAX_TICK_NUM * 2) )
+
+    if( enc_trg_cntr > (MAX_TICK_NUM * 2) )      enc_trg_cntr = 0;
+    if( enc_trg_cntr == (MAX_TICK_NUM * 2) )
     {
         if( enc_dir == 'F') enc_rev_number += 1;
         else enc_rev_number -= 1;
     }
 
-    enc_table_val = encoder_state;
-#endif
+    enc_table_val = enc_state;
 
 }
+
+
+
+static void extcb2(EXTDriver *extp, expchannel_t channel)
+{
+    (void)extp;
+    (void)channel;
+
+    if( enc_dir == 'F' )    enc_revs_cntr += 1;
+    else                    enc_revs_cntr -= 1;
+
+}
+
 
 /********************************/
 /*** Configuration structures ***/
@@ -82,7 +108,7 @@ static const EXTConfig extcfg =
     {EXT_CH_MODE_DISABLED, NULL},
     {EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb1}, // PD3
     {EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb1}, // PD4
-    {EXT_CH_MODE_DISABLED, NULL},
+    {EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb2}, // PD5
     {EXT_CH_MODE_DISABLED, NULL},
     {EXT_CH_MODE_DISABLED, NULL},
     {EXT_CH_MODE_DISABLED, NULL},
@@ -116,13 +142,31 @@ void lldEncoderInit( void )
 
     extStart( &EXTD1, &extcfg );
 
-    /* Start working GPT driver in asynchronous mode */
-    gptStart( gptDriver, &gpt2cfg );
-    gptStartContinuous( gptDriver, gptFreq );
-
     /* Set initialization flag */
 
     isInitialized = true;
 }
 
+/**
+ * @brief   Get raw encoder value
+ * @return  raw encoder values (ticks)
+ */
+rawEncoderValue_t getEncoderRawTickNumber( void )
+{
+    return enc_trg_cntr;
+}
 
+/**
+ * @brief   Get encoder revolutions number
+ * @return  number of motor revs
+ */
+rawEncoderValue_t getEncoderRevsNumber( void )
+{
+    return enc_revs_cntr;
+}
+
+
+dirEncoderValue_t getEncoderDirection( void )
+{
+    return enc_dir;
+}

@@ -17,7 +17,7 @@
 
 
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ODOMETRY
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ENCODER
 
 
 /**************/

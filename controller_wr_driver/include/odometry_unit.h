@@ -12,17 +12,17 @@ typedef int32_t encSpeedValue_t;
  */
 void encoderInit( void );
 
-/**
- * @brief   Get raw encoder value
- * @return  raw encoder values (ticks)
- */
-rawEncoderValue_t getEncoderRawTickNumber( void );
-
-/**
- * @brief   Get encoder revs value
- * @return  number of motor revs
- */
-encoderValue_t getEncoderRevNumber( void );
+///**
+// * @brief   Get raw encoder value
+// * @return  raw encoder values (ticks)
+// */
+//rawEncoderValue_t getEncoderRawTickNumber( void );
+//
+///**
+// * @brief   Get encoder revs value
+// * @return  number of motor revs
+// */
+//encoderValue_t getEncoderRevNumber( void );
 
 /**
  * @brief   Get table values of encoder
@@ -30,13 +30,13 @@ encoderValue_t getEncoderRevNumber( void );
  * @note    0 -> 1 -> 3 -> 2 = backward = counterclockwise
  *          1 -> 0 -> 2 -> 3 = forward  = clockwise
  */
-rawEncoderValue_t getEncoderValTable( void );
+//rawEncoderValue_t getEncoderValTable( void );
 
 /**
  * @brief   Get decimal values depends on 2 channels encoder state
  * @return  values [0, 3]
  */
-rawEncoderValue_t getEncoderState( void );
+//rawEncoderValue_t getEncoderState( void );
 
 /**
  * @brief   Define direction of rotation

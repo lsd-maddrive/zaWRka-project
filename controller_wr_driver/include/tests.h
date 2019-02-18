@@ -50,9 +50,6 @@ void testRemoteControlRoutine( void );
 
 
 
-
-
-
 static inline void testsRoutines( void )
 {
 #if (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LL_DRIVER)
@@ -76,6 +73,7 @@ static inline void testsRoutines( void )
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ODOMETRY )
 
     testOdometryRoutine( );
+
 #endif
 }
 
