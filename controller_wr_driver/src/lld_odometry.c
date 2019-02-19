@@ -22,8 +22,8 @@ float    obj_gain       = 0.105;
 float    tetta_k_rad    = 0;
 float    tetta_k_deg    = 0;
 
-float    m_2_mm         = 0;
-float    m_2_cm         = 0;
+float    cm_2_mm        = 0;
+float    cm_2_m         = 0;
 
 
 #define  MS_2_SEC       100; // 10 ms - > 1 s
@@ -66,8 +66,8 @@ odometrySpeedValue_t        speed_m_per_sec         = 0;
 
 odometryValue_t             tetta_deg_angle_per_sec = 0;
 odometryValue_t             tetta_rad_angle_per_sec = 0;
-odometryValue_t             x_pos_m                 = 0;
-odometryValue_t             y_pos_m                 = 0;
+odometryValue_t             x_pos_cm                 = 0;
+odometryValue_t             y_pos_cm                 = 0;
 
 
 
@@ -106,11 +106,11 @@ static void gptcb (GPTDriver *gptd)
     /**********************************************/
 
     /***        X calculation                  ***/
-    x_pos_m += (speed_m_per_sec * cos(tetta_rad_angle_per_sec)) * MS_2_SEC;
+    x_pos_cm += (speed_m_per_sec * cos(tetta_rad_angle_per_sec));
     /*********************************************/
 
     /***        Y calculation                  ***/
-    y_pos_m += (speed_m_per_sec * sin(tetta_rad_angle_per_sec)) * MS_2_SEC;
+    y_pos_cm += (speed_m_per_sec * sin(tetta_rad_angle_per_sec));
     /*********************************************/
 
 }
@@ -147,11 +147,11 @@ void lldOdometryInit( void )
     dist_k_cm   = 2 * M_PI * WHEEL_RADIUS_CM * obj_gain;
     dist_k_m    = 2 * M_PI * WHEEL_RADIUS_CM * obj_gain / 100 ;
 
-    tetta_k_rad = 100 / WHEEL_BASE_M;
+    tetta_k_rad = 1 / WHEEL_BASE_M;
     tetta_k_deg = 180 / M_PI;
 
-    m_2_mm      = 0.01;
-    m_2_cm       = 0.1;
+    cm_2_mm       = 10;
+    cm_2_m        = 0.01;
 
     /***    Set initialization flag     ***/
 
@@ -213,10 +213,10 @@ odometryValue_t lldGetOdometryObjTettaDeg( void )
  */
 odometryValue_t lldGetOdometryObjX( uint8_t units )
 {
-    if     ( units == 1 )     return ( x_pos_m * m_2_mm );  // [ mm ]
-    else if( units == 10 )    return ( x_pos_m * m_2_cm );  // [ cm ]
-    else if( units == 100 )   return ( x_pos_m );           // [ m  ]
-    else                      return (-255);                // Error
+    if     ( units == 1 )     return ( x_pos_cm * cm_2_mm );  // [ mm ]
+    else if( units == 10 )    return ( x_pos_cm );            // [ cm ]
+    else if( units == 100 )   return ( x_pos_cm * cm_2_m);    // [ m  ]
+    else                      return (-255);                  // Error
 }
 
 /**
@@ -228,9 +228,9 @@ odometryValue_t lldGetOdometryObjX( uint8_t units )
  */
 odometryValue_t lldGetOdometryObjY( uint8_t units )
 {
-    if     ( units == 1 )     return ( y_pos_m * m_2_mm );  // [ mm ]
-    else if( units == 10 )    return ( y_pos_m * m_2_cm );  // [ cm ]
-    else if( units == 100 )   return ( y_pos_m );           // [ m  ]
-    else                      return (-255);                // Error
+    if     ( units == 1 )     return ( y_pos_cm * cm_2_mm );  // [ mm ]
+    else if( units == 10 )    return ( y_pos_cm );            // [ cm ]
+    else if( units == 100 )   return ( y_pos_cm * cm_2_m);    // [ m  ]
+    else                      return (-255);                  // Error
 }
 
