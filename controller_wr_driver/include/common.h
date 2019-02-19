@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define     PROGRAM_ROUTINE_MASTER                      0
 #define     PROGRAM_ROUTINE_TEST_LL_DRIVER              1

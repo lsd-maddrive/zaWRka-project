@@ -6,95 +6,66 @@
 
 #define ENCODER_GREEN_LINE  PAL_LINE( GPIOD, 3 )
 #define ENCODER_WHITE_LINE  PAL_LINE( GPIOD, 4 )
+#define ENCODER_NULL_LINE   PAL_LINE( GPIOD, 5 )
 
-rawEncoderValue_t   enc_trg_cntr    = 0;
-rawEncoderValue_t   enc_revs_cntr   = 0;
+rawEncoderValue_t   enc_tick_cntr       = 0;
+rawEncoderValue_t   enc_revs_cntr       = 0;
 
-EncoderValue_t      enc_rev_number      = 0;
-EncoderValue_t      enc_dir             = 0;
+rawEncoderValue_t   enc_null_revs_cntr  = 0;
 
-rawEncoderValue_t   enc_table_val       = 0;
-rawEncoderValue_t   curr_enc_state      = 0;
-rawEncoderValue_t   prev_enc_state      = 0;
+bool                enc_dir_state       = 0;
 
-
-rawEncoderValue_t   enc_decode_table[4] = {0, 1, 3, 2};
-
-/**
- * @brief   Get decimal values depends on 2 channels encoder state
- * @return  values [0, 3]
- */
-rawEncoderValue_t getEncoderState( void )
-{
-    rawEncoderValue_t res_enc = 0;
-    if( palReadLine( ENCODER_GREEN_LINE ) )     res_enc |= 0b01;
-    if( palReadLine( ENCODER_WHITE_LINE ) )     res_enc |= 0b10;
-
-    return res_enc;
-}
-
-
-
-
-static void extcb1(EXTDriver *extp, expchannel_t channel)
+static void extcb_base(EXTDriver *extp, expchannel_t channel)
 {
     (void)extp;
     (void)channel;
 
-    enc_trg_cntr += 1;
-
-
-    uint8_t i = 0;
-
-    rawEncoderValue_t enc_state = getEncoderState( );
-
-    for( i = 0; i < 4; i++ )
+    /***    To define direction of encoder rotation  ***/
+    if( palReadLine( ENCODER_WHITE_LINE ) == 0 )
     {
-        if( enc_state == enc_decode_table[i])
-        {
-            curr_enc_state = i;
-            break;
-        }
-    }
-
-    if( curr_enc_state > prev_enc_state )
-    {
-        if( prev_enc_state == 0 && curr_enc_state == 3 ) enc_dir = 'F';
-        else    enc_dir = 'B';
+        enc_tick_cntr    += 1;
+        enc_dir_state    = 1;       // counterclockwise
     }
     else
     {
-        if( prev_enc_state == 3 && curr_enc_state == 0 ) enc_dir = 'B';
-        else    enc_dir = 'F';
+        enc_tick_cntr    -= 1;
+        enc_dir_state    = 0;       // clockwise
     }
 
-    prev_enc_state = curr_enc_state;
-
-
-
-    if( enc_trg_cntr > (MAX_TICK_NUM * 2) )      enc_trg_cntr = 0;
-    if( enc_trg_cntr == (MAX_TICK_NUM * 2) )
+    /***    Reset counter when it reaches the MAX value  ***/
+    /***    Count encoder revolutions                    ***/
+    if( enc_tick_cntr == MAX_TICK_NUM )
     {
-        if( enc_dir == 'F') enc_rev_number += 1;
-        else enc_rev_number -= 1;
+        enc_revs_cntr   += 1;
+        enc_tick_cntr    = 0;
     }
-
-    enc_table_val = enc_state;
+    else if( enc_tick_cntr == -MAX_TICK_NUM )
+    {
+        enc_revs_cntr   -= 1;
+        enc_tick_cntr    = 0;
+    }
 
 }
 
-
-
-static void extcb2(EXTDriver *extp, expchannel_t channel)
+static void extcb_dir(EXTDriver *extp, expchannel_t channel)
 {
     (void)extp;
     (void)channel;
 
-    if( enc_dir == 'F' )    enc_revs_cntr += 1;
-    else                    enc_revs_cntr -= 1;
-
 }
 
+
+
+static void extcb_null(EXTDriver *extp, expchannel_t channel)
+{
+    (void)extp;
+    (void)channel;
+
+    if( enc_dir_state == 0 )  enc_null_revs_cntr -= 1;
+    else                      enc_null_revs_cntr += 1;
+
+
+}
 
 /********************************/
 /*** Configuration structures ***/
@@ -106,9 +77,9 @@ static const EXTConfig extcfg =
     {EXT_CH_MODE_DISABLED, NULL},
     {EXT_CH_MODE_DISABLED, NULL},
     {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb1}, // PD3
-    {EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb1}, // PD4
-    {EXT_CH_MODE_BOTH_EDGES | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb2}, // PD5
+    {EXT_CH_MODE_RISING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb_base}, // PD3
+    {EXT_CH_MODE_BOTH_EDGES  | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb_dir},  // PD4
+    {EXT_CH_MODE_RISING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb_null}, // PD5
     {EXT_CH_MODE_DISABLED, NULL},
     {EXT_CH_MODE_DISABLED, NULL},
     {EXT_CH_MODE_DISABLED, NULL},
@@ -148,25 +119,42 @@ void lldEncoderInit( void )
 }
 
 /**
- * @brief   Get raw encoder value
- * @return  raw encoder values (ticks)
+ * @brief   Get number of encoder ticks
+ * @note    Max number of ticks is defined by MAX_TICK_NUM
+ * @return  Encoder ticks number depends on direction of rotation
  */
-rawEncoderValue_t getEncoderRawTickNumber( void )
+rawEncoderValue_t lldGetEncoderRawTicks( void )
 {
-    return enc_trg_cntr;
+    return enc_tick_cntr;
 }
 
 /**
- * @brief   Get encoder revolutions number
- * @return  number of motor revs
+ * @brief   Get direction of encoder rotation
+ * @return  clockwise           -> 0
+ *          counterclockwise    -> 1
  */
-rawEncoderValue_t getEncoderRevsNumber( void )
+bool lldGetEncoderDirection( void )
+{
+    return enc_dir_state;
+}
+
+/**
+ * @brief   Get number of encoder revolutions
+ * @note    1 revolution = MAX_TICK_NUM ticks
+ * @return  Encoder revolutions number depends on direction of rotation
+ */
+rawEncoderValue_t   lldGetEncoderRawRevs( void )
 {
     return enc_revs_cntr;
 }
 
-
-dirEncoderValue_t getEncoderDirection( void )
+/**
+ * @brief   Get number of encoder revolutions
+ * @note    If you use absolute encoder!!!
+ * @return  Encoder revolutions number depends on direction of rotation
+ */
+rawEncoderValue_t   lldGetAbsoluteEncoderRawRevs( void )
 {
-    return enc_dir;
+    return enc_null_revs_cntr;
 }
+

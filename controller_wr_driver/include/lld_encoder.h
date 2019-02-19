@@ -2,8 +2,6 @@
 #define INCLUDE_LLD_ENCODER_H_
 
 typedef int32_t    rawEncoderValue_t;
-typedef int32_t    EncoderValue_t;
-typedef char    dirEncoderValue_t;
 
 
 /**
@@ -12,26 +10,34 @@ typedef char    dirEncoderValue_t;
  */
 void lldEncoderInit( void );
 
+/**
+ * @brief   Get number of encoder ticks
+ * @note    Max number of ticks is defined by MAX_TICK_NUM
+ * @return  Encoder ticks number depends on direction of rotation
+ */
+rawEncoderValue_t lldGetEncoderRawTicks( void );
 
 /**
- * @brief   Get raw encoder value
- * @return  raw encoder values (ticks)
+ * @brief   Get direction of encoder rotation
+ * @return  clockwise           -> 0
+ *          counterclockwise    -> 1
  */
-rawEncoderValue_t getEncoderRawTickNumber( void );
+bool lldGetEncoderDirection( void );
 
 /**
- * @brief   Get encoder revolutions number
- * @return  number of motor revs
+ * @brief   Get number of encoder revolutions
+ * @note    1 revolution = MAX_TICK_NUM ticks
+ * @return  Encoder revolutions number depends on direction of rotation
  */
-rawEncoderValue_t getEncoderRevsNumber( void );
+rawEncoderValue_t   lldGetEncoderRawRevs( void );
 
+
+/***    In case of ABSOLUTE ENCODER     ***/
 /**
- * @brief   Get decimal values depends on 2 channels encoder state
- * @return  values [0, 3]
+ * @brief   Get number of encoder revolutions
+ * @note    If you use absolute encoder!!!
+ * @return  Encoder revolutions number depends on direction of rotation
  */
-rawEncoderValue_t getEncoderState( void );
-
-dirEncoderValue_t getEncoderDirection( void );
-
+rawEncoderValue_t   lldGetAbsoluteEncoderRawRevs( void );
 
 #endif /* INCLUDE_LLD_ENCODER_H_ */
