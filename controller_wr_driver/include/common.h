@@ -43,4 +43,11 @@
 #define CONTROL_NULL        0
 #define CONTROL_MIN         (-100)
 
+/*************/
+/*** DEBUG ***/
+/*************/
+
+void debug_stream_init( void );
+void dbgprintf( const char* format, ... );
+
 #endif /* INCLUDE_COMMON_H_ */
