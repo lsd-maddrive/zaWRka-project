@@ -12,7 +12,7 @@
 #define     PROGRAM_ROUTINE_TEST_RAW_LL_DRIVE           2
 #define     PROGRAM_ROUTINE_TEST_ENCODER                3
 #define     PROGRAM_ROUTINE_TEST_RC                     4
-
+#define     PROGRAM_ROUTINE_TEST_ROS                    50
 
 #define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_RC
 
