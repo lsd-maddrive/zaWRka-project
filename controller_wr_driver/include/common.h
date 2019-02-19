@@ -12,17 +12,16 @@
 #define     PROGRAM_ROUTINE_TEST_LL_DRIVER              1
 #define     PROGRAM_ROUTINE_TEST_RAW_LL_DRIVE           2
 #define     PROGRAM_ROUTINE_TEST_ENCODER                3
-#define     PROGRAM_ROUTINE_TEST_SPEED_ENCODER          4
-#define     PROGRAM_ROUTINE_TEST_ODOMETRY               5
-#define     PROGRAM_ROUTINE_TEST_RC                     6
+#define     PROGRAM_ROUTINE_TEST_ODOMETRY               4
+#define     PROGRAM_ROUTINE_TEST_RC                     5
 
 
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ENCODER
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ODOMETRY
 
 
 /**************/
-/*** Macros ***/
+/*** MACROS ***/
 /**************/
 
 #define CLIP_VALUE(x, min, max) ((x) < (min) ? (min) :      \
