@@ -51,7 +51,7 @@ void testROSConnection( void )
 		ros_driver_send_encoder_raw( encoder_value );
 		ros_driver_send_encoder_speed( d_enc / d_time );
 
-		ros_driver_send_steering( 30 * sin( time / 1000 ) );
+		ros_driver_send_steering( 30 * sin( time / 100000 ) );
 
 		chThdSleepMilliseconds( 100 );
 	}
