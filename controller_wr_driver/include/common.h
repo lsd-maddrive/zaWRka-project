@@ -24,8 +24,6 @@
 #define CLIP_VALUE(x, min, max) ((x) < (min) ? (min) :      \
                                  (x) > (max) ? (max) : (x))
 
-
-
 /******************/
 /*** LLD LIMITS ***/
 /******************/
