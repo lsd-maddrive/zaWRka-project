@@ -1,4 +1,5 @@
 #include <ros.h>
+#include <ros_protos.h>
 
 /*===========================================================================*/
 /* ROS things                                                                */
@@ -28,7 +29,7 @@ std_msgs::Float32           f32_steer_angle_msg;
 geometry_msgs::Point32      odometry_pose;
 
 ros::Publisher                                  topic_encoder_raw("encoder_raw", &i32_enc_raw_msg);
-ros::Publisher                                  topic_encspeed_raw("encspeed_left", &f32_encspeed_raw_msg);
+ros::Publisher                                  topic_encspeed_raw("encspeed_raw", &f32_encspeed_raw_msg);
 ros::Publisher                                  topic_pose("odom_pose", &odometry_pose);
 ros::Publisher                                  topic_steer("steer_angle", &f32_steer_angle_msg);
 
@@ -69,14 +70,14 @@ void ros_driver_send_pose( float x, float y, float dir )
     topic_pose.publish( &odometry_pose );
 }
 
-void ros_driver_send_odometry( int32_t value )
+void ros_driver_send_encoder_raw( int32_t value )
 {
     i32_enc_raw_msg.data = value;
 
     topic_encoder_raw.publish(&i32_enc_raw_msg);
 }
 
-void ros_driver_send_odom_speed( float value )
+void ros_driver_send_encoder_speed( float value )
 {
     f32_encspeed_raw_msg.data = value;
 
@@ -88,9 +89,17 @@ void ros_driver_send_odom_speed( float value )
 /* SDU relative                                                              */
 /*===========================================================================*/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern const USBConfig usbcfg;
 extern SerialUSBConfig serusbcfg;
 extern SerialUSBDriver SDU1;
+
+#ifdef __cplusplus
+}
+#endif
 
 // SerialDriver    *ros_sd     = &SD5;
 /* Must be named <ros_sd_ptr> for ChibiOSHardware */

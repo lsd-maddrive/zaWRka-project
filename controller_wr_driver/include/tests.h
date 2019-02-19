@@ -11,7 +11,7 @@
  * @brief	Routine of ROS connection test via USB
  * @note 	USB bus is used (for ROS activity, not test)
  */
-void testROSConnection( void )
+void testROSConnection( void );
 
 /*
  * @brief   Routine of low level driver control testing
@@ -59,7 +59,7 @@ static inline void testsRoutines( void )
 
     testROSConnection( );
 
-#if (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LL_DRIVER)
+#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LL_DRIVER)
 
     testWheelsControlRoutines( );
 

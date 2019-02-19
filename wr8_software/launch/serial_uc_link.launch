@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<!-- ros-kinetic-rosserial-msgs required!! -->
+
+<!-- https://answers.ros.org/question/41446/a-is-not-in-your-ssh-known_hosts-file/?answer=42629#post-id-42629 -->
+
+<launch>
+	<!-- <machine name="rpi" user="ubuntu" address="192.168.31.93" /> -->
+	<arg name="device" default="/dev/ttyACM1" />
+	<!-- <arg name="device" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0" /> -->
+
+    <group ns="robot">
+
+        <node pkg="rosserial_python" type="serial_node.py" name="quadro_node" output="screen" respawn="true">
+            <param name="port" value="$(arg device)" /> 
+            <param name="baud" value="9600" /> 
+        </node> 
+
+        <!-- <node pkg="metal_tank_software" type="odometry_pub.py" name="odometry_node" output="screen" respawn="false"> -->
+        <!-- </node>     -->
+    </group>
+</launch>
