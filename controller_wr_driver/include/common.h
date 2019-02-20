@@ -16,7 +16,7 @@
 #define     PROGRAM_ROUTINE_TEST_RC                     5
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ROS
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ODOMETRY
 
 
 /**************/
