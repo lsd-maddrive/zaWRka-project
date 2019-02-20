@@ -2,8 +2,6 @@
 #include <tests.h>
 #include <chprintf.h>
 
-
-
 int main(void)
 {
     chSysInit();

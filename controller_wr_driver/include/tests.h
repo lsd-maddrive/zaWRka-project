@@ -8,6 +8,12 @@
 /****************************/
 
 /*
+ * @brief	Routine of ROS connection test via USB
+ * @note 	USB bus is used (for ROS activity, not test)
+ */
+void testROSConnection( void );
+
+/*
  * @brief   Routine of low level driver control testing
  * @note    The routine has internal infinite loop
  * @note    Changing raw values of pwm dutycycle
@@ -47,10 +53,13 @@ void testOdometryRoutine( void );
 void testRemoteControlRoutine( void );
 
 
-
 static inline void testsRoutines( void )
 {
-#if (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LL_DRIVER)
+#if (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS)
+
+    testROSConnection( );
+
+#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LL_DRIVER)
 
     testWheelsControlRoutines( );
 

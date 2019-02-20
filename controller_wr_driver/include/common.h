@@ -14,10 +14,9 @@
 #define     PROGRAM_ROUTINE_TEST_ENCODER                3
 #define     PROGRAM_ROUTINE_TEST_ODOMETRY               4
 #define     PROGRAM_ROUTINE_TEST_RC                     5
+#define     PROGRAM_ROUTINE_TEST_ROS                    60
 
-
-
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ODOMETRY
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ROS
 
 
 /**************/
