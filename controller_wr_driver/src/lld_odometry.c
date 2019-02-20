@@ -22,6 +22,8 @@ float    obj_gain       = 0.105;
 float    tetta_k_rad    = 0;
 float    tetta_k_deg    = 0;
 
+float    d_t            = 0.01;
+
 float    cm_2_mm        = 0;
 float    cm_2_m         = 0;
 
@@ -64,8 +66,7 @@ odometrySpeedValue_t        speed_m_per_sec         = 0;
 /***     Variables for odometry   ***/
 /************************************/
 
-odometryValue_t             tetta_deg_angle_per_sec = 0;
-odometryValue_t             tetta_rad_angle_per_sec = 0;
+odometryValue_t             tetta_rad_angle          = 0;
 odometryValue_t             x_pos_cm                 = 0;
 odometryValue_t             y_pos_cm                 = 0;
 
@@ -97,20 +98,20 @@ static void gptcb (GPTDriver *gptd)
 
     /***        Tetta calculation              ***/
     /* steer_angle = getSteerAngleRadValue() !!!!! need to add !!!*/
-    odometryValue_t steer_angl_rad = 0; // just to avoid errors!!!
+    odometryValue_t steer_angl_rad = 0.017; // just to avoid errors!!!
     /*** It is tetta angle, not changing speed of tetta! ***/
-    tetta_rad_angle_per_sec +=  ( speed_m_per_sec * tan( steer_angl_rad ) * tetta_k_rad );
+    tetta_rad_angle +=  ( speed_m_per_sec * tan( steer_angl_rad ) * tetta_k_rad );
 
     /*** Reset tetta integral ***/
-    if(tetta_rad_angle_per_sec == ( 2 * M_PI ) ) tetta_rad_angle_per_sec = 0;
+    if(tetta_rad_angle >= ( 2 * M_PI ) ) tetta_rad_angle = 0;
     /**********************************************/
 
     /***        X calculation                  ***/
-    x_pos_cm += (speed_m_per_sec * cos(tetta_rad_angle_per_sec));
+    x_pos_cm += (speed_m_per_sec * cos(tetta_rad_angle)) * d_t;
     /*********************************************/
 
     /***        Y calculation                  ***/
-    y_pos_cm += (speed_m_per_sec * sin(tetta_rad_angle_per_sec));
+    y_pos_cm += (speed_m_per_sec * sin(tetta_rad_angle)) * d_t;
     /*********************************************/
 
 }
@@ -147,7 +148,7 @@ void lldOdometryInit( void )
     dist_k_cm   = 2 * M_PI * WHEEL_RADIUS_CM * obj_gain;
     dist_k_m    = 2 * M_PI * WHEEL_RADIUS_CM * obj_gain / 100 ;
 
-    tetta_k_rad = 1 / WHEEL_BASE_M;
+    tetta_k_rad = d_t / WHEEL_BASE_M;
     tetta_k_deg = 180 / M_PI;
 
     cm_2_mm       = 10;
@@ -192,7 +193,7 @@ odometrySpeedValue_t lldGetOdometryObjSpeedMPS( void )
  */
 odometryValue_t lldGetOdometryObjTettaRad( void )
 {
-    return tetta_rad_angle_per_sec;
+    return tetta_rad_angle;
 }
 
 /**
@@ -201,7 +202,7 @@ odometryValue_t lldGetOdometryObjTettaRad( void )
  */
 odometryValue_t lldGetOdometryObjTettaDeg( void )
 {
-    return ( tetta_rad_angle_per_sec * tetta_k_deg );
+    return ( tetta_rad_angle * tetta_k_deg );
 }
 
 /**
