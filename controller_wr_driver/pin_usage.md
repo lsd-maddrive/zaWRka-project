@@ -14,8 +14,14 @@ Driver | Pins | Input / Output
 ## Драйвер работы с энкодером
 Driver | Pins | Input / Output
 -------|------|-------
-EXT | PD3 | Input (channel 3)
-EXT | PD4 | Input (channel 4)
+   EXT |  PD3 | Input (channel 3)
+   EXT |  PD4 | Input (channel 4)
+   EXT |  PD5 | Input (channel 5)
+
+## Драйвер одометрии
+Driver | Pins | Input / Output
+-------|------|-------
+  GPT2 |	  | 
 
 ## Драйвер ручного управления
 Driver | Pins | Input / Output
