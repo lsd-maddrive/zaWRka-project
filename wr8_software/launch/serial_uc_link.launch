@@ -19,4 +19,6 @@
         <node pkg="wr8_software" type="odometry_pub.py" name="odometry_node" output="screen" respawn="false">
         </node>    
     </group>
+
+    <remap from="robot/steer_angle" to="gui/steering" />
 </launch>
