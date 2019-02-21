@@ -103,7 +103,15 @@ static void gptcb (GPTDriver *gptd)
     tetta_rad_angle +=  ( speed_m_per_sec * tan( steer_angl_rad ) * tetta_k_rad );
 
     /*** Reset tetta integral ***/
-    if(tetta_rad_angle >= ( 2 * M_PI ) ) tetta_rad_angle = 0;
+    /*** NOTE 0 = 360         ***/
+    if(tetta_rad_angle > ( 2 * M_PI ) )
+    {
+            tetta_rad_angle   = tetta_rad_angle - ( 2 * M_PI );
+    }
+    if( tetta_rad_angle < 0 )
+    {
+        tetta_rad_angle = ( 2 * M_PI ) - abs(tetta_rad_angle);
+    }
     /**********************************************/
 
     /***        X calculation                  ***/
