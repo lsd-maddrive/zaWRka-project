@@ -16,14 +16,12 @@ void testEncoderCommonRoutine( void )
 
     lldEncoderInit( );
 
-
-    rawEncoderValue_t   enc_test_ticks       = 0;
-    rawEncoderValue_t   enc_test_revs        = 0;
+    rawEncoderValue_t       enc_test_ticks       = 0;
+    rawRevEncoderValue_t    enc_test_revs        = 0;
 #ifdef ABSOLUTE_ENCODER
     rawEncoderValue_t   enc_test_abs_revs    = 0;
 #endif
     bool                enc_test_dir         = 0;
-
 
     chprintf( (BaseSequentialStream *)&SD7, "TEST ENCODER\n\r" );
 

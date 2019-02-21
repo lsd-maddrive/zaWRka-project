@@ -14,6 +14,8 @@
 #define     PROGRAM_ROUTINE_TEST_ENCODER                3
 #define     PROGRAM_ROUTINE_TEST_ODOMETRY               4
 #define     PROGRAM_ROUTINE_TEST_RC                     5
+#define     PROGRAM_ROUTINE_TEST_STEERING_ANGLE         6
+#define     PROGRAM_TEST_GUI_SERVER                     20
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
 
 #define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ODOMETRY
@@ -59,6 +61,7 @@ void dbgprintf( const char* format, ... );
 /****************************/
 
 #define WHEEL_RADIUS_CM     4
+#define WHEEL_RADIUS_M      0.04
 #define WHEEL_BASE_CM       30
 #define WHEEL_BASE_M        0.3
 

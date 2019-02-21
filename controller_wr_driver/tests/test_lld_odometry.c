@@ -8,7 +8,7 @@ static const SerialConfig sdcfg = {
 };
 
 
-#define TETTA_ODOMETRY
+#define TOTAL_ODOMETRY
 
 
 void testOdometryRoutine( void )
@@ -34,19 +34,19 @@ void testOdometryRoutine( void )
 
     while( 1 )
     {
-        test_distance   = lldGetOdometryObjDistance( 10 );  // in cm
+        test_distance   = lldGetOdometryObjDistance( OBJ_DIST_CM );
         test_speed_rps  = lldGetOdometryRawSpeedRPS( );
         test_speed_cmps = lldGetOdometryObjSpeedCMPS( );
         test_speed_mps  = lldGetOdometryObjSpeedMPS( );
         test_tetta_rad  = lldGetOdometryObjTettaRad( );
         test_tetta_deg  = lldGetOdometryObjTettaDeg( );
-        test_x_pos      = lldGetOdometryObjX( 10 );         // in cm
+        test_x_pos      = lldGetOdometryObjX( OBJ_DIST_CM );         // in cm
         test_y_pos      = lldGetOdometryObjY( 10 );         // in cm
 
 
 #ifdef TOTAL_ODOMETRY
         chprintf( (BaseSequentialStream *)&SD7, "DIST:(%d)\tRPS:(%d)\tCMPS:(%d)\tMPS:(%d)\tT_R:(%d)\tT_D:(%d)\tX:(%d)\tY:(%d)\n\r",
-                  (int)test_distance, test_speed_rps, (int)test_speed_cmps, (int)test_speed_mps,
+                  (int)test_distance, (int)test_speed_rps, (int)test_speed_cmps, (int)test_speed_mps,
                   (int)test_tetta_rad, (int)test_tetta_deg,
                   (int)test_x_pos, (int)test_y_pos );
 #endif

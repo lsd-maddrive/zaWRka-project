@@ -52,6 +52,10 @@ void testOdometryRoutine( void );
  */
 void testRemoteControlRoutine( void );
 
+void testSteeringControl (void);
+
+void testGUIRoutineServer ( void );
+
 
 static inline void testsRoutines( void )
 {
@@ -78,6 +82,15 @@ static inline void testsRoutines( void )
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ODOMETRY )
 
     testOdometryRoutine( );
+
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEERING_ANGLE )
+
+    testSteeringControl( );
+
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_TEST_GUI_SERVER )
+
+    testGUIRoutineServer( );
+
 
 #endif
 }
