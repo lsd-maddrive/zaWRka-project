@@ -14,9 +14,9 @@
         <node pkg="rosserial_python" type="serial_node.py" name="quadro_node" output="screen" respawn="true">
             <param name="port" value="$(arg device)" /> 
             <param name="baud" value="9600" /> 
-        </node> 
+        </node>
 
-        <!-- <node pkg="metal_tank_software" type="odometry_pub.py" name="odometry_node" output="screen" respawn="false"> -->
-        <!-- </node>     -->
+        <node pkg="wr8_software" type="odometry_pub.py" name="odometry_node" output="screen" respawn="false">
+        </node>    
     </group>
 </launch>
