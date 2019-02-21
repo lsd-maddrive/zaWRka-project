@@ -23,6 +23,12 @@ Driver | Pins | Input / Output
 -------|------|-------
   GPT2 |	  | 
 
+## Драйвер OC от рулевой сервы
+Driver | Pins | Input / Output
+-------|------|-------
+  ADC1 | PC0  | Input (Channel 10)
+  
+
 ## Драйвер ручного управления
 Driver | Pins | Input / Output
 -------|------|-------
