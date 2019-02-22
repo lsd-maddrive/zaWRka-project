@@ -1,5 +1,5 @@
-#ifndef INCLUDE_LLD_STEERING_CONTROL_H_
-#define INCLUDE_LLD_STEERING_CONTROL_H_
+#ifndef INCLUDE_LLD_STEER_ANGLE_FB_H_
+#define INCLUDE_LLD_STEER_ANGLE_FB_H_
 
 #define ADC_RES_CONF                ADC_CR1_12B_RESOLUTION
 
@@ -66,4 +66,4 @@ int16_t lldSteeringControlGetAdcVal_doublefilt (void);
  */
 int16_t lldGetSteerDegAngle (void);
 
-#endif /* INCLUDE_LLD_STEERING_CONTROL_H_ */
+#endif /* INCLUDE_LLD_STEER_ANGLE_FB_H_ */

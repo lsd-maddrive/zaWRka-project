@@ -1,11 +1,21 @@
 #include <tests.h>
-#include <lld_steering_control.h>
+#include <lld_steer_angle_fb.h>
 
 
 
 /**************************/
 /*** CONFIGURATION ZONE ***/
 /**************************/
+
+/*
+ * R1_left  = 56.5 cm => tg = L / R1 = 0.53097 => 28 deg
+ * R1_right = 44   cm => tg = L / R1 = 0.6818  => 34 deg
+ * */
+
+#define STEER_MAX_LEFT_ANGLE_DEG    28
+#define STEER_MAX_RIGHT_ANGLE_DEG   34
+
+
 
 
 /*

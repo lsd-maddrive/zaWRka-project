@@ -1,6 +1,8 @@
 #include <tests.h>
-#include <lld_steering_control.h>
+#include <lld_steer_angle_fb.h>
 
+
+#include <lld_control.h>
 
 int32_t AdcVal = 0;
 int16_t PosVal = 0;
@@ -86,4 +88,36 @@ void testSteeringControl (void)
 }
 
 
+/*
+ * Test for steering angle calculation
+ * */
+void testSteerAngleDetection( void )
+{
+    sdStart( &SD7, &sdcfg );
+    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );    // TX
+    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );    // RX
+
+    lldControlInit( );
+
+    while(1)
+    {
+        char rc_data = sdGet( &SD7 );
+        switch( rc_data )
+        {
+             case 'a':      // turn right
+               lldControlSetSteerMotorPower( -100 );
+               break;
+             case 'q':
+               lldControlSetSteerMotorPower( 0 );
+               break;
+             case 'z':      // turn left
+               lldControlSetSteerMotorPower( 100 );
+               break;
+        }
+
+        chThdSleepMilliseconds( 200 );
+    }
+
+
+}
 

@@ -52,10 +52,23 @@ void testOdometryRoutine( void );
  */
 void testRemoteControlRoutine( void );
 
+/****************************/
+/*** Steering Angle tests ***/
+/****************************/
+
+
 void testSteeringControl (void);
 
-void testGUIRoutineServer ( void );
+/*
+ * @brief   Control steering wheels to get angle
+ * @note    Control ONLY steering wheels
+ */
+void testSteerAngleDetection( void );
 
+/***********************/
+/***    GUI tests    ***/
+/***********************/
+void testGUIRoutineServer ( void );
 
 static inline void testsRoutines( void )
 {
@@ -86,6 +99,10 @@ static inline void testsRoutines( void )
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEERING_ANGLE )
 
     testSteeringControl( );
+
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEER_ANGL_CALC)
+
+    testSteerAngleDetection( );
 
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_TEST_GUI_SERVER )
 
