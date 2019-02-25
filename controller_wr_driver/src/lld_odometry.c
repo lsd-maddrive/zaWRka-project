@@ -1,6 +1,7 @@
 #include <tests.h>
 #include <lld_encoder.h>
 #include <lld_odometry.h>
+#include <lld_steer_angle_fb.h>
 
 /************************************/
 /***    GPT Configuration Zone    ***/
@@ -47,7 +48,7 @@ odometryValue_t lldGetOdometryObjDistance( odometryDistanceUnit_t units )
 /***     Variables for speed      ***/
 /************************************/
 
-rawEncoderValue_t           prev_revs           = 0;
+float                       prev_revs           = 0;
 odometryRawSpeedValue_t     revs_per_sec        = 0;
 
 odometryValue_t             prev_distance       = 0;
@@ -75,6 +76,7 @@ static void gptcb (GPTDriver *gptd)
     rawRevEncoderValue_t   cur_revs   = lldGetEncoderRawRevs( );
 
     revs_per_sec    = (cur_revs - prev_revs) * MS_2_SEC;
+
     prev_revs       = cur_revs;
     /*********************************************/
 
@@ -84,14 +86,15 @@ static void gptcb (GPTDriver *gptd)
     /*  [cm/10ms] * 1000 = [cm/c]   */
     speed_cm_per_sec    = (cur_distance - prev_distance ) * MS_2_SEC;
     /*  [cm/s] * 0.01 = [m/s]       */
-    speed_m_per_sec     = speed_cm_per_sec * CM_2_M;
+    speed_m_per_sec     = speed_cm_per_sec * 0.01;//CM_2_M;
 
     prev_distance       = cur_distance;
     /*********************************************/
 
     /***        Tetta calculation              ***/
     /* steer_angle = getSteerAngleRadValue() !!!!! need to add !!!*/
-    odometryValue_t steer_angl_rad = 0.017; // just to avoid errors!!!
+    steerAngleRawValue_t    steer_mean_adc_val = lldGetFiltrMeanRawADCSteerAngleFB( );
+    odometryValue_t         steer_angl_rad = lldGetRadSteerAngleFB( steer_mean_adc_val );
     /*** It is tetta angle, not changing speed of tetta! ***/
     tetta_rad_angle +=  ( speed_m_per_sec * tan( steer_angl_rad ) * tetta_k_rad );
 

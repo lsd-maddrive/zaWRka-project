@@ -1,32 +1,52 @@
 #ifndef INCLUDE_LLD_STEER_ANGLE_FB_H_
 #define INCLUDE_LLD_STEER_ANGLE_FB_H_
 
-#define ADC_RES_CONF                ADC_CR1_12B_RESOLUTION
+typedef uint32_t    steerAngleRawValue_t;
+typedef float       steerAngleRadValue_t;
+typedef float       steerAngleDegValue_t;
 
-/*Steer sensor position input */
-#define ADC_SEQ1_NUM                ADC_CHANNEL_IN10
-#define ADC_SEQ1_LINE               PAL_LINE( GPIOC, 0 )
-#define ADC_SEQ1_CH                 0
+
 
 /**
- * @brief       Preparing to start ADC operations
+ * @brief       Initialization of unit for steering angle feedback
+ * @note        ADC initialization and GPT initialization
 */
-void InitAdc ( void );
+void lldSteerAngleFBInit ( void );
 
 /**
- * @brief       Get value of ADC channel
- * @return      Value of ADC sampling
+ * @brief       Get raw value of steering angle
+ * @return      ADC value [0; 4096]
 */
-adcsample_t GetAdcVal ( void );
+steerAngleRawValue_t lldGetRawADCSteerAngleFB (void);
+
+/**
+ * @brief       Get raw filtered value of steering angle
+ * @return      ADC value [0; 4096]
+ * @note        Mean filter
+*/
+steerAngleRawValue_t lldGetFiltrMeanRawADCSteerAngleFB ( void );
+
+/**
+ * @brief       Get steering angle [rad]
+ * @return      max_right   ->  STEER_RAD_RIGHT
+ *              center      ->  STEER_RAD_CENTER
+ *              max_left    ->  STEER_RAD_LEFT
+*/
+steerAngleRadValue_t lldGetRadSteerAngleFB ( steerAngleRawValue_t steer_adc_val );
+
+/**
+ * @brief       Get steering angle [deg]
+ * @return      max_right   ->  -34
+ *              center      ->  0
+ *              max_left    ->  28
+ *@note         IMPORTANT!
+ *              Use AFTER Initialization
+*/
+steerAngleDegValue_t lldGetDegSteerAngleFB( steerAngleRadValue_t rad_angle );
 
 
 
-/* Additional ADC constants */
-#define ADC_CR1_12B_RESOLUTION      (0)
-#define ADC_CR1_10B_RESOLUTION      (ADC_CR1_RES_0)
-#define ADC_CR1_8B_RESOLUTION       (ADC_CR1_RES_1)
-#define ADC_CR1_6B_RESOLUTION       (ADC_CR1_RES_0 | ADC_CR1_RES_1)
-
+/***    NOT FIXED    ***/
 
 typedef int16_t           degSteerAngleValue_t;
 

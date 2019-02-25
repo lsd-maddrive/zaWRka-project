@@ -1,9 +1,9 @@
 #ifndef INCLUDE_LLD_ODOMETRY_H_
 #define INCLUDE_LLD_ODOMETRY_H_
 
-typedef double  odometryValue_t;
-typedef double  odometryRawSpeedValue_t;
-typedef double  odometrySpeedValue_t;
+typedef float  odometryValue_t;
+typedef float  odometryRawSpeedValue_t;
+typedef float  odometrySpeedValue_t;
 
 typedef enum mySpeedUnits{
   MM_S  = 1000,

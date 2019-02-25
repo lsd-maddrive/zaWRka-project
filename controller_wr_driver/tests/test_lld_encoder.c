@@ -21,7 +21,7 @@ void testEncoderCommonRoutine( void )
 #ifdef ABSOLUTE_ENCODER
     rawEncoderValue_t   enc_test_abs_revs    = 0;
 #endif
-    bool                enc_test_dir         = 0;
+    uint8_t                enc_test_dir         = 0;
 
     chprintf( (BaseSequentialStream *)&SD7, "TEST ENCODER\n\r" );
 
@@ -40,7 +40,7 @@ void testEncoderCommonRoutine( void )
                   enc_test_ticks, enc_test_revs, enc_test_abs_revs, enc_test_dir);
 #else
         chprintf( (BaseSequentialStream *)&SD7, "Ticks:(%d)\tRevs:(%d)\tDir:(%d)\n\r",
-                         enc_test_ticks, enc_test_revs, enc_test_dir);
+                         enc_test_ticks, (int)enc_test_revs, enc_test_dir);
 #endif
 
         chThdSleepMilliseconds( 200 );

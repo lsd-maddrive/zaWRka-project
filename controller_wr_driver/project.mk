@@ -14,6 +14,7 @@ PROJECT_TESTS   = tests/test_lld_control.c     		\
 				  tests/test_lld_steer_angle_fb.c	\
 				  tests/test_ros.c					\
 				  tests/test_gui_server.c			\
+				  tests/test_ros_odometry.c			\
 				  		
 PROJECT_CSRC    = src/main.c src/common.c src/debug.c src/usbcfg.c \
     				$(PROJECT_MODULES) $(PROJECT_TESTS)

@@ -2,7 +2,7 @@
 #define INCLUDE_LLD_ENCODER_H_
 
 typedef int32_t    rawEncoderValue_t;
-typedef double     rawRevEncoderValue_t;
+typedef float      rawRevEncoderValue_t;
 
 
 /**
