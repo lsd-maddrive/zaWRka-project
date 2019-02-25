@@ -5,16 +5,8 @@ from geometry_msgs.msg import Point32, Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 import tf
 
-
-
 if __name__ == '__main__':
-    rospy.init_node('sample_odometry')
-
-    smpl_x = 0
-    # rate = rospy.Rate(1)
-
-    # for i in range(10):
-    current_time = 
+    rospy.init_node('rst_odom')
 
     odom_broadcaster = tf.TransformBroadcaster()
     odom_broadcaster.sendTransform(

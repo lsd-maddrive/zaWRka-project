@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <launch>
 
+  <node name="reset_odom" pkg="wr8_software" type="reset_odometry.py">
+  </node>
+
   <!-- Can be - gmapping / heactor_mapping -->
   <arg name="mapping_algorithm" default="hector_mapping" />
 
