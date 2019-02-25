@@ -4,13 +4,14 @@ import rospy
 from geometry_msgs.msg import Point32, Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 import tf
+import math as m
 
 odom_broadcaster = tf.TransformBroadcaster()
 odom_pub = None
 
 def callback(msg):
     current_time = rospy.Time.now()
-    odom_quat = tf.transformations.quaternion_from_euler(0, 0, msg.z)
+    odom_quat = tf.transformations.quaternion_from_euler(0, 0, m.radians(msg.z))
 
     odom_broadcaster.sendTransform(
         (msg.x, msg.y, 0.),
