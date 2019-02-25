@@ -27,6 +27,12 @@ typedef enum myDistUnits{
 void lldOdometryInit( void );
 
 /**
+ * @brief   Reset x, y, tetta
+ */
+void lldResetOdomety( void );
+
+
+/**
  * @brief   Get distance that object has passed
  * @return  Distance in specified units
  */

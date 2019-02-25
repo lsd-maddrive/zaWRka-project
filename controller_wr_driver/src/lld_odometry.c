@@ -225,3 +225,12 @@ odometryValue_t lldGetOdometryObjY( odometryDistanceUnit_t units )
     return ( y_pos_m * units );
 }
 
+/**
+ * @brief   Reset x, y, tetta
+ */
+void lldResetOdomety( void )
+{
+    x_pos_m = 0;
+    y_pos_m = 0;
+    tetta_rad_angle = 0;
+}
