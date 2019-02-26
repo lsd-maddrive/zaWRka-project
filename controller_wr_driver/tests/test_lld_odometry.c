@@ -20,8 +20,6 @@ void testOdometryRoutine( void )
 
     lldOdometryInit( );
 
-    lldSteerAngleFBInit( );
-
     odometryValue_t         test_distance   = 0;
     odometryRawSpeedValue_t test_speed_rps  = 0;
     odometrySpeedValue_t    test_speed_cmps = 0;
@@ -47,12 +45,12 @@ void testOdometryRoutine( void )
         test_speed_mps  = lldGetOdometryObjSpeedMPS( );
         test_tetta_rad  = lldGetOdometryObjTettaRad( );
         test_tetta_deg  = lldGetOdometryObjTettaDeg( );
-        test_x_pos      = lldGetOdometryObjX( OBJ_DIST_CM );         // in cm
-        test_y_pos      = lldGetOdometryObjY( OBJ_DIST_CM );         // in cm
+        test_x_pos      = lldGetOdometryObjX( OBJ_DIST_CM );
+        test_y_pos      = lldGetOdometryObjY( OBJ_DIST_CM );
 
-        test_raw_fb     = lldGetFiltrMeanRawADCSteerAngleFB( );
-        test_rad_fb     = lldGetRadSteerAngleFB( test_raw_fb );
-        test_deg_fb     = lldGetDegSteerAngleFB( test_rad_fb );
+        test_raw_fb     = lldGetSteerAngleFiltrMeanRawADC( );
+        test_rad_fb     = lldGetSteerAngleRad( );
+        test_deg_fb     = lldGetSteerAngleDeg( );
 
 
 #ifdef TOTAL_ODOMETRY

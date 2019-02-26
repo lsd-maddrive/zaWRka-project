@@ -9,7 +9,7 @@ set(dat, 'ByteOrder', 'littleEndian')
 
 disp 'Ok!'
 
-start = 's';
+start = 'p';
 fwrite(dat, start, 'uint8'); 
 
 A = [];

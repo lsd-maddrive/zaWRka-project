@@ -22,12 +22,13 @@ typedef enum myDistUnits{
  * @brief   Initialize periphery connected to odometry unit
  * @note    Stable for repeated calls
  *          lldEncoderInit is done in this function,
- *          do not initialize it again!
+ *          do not initialize it again!!!!!
  */
 void lldOdometryInit( void );
 
 /**
  * @brief   Reset x, y, tetta
+ * @note    x [m], y [m], tetta [rad]
  */
 void lldResetOdomety( void );
 

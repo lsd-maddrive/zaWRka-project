@@ -56,15 +56,18 @@ void testRemoteControlRoutine( void );
 /*** Steering Angle tests ***/
 /****************************/
 
-
-void testSteeringControl (void);
-
+/*
+ * @brief   Test for routine of getting steering angle
+ * @note    There are 2 options:
+ *          * send data to Matlab
+ *          * send data to Terminal
+*/
 void testSteerAngleSendData( void );
 
 /*
  * @brief   Control steering wheels to get angle
  * @note    Control ONLY steering wheels
- */
+*/
 void testSteerAngleDetection( void );
 
 /***********************/
@@ -105,21 +108,17 @@ static inline void testsRoutines( void )
 
     testOdometryRoutine( );
 
-#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEERING_ANGLE )
-
-    testSteeringControl( );
-
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEER_ANGL_CALC)
 
     testSteerAngleDetection( );
 
-#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_TEST_GUI_SERVER )
-
-    testGUIRoutineServer( );
-
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND )
 
     testSteerAngleSendData( );
+
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_TEST_GUI_SERVER )
+
+    testGUIRoutineServer( );
 
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS_ODOMETRY )
 

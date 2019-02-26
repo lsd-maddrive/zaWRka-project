@@ -92,9 +92,7 @@ static void gptcb (GPTDriver *gptd)
     /*********************************************/
 
     /***        Tetta calculation              ***/
-    /* steer_angle = getSteerAngleRadValue() !!!!! need to add !!!*/
-    steerAngleRawValue_t    steer_mean_adc_val = lldGetFiltrMeanRawADCSteerAngleFB( );
-    odometryValue_t         steer_angl_rad = lldGetRadSteerAngleFB( steer_mean_adc_val );
+    odometryValue_t         steer_angl_rad = lldGetSteerAngleRad( );
     /*** It is tetta angle, not changing speed of tetta! ***/
     tetta_rad_angle +=  ( speed_m_per_sec * tan( steer_angl_rad ) * tetta_k_rad );
 
@@ -146,6 +144,8 @@ void lldOdometryInit( void )
     gptStartContinuous( gptDriver, gpt_period );
 
     lldEncoderInit( );
+
+    lldSteerAngleFBInit( );
 
     /***    Coefficient calculation     ***/
     odom_dist_4_obj = 2 * M_PI * WHEEL_RADIUS_M * obj_gain;
@@ -227,6 +227,7 @@ odometryValue_t lldGetOdometryObjY( odometryDistanceUnit_t units )
 
 /**
  * @brief   Reset x, y, tetta
+ * @note    x [m], y [m], tetta [rad]
  */
 void lldResetOdomety( void )
 {

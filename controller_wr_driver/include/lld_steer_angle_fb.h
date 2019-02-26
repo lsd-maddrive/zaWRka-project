@@ -13,18 +13,39 @@ typedef float       steerAngleDegValue_t;
 */
 void lldSteerAngleFBInit ( void );
 
+/*============================================================================*/
+/* ADC FUNCS                                                                  */
+/* ===========================================================================*/
+
 /**
  * @brief       Get raw value of steering angle
  * @return      ADC value [0; 4096]
 */
-steerAngleRawValue_t lldGetRawADCSteerAngleFB (void);
+steerAngleRawValue_t lldGetSteerAngleRawADC (void);
+
+/***     ADC FILTER FUNCS    ***/
 
 /**
  * @brief       Get raw filtered value of steering angle
  * @return      ADC value [0; 4096]
  * @note        Mean filter
+ *              NEED TO SET
+ *              STEER_ACTIVE_FILTER = STEER_FILTER_MEAN
 */
-steerAngleRawValue_t lldGetFiltrMeanRawADCSteerAngleFB ( void );
+steerAngleRawValue_t lldGetSteerAngleFiltrMeanRawADC ( void );
+
+/**
+ * @brief       Get raw filtered value of steering angle
+ * @return      ADC value [0; 4096]
+ * @note        Low pass Filter ( LPF )
+ *              NEED TO SET
+ *              STEER_ACTIVE_FILTER = STEER_FILTER_LPF
+*/
+steerAngleRawValue_t lldGetSteerAngleFiltrLPFRawADC ( void );
+
+/*============================================================================*/
+/* ANGLE FUNCS                                                                */
+/* ===========================================================================*/
 
 /**
  * @brief       Get steering angle [rad]
@@ -32,7 +53,7 @@ steerAngleRawValue_t lldGetFiltrMeanRawADCSteerAngleFB ( void );
  *              center      ->  STEER_RAD_CENTER
  *              max_left    ->  STEER_RAD_LEFT
 */
-steerAngleRadValue_t lldGetRadSteerAngleFB ( steerAngleRawValue_t steer_adc_val );
+steerAngleRadValue_t lldGetSteerAngleRad ( void );
 
 /**
  * @brief       Get steering angle [deg]
@@ -42,48 +63,6 @@ steerAngleRadValue_t lldGetRadSteerAngleFB ( steerAngleRawValue_t steer_adc_val 
  *@note         IMPORTANT!
  *              Use AFTER Initialization
 */
-steerAngleDegValue_t lldGetDegSteerAngleFB( steerAngleRadValue_t rad_angle );
-
-
-
-/***    NOT FIXED    ***/
-
-typedef int16_t           degSteerAngleValue_t;
-
-/*
- * @brief   Initialize front wheels control
- */
-void lldSteeringControlInit (void);
-
-/*
- * @brief   Get ADC value
- * @return  ADC value from 0 to 4095 equal front wheels position
- */
-int16_t lldSteeringControlGetAdcVal (void);
-
-/*
- * @brief   Get ADC filtered value
- * @return  ADC value from 0 to 4095 equal front wheels position
- */
-int16_t lldSteeringControlGetAdcVal_Kalman (void);
-
-/*
- * @brief   Get ADC filtered value
- * @return  ADC value from 0 to 4095 equal front wheels position
- */
-int16_t lldSteeringControlGetAdcVal_filt (void);
-
-/*
- * @brief   Get ADC double-filtered value
- * @return  ADC value from 0 to 4095 equal front wheels position
- */
-int16_t lldSteeringControlGetAdcVal_doublefilt (void);
-
-
-/*
- * @brief   Get angle of rotate
- * @return  Angle of wheels rotate
- */
-int16_t lldGetSteerDegAngle (void);
+steerAngleDegValue_t lldGetSteerAngleDeg( void );
 
 #endif /* INCLUDE_LLD_STEER_ANGLE_FB_H_ */

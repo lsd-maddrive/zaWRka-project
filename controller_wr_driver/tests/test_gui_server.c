@@ -10,12 +10,12 @@ void testGUIRoutineServer( void )
     lldEncoderInit( );
     lldSteeringControlInit( );
 
-    degSteerAngleValue_t    deg_steer_angle = 0;
+    steerAngleDegValue_t    deg_steer_angle = 0;
     rawEncoderValue_t       enc_revs = 0;
 
     while( 1 )
     {
-        deg_steer_angle = lldGetSteerDegAngle( );
+        deg_steer_angle = lldGetSteerAngleDeg( );
         enc_revs        = lldGetEncoderRawRevs( );
 
         ros_driver_send_encoder_raw( enc_revs );

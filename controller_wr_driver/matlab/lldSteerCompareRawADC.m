@@ -9,8 +9,9 @@ set(dat, 'ByteOrder', 'littleEndian')
 
 disp 'Ok!'
 
-start = 's';
+start = 'p';
 fwrite(dat, start, 'uint8'); 
+disp 'Start done'
 
 A = [];
 B = [];
@@ -26,16 +27,16 @@ disp 'Finish!'
 
 
 RAW_ADC = [];
-MEAN_ADC = [];
+LPF_ADC = [];
 for j = 1:2:length(B)-1
     RAW_ADC = [RAW_ADC; B(j, 1)];
 end
 
 for j = 2:2:length(B)
-    MEAN_ADC = [MEAN_ADC; B(j, 1)];
+    LPF_ADC = [LPF_ADC; B(j, 1)];
 end
 
 hold on
 plot(RAW_ADC)
-plot(MEAN_ADC)
+plot(LPF_ADC)
 grid on 
