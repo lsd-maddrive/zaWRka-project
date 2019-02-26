@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+	<node name="gui_server"  pkg="wr8_gui_server"  type="gui_server" output="screen" respawn="false" >
+		<remap from="steering" to="robot/steer_angle" />
+		<remap from="encoder_raw" to="robot/encoder_raw" />
+	</node>
+</launch>
