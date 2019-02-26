@@ -108,14 +108,14 @@ void testSteerAngleSendData( void )
         if( steer_start_flag == 1)
         {
             palToggleLine( LINE_LED3 );
-            sdWrite(&SD7, &test_raw_steer, 2);
+            sdWrite(&SD7, (uint8_t*) &test_raw_steer, 2);
 
 #ifdef  TEST_STEER_MEAN_FILTER
-            sdWrite(&SD7, &test_mean_raw_steer, 2);
+            sdWrite(&SD7, (uint8_t*) &test_mean_raw_steer, 2);
 #endif
 
 #ifdef  TEST_STEER_LPF
-            sdWrite(&SD7, &test_lpf_raw_steer, 2);
+            sdWrite(&SD7, (uint8_t*) &test_lpf_raw_steer, 2);
 #endif
         }
 
