@@ -8,11 +8,12 @@ import tf
 if __name__ == '__main__':
     rospy.init_node('rst_odom')
 
-    odom_broadcaster = tf.TransformBroadcaster()
-    odom_broadcaster.sendTransform(
-        (0, 0, 0.),
-        tf.transformations.quaternion_from_euler(0, 0, 0),
-        rospy.Time.now(),
-        "odom",
-        "map"
-    )
+    for i in range(5):
+        odom_broadcaster = tf.TransformBroadcaster()
+        odom_broadcaster.sendTransform(
+            (0, 0, 0.),
+            tf.transformations.quaternion_from_euler(0, 0, 0),
+            rospy.Time.now(),
+            "odom",
+            "map"
+        )
