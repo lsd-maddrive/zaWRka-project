@@ -20,7 +20,7 @@ TebLocalPlannerROS:
 
     max_vel_x: 0.4
     max_vel_x_backwards: 0.2
-    max_vel_theta: 0.5
+    max_vel_theta: 0.25
     acc_lim_x: 0.3
     acc_lim_theta: 0.5
     # Just to avoid too high turn
@@ -35,7 +35,7 @@ TebLocalPlannerROS:
         # front_radius: 0.2 # for type "two_circles"
         # rear_offset: 0.2 # for type "two_circles"
         # rear_radius: 0.2 # for type "two_circles"
-        vertices: [ [0.23, 0.13], [-0.23, 0.13], [-0.23, -0.13], [0.23, -0.13] ] # for type "polygon"
+        vertices: [ [0.38, 0.13], [-0.08, 0.13], [-0.08, -0.13], [0.38, -0.13] ] # for type "polygon"
 
     # GoalTolerance
 
