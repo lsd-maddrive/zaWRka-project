@@ -10,6 +10,7 @@ PROJECT_MODULES = src/lld_control.c        			\
 				  
 PROJECT_TESTS   = tests/test_lld_control.c     		\
 				  tests/test_remote_control.c		\
+				  tests/test_drive_cs.c				\
 				  tests/test_lld_encoder.c			\
 				  tests/test_lld_odometry.c			\
 				  tests/test_lld_steer_angle_fb.c	\

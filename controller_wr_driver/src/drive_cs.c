@@ -5,8 +5,8 @@
 
 extern pidControllerContext_t steerPIDparam = {
 
-  .kp = 4,
-  .ki = 0,
+  .kp = 5,
+  .ki = 0.01,
   .kd = 0
 
 
@@ -35,6 +35,7 @@ void driveSteerCSInit( void )
 
 #define STEER_MAX_LIMIT_LEFT    25
 #define STEER_MAX_LIMIT_RIGHT   (-25)
+#define STEER_DEADZONE          4
 
 steerAngleDegValue_t steer_angl_deg        = 0;
 
@@ -53,9 +54,9 @@ static controllerError_t steer_angl_deg_intg        = 0;
  *
  *              max_left control =>
  */
-csControlValue_t driveSteerCSSetPosition( steerAngleDegValue_t input_angl_deg )
+controlValue_t driveSteerCSSetPosition( steerAngleDegValue_t input_angl_deg )
 {
-    csControlValue_t steer_cntl_prc   = 0;
+    controlValue_t steer_cntl_prc   = 0;
     input_angl_deg = CLIP_VALUE( input_angl_deg, STEER_MAX_LIMIT_RIGHT, STEER_MAX_LIMIT_LEFT );
 
 
@@ -65,7 +66,10 @@ csControlValue_t driveSteerCSSetPosition( steerAngleDegValue_t input_angl_deg )
     steer_angl_deg_dif  =   steer_angl_deg_err - prev_steer_angl_deg_err;
     steer_angl_deg_intg +=  steer_angl_deg_err;
 
-    if( steer_angl_deg_err == 0 ) steer_angl_deg_intg;
+    if( abs( steer_angl_deg_err ) <= STEER_DEADZONE )
+      steer_angl_deg_err = 0;
+
+    if( steer_angl_deg_err == 0 ) steer_angl_deg_intg = 0;
 
     steer_cntl_prc = steer_angl_deg_err * steerPIDparam.kp +  steer_angl_deg_dif * steerPIDparam.ki + steer_angl_deg_intg * steerPIDparam.kd;
 

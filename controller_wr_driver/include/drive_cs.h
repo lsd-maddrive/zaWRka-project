@@ -1,11 +1,15 @@
 #ifndef INCLUDE_DRIVE_CS_H_
 #define INCLUDE_DRIVE_CS_H_
 
+#include <lld_steer_angle_fb.h>
+#include <lld_control.h>
+
+
 typedef float   controllerRate_t;
 typedef float   controllerError_t;
 typedef float   controllerResponse_t;
 
-typedef int32_t csControlValue_t;
+
 
 
 typedef struct{
@@ -35,7 +39,7 @@ void driveSteerCSInit( void );
  *
  *              max_left control =>
  */
-csControlValue_t driveSteerCSSetPosition( steerAngleDegValue_t input_angl_deg );
+controlValue_t driveSteerCSSetPosition( steerAngleDegValue_t input_angl_deg );
 
 
 #endif /* INCLUDE_DRIVE_CS_H_ */

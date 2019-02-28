@@ -133,7 +133,9 @@ void lldControlSetSteerMotorRawPower( rawPwmValue_t dutyCycleSteer)
 /**
  * @brief   Set power for steering motor
  * @param   inputPrc   Motor power value [-100 100]
- *                     central position = 0
+ *                     100  - max left
+ *                     center = 0
+ *                     -100 - max right
  */
 void lldControlSetSteerMotorPower( controlValue_t inputPrc )
 {

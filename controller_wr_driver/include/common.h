@@ -14,14 +14,14 @@
 #define     PROGRAM_ROUTINE_TEST_ENCODER                3
 #define     PROGRAM_ROUTINE_TEST_ODOMETRY               4
 #define     PROGRAM_ROUTINE_TEST_RC                     5
-//#define     PROGRAM_ROUTINE_TEST_STEERING_ANGLE         6
+#define     PROGRAM_ROUTINE_TEST_STEERING_CS            6
 #define     PROGRAM_ROUTINE_TEST_STEER_ANGL_CALC        7
 #define     PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND        8
 #define     PROGRAM_ROUTINE_TEST_ROS_ODOMETRY           20
-#define     PROGRAM_TEST_GUI_SERVER                     30
+#define     PROGRAM_ROUTINE_TEST_GUI_SERVER             30
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_STEERING_CS
 
 
 /**************/
