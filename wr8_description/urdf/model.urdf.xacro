@@ -190,7 +190,11 @@
     </xacro:solid_cuboid_inertial>
   </link>
   <gazebo reference="base_link">
-    <material>Gazebo/Grey</material>
+    <!-- <visual>   -->
+      <material>
+        Gazebo/Orange
+      </material>
+    <!-- </visual> -->
   </gazebo>
 
   <joint name="base_footage_2_link" type="fixed">

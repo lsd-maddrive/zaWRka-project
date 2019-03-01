@@ -37,6 +37,7 @@ to_directions = [
                     Point(-1, 0)
                 ]
 
+
 from_direction_letters = [
                             'U',
                             'R',
@@ -45,6 +46,13 @@ from_direction_letters = [
                             '-'
                         ]
 
+direction_angle = { 
+                from_direction_letters[0] : 180,
+                from_direction_letters[1] : 90,
+                from_direction_letters[2] : 0,
+                from_direction_letters[3] : -90
+        }
+            
 from_directions = { 
                 from_direction_letters[0] : Point(0, -1),
                 from_direction_letters[1] : Point(-1, 0),
