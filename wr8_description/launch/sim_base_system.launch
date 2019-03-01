@@ -3,8 +3,8 @@
 
   <include file="$(find wr8_description)/launch/gazebo.launch">
     <!-- <arg name="rviz_gui" value="true" /> -->
-    <!-- <arg name="gz_gui" value="true" /> -->
-    <!-- <arg name="native_odom" value="true" /> -->
+    <arg name="gz_gui" value="true" />
+    <arg name="native_odom" value="true" />
   </include>
 
 	<!-- <include file="$(find wr8_software)/launch/lidar.launch" > -->

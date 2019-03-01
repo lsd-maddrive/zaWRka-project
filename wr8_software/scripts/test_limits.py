@@ -8,16 +8,19 @@ import math as m
 
 if __name__ == '__main__':
 
-    current_time = rospy.Time.now()
-    odom_quat = tf.transformations.quaternion_from_euler(0, 0, m.radians(270))
+    rospy.init_node('test')
 
     
+    odom_quat = tf.transformations.quaternion_from_euler(0, 0, m.radians(200))
+    odom_broadcaster = tf.TransformBroadcaster()
+    
     while not rospy.is_shutdown():
-    	odom_broadcaster.sendTransform(
-	        (msg.x, msg.y, 0.),
-	        odom_quat,
-	        current_time,
-	        "test1",
-	        "test2"
-	    )
+        current_time = rospy.Time.now()
+        odom_broadcaster.sendTransform(
+            (0, 1, 0.),
+            odom_quat,
+            current_time,
+            "test1",
+            "test2"
+        )
 
