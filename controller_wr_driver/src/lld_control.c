@@ -6,11 +6,11 @@
 #define pwm1Period      20000           // 50 Hz
 
 /***  PWM configuration pins    ***/
-/***  PE9 - Steering            ***/
+/***  PE9 - Driving wheels      ***/
 #define PE9_ACTIVE      PWM_OUTPUT_ACTIVE_HIGH
 #define PE9_DISABLE     PWM_OUTPUT_DISABLED
 #define drivePWMch      0
-/***  PE11 - Braking            ***/
+/***  PE11 - Steering wheels     ***/
 #define PE11_ACTIVE     PWM_OUTPUT_ACTIVE_HIGH
 #define PE11_DISABLE    PWM_OUTPUT_DISABLED
 #define steerPWMch      1

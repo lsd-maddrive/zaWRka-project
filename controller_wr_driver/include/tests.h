@@ -70,6 +70,8 @@ void testSteerAngleSendData( void );
 */
 void testSteerAngleDetection( void );
 
+void testSteerAngleGetControlAngleCoeffitient( void );
+
 
 /*************************************/
 /*** Steering Control System tests ***/
@@ -134,6 +136,10 @@ static inline void testsRoutines( void )
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEERING_CS )
 
     testSteeringCS( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEER_ANGLE_LLD_CONTRL )
+
+    testSteerAngleGetControlAngleCoeffitient( );
 
 #endif
 }

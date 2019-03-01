@@ -3,35 +3,22 @@
 #include <lld_steer_angle_fb.h>
 #include <lld_control.h>
 
+
+
+
 extern pidControllerContext_t steerPIDparam = {
 
-  .kp = 5,
-  .ki = 0.01,
+  .kp = 0,
+  .ki = 0.5,
   .kd = 0
-
-
 };
 
-
-static bool             isInitialized = false;
-
-/**
- * @brief       Initialization of units that are needed for steering CS
- * @note        lldControl and lldSteerAngleFB are used
- */
-void driveSteerCSInit( void )
-{
-  if( isInitialized )
-    return;
-
-  lldControlInit( );
-  lldSteerAngleFBInit( );
-
-  isInitialized = true;
-
-}
-
-
+/************************************/
+/***    GPT Configuration Zone    ***/
+/************************************/
+#define gpt_cs_Freq     10000
+static  GPTDriver   *gptDriver = &GPTD3;
+/************************************/
 
 #define STEER_MAX_LIMIT_LEFT    25
 #define STEER_MAX_LIMIT_RIGHT   (-25)
@@ -43,6 +30,8 @@ static controllerError_t prev_steer_angl_deg_err    = 0;
 static controllerError_t steer_angl_deg_err         = 0;
 static controllerError_t steer_angl_deg_dif         = 0;
 static controllerError_t steer_angl_deg_intg        = 0;
+
+
 
 /**
  * @brief       Control system for steering wheels
@@ -69,9 +58,9 @@ controlValue_t driveSteerCSSetPosition( steerAngleDegValue_t input_angl_deg )
     if( abs( steer_angl_deg_err ) <= STEER_DEADZONE )
       steer_angl_deg_err = 0;
 
-    if( steer_angl_deg_err == 0 ) steer_angl_deg_intg = 0;
+//    if( steer_angl_deg_err == 0 ) steer_angl_deg_intg = 0;
 
-    steer_cntl_prc = steer_angl_deg_err * steerPIDparam.kp +  steer_angl_deg_dif * steerPIDparam.ki + steer_angl_deg_intg * steerPIDparam.kd;
+    steer_cntl_prc = steer_angl_deg_err * steerPIDparam.kp + steer_angl_deg_intg * steerPIDparam.ki +  steer_angl_deg_dif * steerPIDparam.kd;
 
     prev_steer_angl_deg_err = steer_angl_deg_err;
 
@@ -79,5 +68,47 @@ controlValue_t driveSteerCSSetPosition( steerAngleDegValue_t input_angl_deg )
     return steer_cntl_prc;
 
 }
+
+
+
+static void gptcb (GPTDriver *gptd)
+{
+
+    gptd = gptd;
+}
+
+static const GPTConfig gpt3cfg = {
+  .frequency =  gpt_cs_Freq,
+  .callback  =  gptcb,
+  .cr2       =  0,
+  .dier      =  0U
+};
+
+static bool             isInitialized = false;
+
+/**
+ * @brief       Initialization of units that are needed for steering CS
+ * @note        lldControl and lldSteerAngleFB are used
+ */
+void driveSteerCSInit( void )
+{
+  if( isInitialized )
+    return;
+
+  lldControlInit( );
+  lldSteerAngleFBInit( );
+
+  /*** Start working GPT driver in asynchronous mode ***/
+  gptStart( gptDriver, &gpt3cfg );
+  uint32_t gpt_period = gpt_cs_Freq * 0.02;   // 20 ms => 50 Hz
+  gptStartContinuous( gptDriver, gpt_period );
+
+
+  isInitialized = true;
+
+}
+
+
+
 
 

@@ -17,37 +17,44 @@ void testSteeringCS ( void )
     palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );    // RX
 
     driveSteerCSInit( );
-//    lldSteerAngleFBInit();
+//    lldSteerAngleFBInit( );
+//    lldControlInit( );
 
     steerAngleDegValue_t    steer_feedback      = 0;
     steerAngleDegValue_t    steer_pos           = 0;
-    controlValue_t          steer_control_prct   = 0;
+    controlValue_t          steer_control_prct  = 0;
+
+    uint32_t                show_count          = 0;
 
     chprintf( (BaseSequentialStream *)&SD7, "TEST DRIVE CS\n\r" );
 
     while( 1 )
     {
+        show_count += 1;
         char rc_data    = sdGetTimeout( &SD7, TIME_IMMEDIATE );
         switch( rc_data )
         {
           case 'a':
-            steer_pos   += 5;
+            steer_pos   += 1;
             break;
           case 'd':
-            steer_pos -= 5;
+            steer_pos   -= 1;
             break;
           default:
             ;
         }
 
         steer_feedback      = lldGetSteerAngleDeg( );
-        steer_pos           = CLIP_VALUE( steer_pos, -25, 25 );
+        steer_pos           = CLIP_VALUE( steer_pos, -100, 100 );
         steer_control_prct  = driveSteerCSSetPosition( steer_pos );
         lldControlSetSteerMotorPower( steer_control_prct );
+       if( show_count == 10 )
+       {
+              chprintf( (BaseSequentialStream *)&SD7, "TASK:(%d)\tDEG:(%d)\tCONTROL:(%d)\n\r",
+                          (int)steer_pos, (int)(steer_feedback * 100 ), steer_control_prct );
+              show_count = 0;
+       }
 
-        chprintf( (BaseSequentialStream *)&SD7, "TASK:(%d)\tDEG:(%d)\tCONTROL:(%d)\n\r",
-                  (int)steer_pos, (int)(steer_feedback ), steer_control_prct );
-
-        chThdSleepMilliseconds( 200 );
+        chThdSleepMilliseconds( 20 );
     }
 }
