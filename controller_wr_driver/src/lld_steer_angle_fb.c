@@ -8,7 +8,7 @@
 #define STEER_FILTER_MEAN       0
 #define STEER_FILTER_LPF        1
 
-#define STEER_ACTIVE_FILTER     STEER_FILTER_LPF
+#define STEER_ACTIVE_FILTER     STEER_FILTER_MEAN
 
 /***********************************/
 /***    OBJECT CONFIGURATION     ***/
@@ -57,7 +57,7 @@ static adcsample_t              adc_1_buffer[ADC_1_NUM_CHANNELS * ADC_1_BUF_DEPT
 steerAngleRawValue_t    steer_filtered_adc_val      = 0;
 
 /***        MEAN Filter         ***/
-#define STEER_MEAN_WINDOW_VAL    15
+#define STEER_MEAN_WINDOW_VAL    20
 
 static  uint32_t        adc_cb_counter              = 0;
 
@@ -104,7 +104,7 @@ static const ADCConversionGroup steer_adc_1_cnfg = {
   .error_cb     = 0,
   .cr1          = ADC_12_BIT_CONF,
   .cr2          = ADC_MODE_TRIGGER,
-  .smpr1        = ADC_SMPR1_SMP_AN10(ADC_SAMPLE_144),
+  .smpr1        = ADC_SMPR1_SMP_AN10(ADC_SAMPLE_480),
   .smpr2        = 0,
   .sqr1         = ADC_SQR1_NUM_CH(ADC_1_NUM_CHANNELS),
   .sqr2         = 0,
@@ -151,7 +151,7 @@ void lldSteerAngleFBInit ( void )
     /***    TIMER start     ***/
     gptStart(adcTrgDriver, &gpt_trg_cnfg);
     /***    Trigger = 1 ms ***/
-    gptStartContinuous( adcTrgDriver, gpt_trg_cnfg.frequency/100 );
+    gptStartContinuous( adcTrgDriver, gpt_trg_cnfg.frequency/2000 );
 
     /***    Coefficient calculation  ***/
     steer_right_k = (STEER_RAD_CENTER - STEER_RAD_RIGHT) / (STEER_ADC_CENTER - STEER_ADC_RIGHT);

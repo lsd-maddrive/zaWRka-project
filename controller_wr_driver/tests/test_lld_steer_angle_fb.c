@@ -4,7 +4,7 @@
 
 #define STEER_FB_MATLAB
 //#define ADC_CHECK
-#define TEST_STEER_LPF
+#define TEST_STEER_MEAN_FILTER
 
 static const SerialConfig sdcfg = {
   .speed = 115200,
@@ -119,7 +119,7 @@ void testSteerAngleSendData( void )
 #endif
         }
 
-        chThdSleepMilliseconds( 10 );
+        chThdSleepMilliseconds( 0.5 );
 #endif
 
     }
@@ -156,7 +156,50 @@ void testSteerAngleDetection( void )
 
         chThdSleepMilliseconds( 200 );
     }
+}
 
+void testSteerAngleGetControlAngleCoeffitient( void )
+{
+    sdStart( &SD7, &sdcfg );
+    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );    // TX
+    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );    // RX
+
+    lldControlInit( );
+    lldSteerAngleFBInit( );
+
+    controlValue_t          steer_cntrl             = 0;
+    controlValue_t          steer_cntrl_delta       = 1;
+
+    steerAngleDegValue_t    steer_feedback_deg      = 0;
+
+    while( 1 )
+    {
+
+        char rc_data    = sdGetTimeout( &SD7, TIME_IMMEDIATE );
+        switch( rc_data )
+        {
+          case 'a': // left turn
+            steer_cntrl   += steer_cntrl_delta;
+            break;
+          case 'd': // right turn
+            steer_cntrl   -= steer_cntrl_delta;
+            break;
+          default:
+            ;
+        }
+
+        steer_feedback_deg  = lldGetSteerAngleDeg( );
+
+        steer_cntrl = CLIP_VALUE( steer_cntrl, -100, 100 );
+
+        lldControlSetSteerMotorPower( steer_cntrl );
+
+        chprintf( (BaseSequentialStream *)&SD7, "DEG:(%d)\tCONTROL:(%d)\n\r",
+                                  (int)(steer_feedback_deg * 100 ), steer_cntrl );
+
+        chThdSleepMilliseconds( 200 );
+
+    }
 
 }
 

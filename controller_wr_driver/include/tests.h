@@ -70,6 +70,15 @@ void testSteerAngleSendData( void );
 */
 void testSteerAngleDetection( void );
 
+void testSteerAngleGetControlAngleCoeffitient( void );
+
+
+/*************************************/
+/*** Steering Control System tests ***/
+/*************************************/
+
+void testSteeringCS ( void );
+
 /***********************/
 /***    GUI tests    ***/
 /***********************/
@@ -116,13 +125,21 @@ static inline void testsRoutines( void )
 
     testSteerAngleSendData( );
 
-#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_TEST_GUI_SERVER )
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_GUI_SERVER )
 
     testGUIRoutineServer( );
 
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS_ODOMETRY )
 
     testRoutineROSOdometry( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEERING_CS )
+
+    testSteeringCS( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEER_ANGLE_LLD_CONTRL )
+
+    testSteerAngleGetControlAngleCoeffitient( );
 
 #endif
 }

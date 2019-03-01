@@ -1,5 +1,7 @@
 # Использование модулей периферии контроллера
 
+## Tickless mode => GPT5 
+
 ## Драйвер управления приводом руля 
 Driver | Pins | Input / Output
 -------|------|-------
@@ -9,7 +11,9 @@ Driver | Pins | Input / Output
 ## Драйвер управления приводом движения 
 Driver | Pins | Input / Output
 -------|------|-------
-  PWM1 | PE_9 |output (channel 0)
+  PWM1 | PE_9 | output (channel 1)
+  PWM1 | PE11 | output (channel 2)
+  GPT1 |      |
 
 ## Драйвер работы с энкодером
 Driver | Pins | Input / Output
@@ -27,6 +31,7 @@ Driver | Pins | Input / Output
 Driver | Pins | Input / Output
 -------|------|-------
   ADC1 | PC0  | Input (Channel 10)
+  GPT4 |      |
   
 
 ## Драйвер ручного управления
@@ -35,3 +40,7 @@ Driver | Pins | Input / Output
 ICU9 | E5 | input (Timer 9)
 ICU8 | C6 | input (Timer 8)
 
+## Драйвер для СУ приводами
+Driver | Pins | Input / Output
+-------|------|-------
+  GPT3 |      | steering control

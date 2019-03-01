@@ -6,11 +6,11 @@
 #define pwm1Period      20000           // 50 Hz
 
 /***  PWM configuration pins    ***/
-/***  PE9 - Steering            ***/
+/***  PE9 - Driving wheels      ***/
 #define PE9_ACTIVE      PWM_OUTPUT_ACTIVE_HIGH
 #define PE9_DISABLE     PWM_OUTPUT_DISABLED
 #define drivePWMch      0
-/***  PE11 - Braking            ***/
+/***  PE11 - Steering wheels     ***/
 #define PE11_ACTIVE     PWM_OUTPUT_ACTIVE_HIGH
 #define PE11_DISABLE    PWM_OUTPUT_DISABLED
 #define steerPWMch      1
@@ -133,7 +133,9 @@ void lldControlSetSteerMotorRawPower( rawPwmValue_t dutyCycleSteer)
 /**
  * @brief   Set power for steering motor
  * @param   inputPrc   Motor power value [-100 100]
- *                     central position = 0
+ *                     100  - max left
+ *                     center = 0
+ *                     -100 - max right
  */
 void lldControlSetSteerMotorPower( controlValue_t inputPrc )
 {
