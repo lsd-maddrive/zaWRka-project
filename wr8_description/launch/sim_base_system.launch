@@ -3,16 +3,12 @@
 
   <include file="$(find wr8_description)/launch/gazebo.launch">
     <!-- <arg name="rviz_gui" value="true" /> -->
-    <arg name="gz_gui" value="true" />
-    <arg name="native_odom" value="true" />
+    <!-- <arg name="gz_gui" value="true" /> -->
+    <!-- <arg name="native_odom" value="true" /> -->
   </include>
 
-<!-- 	<include file="$(find wr8_software)/launch/lidar.launch" >
+	<!-- <include file="$(find wr8_software)/launch/lidar.launch" > -->
+	<!-- </include> -->
 
-	</include>
- 	<node pkg="laser_scan_matcher" type="laser_scan_matcher_node" name="laser_scan_matcher_node" output="screen">
- 		<param name="fixed_frame" value="odom" />
-  	<param name="max_iterations" value="10" />
-	</node> -->
 
 </launch>
