@@ -1,12 +1,12 @@
 
-from maze import *
+from .maze import *
 import math as m
 
 import numpy as np
 from queue import PriorityQueue
 import pygame
 
-import gui
+from . import gui
 
 class CarState:
     def __init__(self, maze):

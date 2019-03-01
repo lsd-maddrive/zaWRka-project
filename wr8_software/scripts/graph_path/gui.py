@@ -3,7 +3,8 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 import sys
 
-from maze import Node
+from . import resources as rss
+from .maze import Node
 
 SIGNS_NONE          = 0
 SIGNS_NO_PATH       = 1
@@ -62,7 +63,7 @@ class SignsRequestWindow(QDialog):
         baseLayout = QGridLayout(self)
         choiceLayout = QGridLayout(None)
 
-        pic = QPixmap("signs.jpg")
+        pic = QPixmap(":/signs.jpg")
         label = QLabel(self)
         label.setPixmap(pic)
         

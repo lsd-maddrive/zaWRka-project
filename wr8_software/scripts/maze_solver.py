@@ -1,15 +1,18 @@
+#!/usr/bin/env python
+
 import numpy as np
 import pygame
 from pygame.locals import *
 import time
 
-from maze import *
-from car_state import *
+from graph_path.maze import *
+from graph_path.car_state import *
 
-import gui
+import graph_path.gui
 
 # local TF -> ROS: (x1, y1) = (2*y, -2*x)
 # ROS -> local TF: (x, y) = (-y1/2, x1/2)
+
 
 def main(args=None):
 
