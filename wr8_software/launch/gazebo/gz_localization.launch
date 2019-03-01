@@ -12,7 +12,8 @@
   <node name="map_server" pkg="map_server" type="map_server" args="$(find wr8_software)/maps/map2_h.yaml" />
 
   <include file="$(find wr8_software)/launch/base/amcl.launch">
-
+    <arg name="base_frame" value="base_footprint" />
+    <arg name="odom_frame" value="odom" />
   </include>
 
   <include file="$(find wr8_software)/launch/base/move_base.launch">
