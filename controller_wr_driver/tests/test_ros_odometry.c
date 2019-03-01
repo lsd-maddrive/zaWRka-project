@@ -22,7 +22,7 @@ void testRoutineROSOdometry( void )
 
         ros_driver_send_pose( test_x_pos, test_y_pos, test_tetta_deg );
 
-        chThdSleepMilliseconds( 100 );
+        chThdSleepMilliseconds( 20 );
     }
 
 }

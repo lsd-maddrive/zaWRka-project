@@ -59,8 +59,8 @@ void testSteeringCS ( void )
 
         steer_feedback      = lldGetSteerAngleDeg( );
         steer_pos           = CLIP_VALUE( steer_pos, -25, 25 );
-        steer_control_prct  = driveSteerCSSetPosition( steer_pos );
-        lldControlSetSteerMotorPower( steer_control_prct );
+        driveSteerCSSetPosition( steer_pos );
+//        lldControlSetSteerMotorPower( steer_control_prct );
 #ifdef STEER_CS_TERMINAL
        if( show_count == 10 )
        {

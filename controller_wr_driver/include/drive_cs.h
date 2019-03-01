@@ -17,8 +17,6 @@ typedef struct{
 } pidControllerContext_t;
 
 
-extern pidControllerContext_t steerPIDparam;
-
 
 /**
  * @brief       Initialization of units that are needed for steering CS
@@ -29,14 +27,13 @@ void driveSteerCSInit( void );
 /**
  * @brief       Control system for steering wheels
  * @param       value of angle in degrees [ -25; 25 ]
- * @return      control value in percent  [ -100; 100 ]
  * @note        max left    =>     25
  *              center      =>     0
  *              max_right   =>    -25
  *
  *              max_left control =>
  */
-controlValue_t driveSteerCSSetPosition( steerAngleDegValue_t input_angl_deg );
+void driveSteerCSSetPosition( steerAngleDegValue_t input_angl_deg );
 
 
 #endif /* INCLUDE_DRIVE_CS_H_ */

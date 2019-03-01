@@ -9,7 +9,7 @@ static const SerialConfig sdcfg = {
 };
 
 
-#define SPEED_ODOMETRY
+#define JUST_ODOMETRY
 
 
 void testOdometryRoutine( void )

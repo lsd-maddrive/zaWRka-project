@@ -7,9 +7,9 @@
 /***    LINE CONFIGURATION   ***/
 /*******************************/
 
-#define ENCODER_GREEN_LINE  PAL_LINE( GPIOD, 3 )
+#define ENCODER_GREEN_LINE  PAL_LINE( GPIOD, 5 )
 #define ENCODER_WHITE_LINE  PAL_LINE( GPIOD, 4 )
-#define ENCODER_NULL_LINE   PAL_LINE( GPIOD, 5 )
+#define ENCODER_NULL_LINE   PAL_LINE( GPIOD, 3 )
 
 /*******************************/
 
@@ -84,15 +84,16 @@ static void extcb_null(EXTDriver *extp, expchannel_t channel)
 /*** Configuration structures ***/
 /********************************/
 
+
 static const EXTConfig extcfg =
 {
    {
     {EXT_CH_MODE_DISABLED, NULL},
     {EXT_CH_MODE_DISABLED, NULL},
     {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_RISING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb_base}, // PD3
+    {EXT_CH_MODE_RISING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb_null}, // PD3
     {EXT_CH_MODE_BOTH_EDGES  | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb_dir},  // PD4
-    {EXT_CH_MODE_RISING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb_null}, // PD5
+    {EXT_CH_MODE_RISING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb_base}, // PD5
     {EXT_CH_MODE_DISABLED, NULL},
     {EXT_CH_MODE_DISABLED, NULL},
     {EXT_CH_MODE_DISABLED, NULL},
