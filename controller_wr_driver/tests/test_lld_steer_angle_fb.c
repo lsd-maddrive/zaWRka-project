@@ -178,10 +178,10 @@ void testSteerAngleGetControlAngleCoeffitient( void )
         char rc_data    = sdGetTimeout( &SD7, TIME_IMMEDIATE );
         switch( rc_data )
         {
-          case 'a':
+          case 'a': // left turn
             steer_cntrl   += steer_cntrl_delta;
             break;
-          case 'd':
+          case 'd': // right turn
             steer_cntrl   -= steer_cntrl_delta;
             break;
           default:

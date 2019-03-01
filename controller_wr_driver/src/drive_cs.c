@@ -4,12 +4,10 @@
 #include <lld_control.h>
 
 
-
-
 extern pidControllerContext_t steerPIDparam = {
 
   .kp = 0,
-  .ki = 0.5,
+  .ki = 0.3,
   .kd = 0
 };
 
@@ -20,11 +18,20 @@ extern pidControllerContext_t steerPIDparam = {
 static  GPTDriver   *gptDriver = &GPTD3;
 /************************************/
 
+#define STEER_LEFT_BUST_K   3.652
+#define STEER_LEFT_BUST_B   (0)
+
+#define STEER_RIGHT_BUST_K  (2.9641)
+#define STEER_RIGHT_BUST_B  (0)
+
 #define STEER_MAX_LIMIT_LEFT    25
 #define STEER_MAX_LIMIT_RIGHT   (-25)
-#define STEER_DEADZONE          4
+#define STEER_DEADZONE          2
+#define STEER_SATURATION_LIMIT  100
 
-steerAngleDegValue_t steer_angl_deg        = 0;
+
+
+static steerAngleDegValue_t   steer_angl_deg        = 0;
 
 static controllerError_t prev_steer_angl_deg_err    = 0;
 static controllerError_t steer_angl_deg_err         = 0;
@@ -53,14 +60,25 @@ controlValue_t driveSteerCSSetPosition( steerAngleDegValue_t input_angl_deg )
 
     steer_angl_deg_err  =   input_angl_deg - steer_angl_deg;
     steer_angl_deg_dif  =   steer_angl_deg_err - prev_steer_angl_deg_err;
+
     steer_angl_deg_intg +=  steer_angl_deg_err;
 
+    steer_angl_deg_intg = CLIP_VALUE( steer_angl_deg_intg, -STEER_SATURATION_LIMIT, STEER_SATURATION_LIMIT );
+
     if( abs( steer_angl_deg_err ) <= STEER_DEADZONE )
-      steer_angl_deg_err = 0;
+    {
+      steer_angl_deg_intg = 0;
+    }
 
-//    if( steer_angl_deg_err == 0 ) steer_angl_deg_intg = 0;
 
-    steer_cntl_prc = steer_angl_deg_err * steerPIDparam.kp + steer_angl_deg_intg * steerPIDparam.ki +  steer_angl_deg_dif * steerPIDparam.kd;
+
+//    steer_cntl_prc = steer_angl_deg_err * steerPIDparam.kp + steer_angl_deg_intg * steerPIDparam.ki +  steer_angl_deg_dif * steerPIDparam.kd;
+
+    if( input_angl_deg >= 0 )   // left
+      steer_cntl_prc  = ( input_angl_deg * STEER_LEFT_BUST_K + STEER_LEFT_BUST_B) + steer_angl_deg_intg * steerPIDparam.ki;
+    else if( input_angl_deg < 0 )
+      steer_cntl_prc  = ( input_angl_deg * STEER_RIGHT_BUST_K + STEER_RIGHT_BUST_B) + steer_angl_deg_intg * steerPIDparam.ki;
+
 
     prev_steer_angl_deg_err = steer_angl_deg_err;
 
