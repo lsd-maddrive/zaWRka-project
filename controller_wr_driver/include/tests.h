@@ -70,6 +70,9 @@ void testSteerAngleSendData( void );
 */
 void testSteerAngleDetection( void );
 
+/*
+ * @brief
+ */
 void testSteerAngleGetControlAngleCoeffitient( void );
 
 
