@@ -11,7 +11,8 @@ sudo apt install ros-kinetic-hector-mapping \
 					ros-kinetic-laser-scan-matcher \
 					ros-kinetic-stereo-image-proc \
 					ros-kinetic-image-view \
-					ros-kinetic-teleop-twist-keyboard
+					ros-kinetic-teleop-twist-keyboard \
+					ros-kinetic-rosserial-msgs
 
 # pip install pygame
 cd scripts/graph_path; pyrcc5 -o resources.py my.qrc

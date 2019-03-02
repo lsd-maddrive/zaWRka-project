@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 
 <!-- ros-kinetic-rosserial-msgs required!! -->
-
 <!-- https://answers.ros.org/question/41446/a-is-not-in-your-ssh-known_hosts-file/?answer=42629#post-id-42629 -->
 
 <launch>
@@ -13,19 +12,19 @@
 
         <node pkg="rosserial_python" type="serial_node.py" name="quadro_node" output="screen" respawn="true">
             <param name="port" value="$(arg device)" /> 
-            <param name="baud" value="9600" /> 
+            <!-- Because USB! -->
+            <!-- <param name="baud" value="9600" />  -->
         </node>
 
         <node pkg="wr8_software" type="odometry_pub.py" name="odometry_node" output="screen" respawn="false">
         </node>    
     </group>
 
-    <!-- <include file="$(find wr8_software)/launch/base/lidar.launch"> -->
-    <!-- </include> -->
-
-<!--     <arg name="mapping_algorithm" default="hector_mapping" />
-    <include file="$(find wr8_software)/launch/base/$(arg mapping_algorithm).launch">
+    <include file="$(find wr8_software)/launch/base/lidar.launch">
     </include>
- -->
+
+    <!-- Robot param TF -->
+    <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" 
+            args="0.17 0.0 0.15 0.0 0.0 0.0 /base_link /laser_frame 40" />
 
 </launch>
