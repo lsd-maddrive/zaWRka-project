@@ -32,7 +32,7 @@ def callback(msg):
     x_cmd = np.clip(x_cmd, -100, 100)
 
     cmd = Twist()
-    cmd.linear.x = x_cmd;
+    cmd.linear.x = x_cmd / 100.;
     cmd.angular.z = z_cmd;
 
     # print(cmd)
