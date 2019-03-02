@@ -77,7 +77,7 @@ void testSteerAngleGetControlAngleCoeffitient( void );
 
 
 /*************************************/
-/*** Steering Control System tests ***/
+/***    Control System tests       ***/
 /*************************************/
 
 /*
@@ -85,16 +85,22 @@ void testSteerAngleGetControlAngleCoeffitient( void );
  * @note    There are 2 options:
  *          - Show data in Terminal
  *          - Send limited number of data to Matlab
- *
- *          !lldControl hardware connection is required
 */
 void testSteeringCS ( void );
+
+/*
+ * @brief   Test speed control system with feedback
+*/
+void testSpeedCS ( void );
+
 
 /***********************/
 /***    GUI tests    ***/
 /***********************/
 
-
+/*
+ * @brief   Test GUI with odometry
+*/
 void testGUIRoutineServer ( void );
 
 
@@ -102,13 +108,11 @@ void testGUIRoutineServer ( void );
 /***    ROS tests    ***/
 /***********************/
 
-
 /*
  * @brief   Test odometry via ROS
  * @note    Frequency = 50 Hz
 */
 void testRoutineROSOdometry( void );
-
 
 /*
  * @brief   Test odometry, speed and steering control via ROS
@@ -170,6 +174,10 @@ static inline void testsRoutines( void )
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEER_ANGLE_LLD_CONTRL )
 
     testSteerAngleGetControlAngleCoeffitient( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_CS )
+
+    testSpeedCS( );
 
 #endif
 }

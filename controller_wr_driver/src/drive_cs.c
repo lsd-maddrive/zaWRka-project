@@ -1,15 +1,30 @@
 #include <tests.h>
 #include <drive_cs.h>
-#include <lld_steer_angle_fb.h>
-#include <lld_control.h>
-
 
 pidControllerContext_t steerPIDparam = {
-
-  .kp = 0,
-  .ki = 0.3,
-  .kd = 0
+  .kp               = 0,
+  .ki               = 0.3,
+  .kd               = 0,
+  .integSaturation  = 100,
+  .proptDeadZone    = 2
 };
+
+pidControllerContext_t  f_speedPIDparam = {
+  .kp               = 15,
+  .ki               = 0.8,
+  .kd               = 0,
+  .integSaturation  = 1000,
+  .proptDeadZone    = 0.1
+};
+
+pidControllerContext_t  b_speedPIDparam = {
+  .kp               = 25,
+  .ki               = 0.8,
+  .kd               = 0,
+  .integSaturation  = 1000,
+  .proptDeadZone    = 0.1
+};
+
 
 /************************************/
 /***    GPT Configuration Zone    ***/
@@ -28,8 +43,6 @@ static  GPTDriver       *gptDriver = &GPTD3;
 #define STEER_RIGHT_BUST_K  (2.9641)
 #define STEER_RIGHT_BUST_B  (0)
 
-#define STEER_DEADZONE          2
-#define STEER_SATURATION_LIMIT  100
 
 /************************************/
 
@@ -41,54 +54,86 @@ static steerAngleDegValue_t   steer_angl_deg        = 0;
 /***  reference steering angle in degrees  ***/
 static steerAngleDegValue_t   steer_angl_deg_ref    = 0;
 
-/***      Variables for PID Controller     ***/
+/***      Variables for Steering PID Controller     ***/
 static controllerError_t prev_steer_angl_deg_err    = 0;
 static controllerError_t steer_angl_deg_err         = 0;
 static controllerError_t steer_angl_deg_dif         = 0;
 static controllerError_t steer_angl_deg_intg        = 0;
 
+/***     speed [m/s] feedback               ***/
+static odometrySpeedValue_t speed_obj_mps           = 0;
+/***     reference value of speed [m/s]     ***/
+static odometrySpeedValue_t speed_ref               = 0;
+
+/***      Variables for Speed PID Controller        ***/
+static controllerError_t prev_speed_err             = 0;
+static controllerError_t speed_err                  = 0;
+static controllerError_t speed_dif                  = 0;
+static controllerError_t speed_intg                 = 0;
+
 /***    Generated control value for lld***/
-static controlValue_t    steer_cntl_prc             = 0;
+controlValue_t          steer_cntl_prc              = 0;
+controlValue_t          speed_cntrl_prc             = 0;
 
 /**
  * @brief       Control system for steering wheels
  * @param       value of angle in degrees [ -25; 25 ]
- * @return      control value in percent  [ -100; 100 ]
- * @note        max left    =>     25
- *              center      =>     0
- *              max_right   =>    -25
- *
- *              max_left control =>
+ * @note        max left    =>     25 |  100
+ *              center      =>     0  |   0
+ *              max_right   =>    -25 | -100
  */
 void driveSteerCSSetPosition( steerAngleDegValue_t input_angl_deg )
 {
+    palToggleLine( LINE_LED1 );
     input_angl_deg = CLIP_VALUE( input_angl_deg, STEER_MAX_LIMIT_RIGHT, STEER_MAX_LIMIT_LEFT );
 
     steer_angl_deg_ref = input_angl_deg;
 
+    steer_cntl_prc = CLIP_VALUE( steer_cntl_prc, CONTROL_MIN, CONTROL_MAX );
     lldControlSetSteerMotorPower( steer_cntl_prc );
+}
+
+/**
+ * @brief       Get control value for steering driver
+ */
+controlValue_t driveSteerGetControlVal ( void )
+{
+    return steer_cntl_prc;
+}
+
+/**
+ * @brief       Control system for speed
+ * @param       value of speed [m/s]
+ */
+void driveSpeedCSSetSpeed ( float input_speed )
+{
+    speed_ref = input_speed;
+
+    speed_cntrl_prc = CLIP_VALUE( speed_cntrl_prc, CONTROL_MIN, CONTROL_MAX );
+    lldControlSetDrMotorPower( speed_cntrl_prc );
+}
+
+/**
+ * @brief       Get control value for speed driver
+ */
+controlValue_t driveSpeedGetControlVal ( void )
+{
+    return speed_cntrl_prc;
 }
 
 static void gptcb (GPTDriver *gptd)
 {
 
     gptd = gptd;
-
+/***    I-controller for Steering CS    ***/
     steer_angl_deg      =   lldGetSteerAngleDeg( );
 
     steer_angl_deg_err  =   steer_angl_deg_ref - steer_angl_deg;
     steer_angl_deg_dif  =   steer_angl_deg_err - prev_steer_angl_deg_err;
-
     steer_angl_deg_intg +=  steer_angl_deg_err;
 
-    steer_angl_deg_intg = CLIP_VALUE( steer_angl_deg_intg, -STEER_SATURATION_LIMIT, STEER_SATURATION_LIMIT );
-
-    if( abs( steer_angl_deg_err ) <= STEER_DEADZONE )
-    {
-      steer_angl_deg_intg = 0;
-    }
-
-   //    steer_cntl_prc = steer_angl_deg_err * steerPIDparam.kp + steer_angl_deg_intg * steerPIDparam.ki +  steer_angl_deg_dif * steerPIDparam.kd;
+    steer_angl_deg_intg = CLIP_VALUE( steer_angl_deg_intg, -steerPIDparam.integSaturation, steerPIDparam.integSaturation );
+    if( abs( steer_angl_deg_err ) <= steerPIDparam.proptDeadZone ) steer_angl_deg_intg = 0;
 
     if( steer_angl_deg_ref >= 0 )   // left
        steer_cntl_prc  = ( steer_angl_deg_ref * STEER_LEFT_BUST_K + STEER_LEFT_BUST_B) + steer_angl_deg_intg * steerPIDparam.ki;
@@ -98,6 +143,28 @@ static void gptcb (GPTDriver *gptd)
     prev_steer_angl_deg_err = steer_angl_deg_err;
 
     steer_cntl_prc = CLIP_VALUE( steer_cntl_prc, CONTROL_MIN, CONTROL_MAX );
+/*******************************************/
+
+/***    Controller for Speed CS    ***/
+    speed_obj_mps   = lldGetOdometryObjSpeedMPS( );
+
+    speed_err       = speed_ref - speed_obj_mps;
+    speed_dif       = speed_err - prev_speed_err;
+    speed_intg      += speed_err;
+
+    speed_intg  = CLIP_VALUE( speed_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
+
+//    if( abs(speed_err) <= speedPIDparam.proptDeadZone ) speed_intg = 0;
+
+    if( speed_ref >= 0 )
+      speed_cntrl_prc = f_speedPIDparam.kp * speed_err + f_speedPIDparam.ki * speed_intg + f_speedPIDparam.kd * speed_dif;
+    else if( speed_ref < 0 )
+      speed_cntrl_prc = b_speedPIDparam.kp * speed_err + b_speedPIDparam.ki * speed_intg + b_speedPIDparam.kd * speed_dif;
+
+
+    speed_cntrl_prc = CLIP_VALUE( speed_cntrl_prc, CONTROL_MIN, CONTROL_MAX );
+
+    prev_speed_err = speed_err;
 
 }
 
@@ -114,26 +181,19 @@ static bool             isInitialized = false;
  * @brief       Initialization of units that are needed for steering CS
  * @note        lldControl and lldSteerAngleFB are used
  */
-void driveSteerCSInit( void )
+void driverCSInit( void )
 {
     if( isInitialized )
       return;
 
     lldControlInit( );
     lldSteerAngleFBInit( );
+    lldOdometryInit( );
 
     /*** Start working GPT driver in asynchronous mode ***/
     gptStart( gptDriver, &gpt3cfg );
     uint32_t gpt_period = gpt_cs_Freq * 0.02;   // 20 ms => 50 Hz
     gptStartContinuous( gptDriver, gpt_period );
 
-
-
     isInitialized = true;
-
 }
-
-
-
-
-
