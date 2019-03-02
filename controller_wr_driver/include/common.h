@@ -19,10 +19,11 @@
 #define     PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND        8
 #define     PROGRAM_ROUTINE_TEST_STEER_ANGLE_LLD_CONTRL 9
 #define     PROGRAM_ROUTINE_TEST_ROS_ODOMETRY           20
+#define     PROGRAM_ROUTINE_TEST_ROS_CONTROL            25
 #define     PROGRAM_ROUTINE_TEST_GUI_SERVER             30
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ROS_ODOMETRY
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ROS_CONTROL
 
 
 /**************/

@@ -8,7 +8,7 @@
 #define STEER_FILTER_MEAN       0
 #define STEER_FILTER_LPF        1
 
-#define STEER_ACTIVE_FILTER     STEER_FILTER_MEAN
+#define STEER_ACTIVE_FILTER     STEER_FILTER_LPF
 
 /***********************************/
 /***    OBJECT CONFIGURATION     ***/

@@ -10,6 +10,14 @@ static const SerialConfig sdcfg = {
 
 #define STEER_CS_MATLAB
 
+/*
+ * @brief   Test steering control system with feedback
+ * @note    There are 2 options:
+ *          - Show data in Terminal
+ *          - Send limited number of data to Matlab
+ *
+ *          !lldControl hardware connection is required
+*/
 void testSteeringCS ( void )
 {
     sdStart( &SD7, &sdcfg );

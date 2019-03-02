@@ -80,18 +80,41 @@ void testSteerAngleGetControlAngleCoeffitient( void );
 /*** Steering Control System tests ***/
 /*************************************/
 
+/*
+ * @brief   Test steering control system with feedback
+ * @note    There are 2 options:
+ *          - Show data in Terminal
+ *          - Send limited number of data to Matlab
+ *
+ *          !lldControl hardware connection is required
+*/
 void testSteeringCS ( void );
 
 /***********************/
 /***    GUI tests    ***/
 /***********************/
+
+
 void testGUIRoutineServer ( void );
 
 
 /***********************/
 /***    ROS tests    ***/
 /***********************/
+
+
+/*
+ * @brief   Test odometry via ROS
+ * @note    Frequency = 50 Hz
+*/
 void testRoutineROSOdometry( void );
+
+
+/*
+ * @brief   Test odometry, speed and steering control via ROS
+ * @note    Frequency = 50 Hz
+*/
+void testRosRoutineControl( void );
 
 
 static inline void testsRoutines( void )
@@ -135,6 +158,10 @@ static inline void testsRoutines( void )
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS_ODOMETRY )
 
     testRoutineROSOdometry( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS_CONTROL )
+
+    testRosRoutineControl( );
 
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEERING_CS )
 

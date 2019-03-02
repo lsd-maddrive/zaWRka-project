@@ -4,10 +4,14 @@
 #include <lld_odometry.h>
 #include <ros_protos.h>
 
+/*
+ * @brief   Test odometry via ROS
+ * @note    Frequency = 50 Hz
+*/
 void testRoutineROSOdometry( void )
 {
     ros_driver_init( NORMALPRIO );
-    lldSteerAngleFBInit( );
+//    lldSteerAngleFBInit( );
     lldOdometryInit( );
 
     odometryValue_t         test_x_pos      = 0;

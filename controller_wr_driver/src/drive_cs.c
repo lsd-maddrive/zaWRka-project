@@ -18,16 +18,23 @@ pidControllerContext_t steerPIDparam = {
 static  GPTDriver       *gptDriver = &GPTD3;
 /************************************/
 
+/************************************/
+/***    CONTROLLER PARAMETRS      ***/
+/************************************/
+
 #define STEER_LEFT_BUST_K   3.652
 #define STEER_LEFT_BUST_B   (0)
 
 #define STEER_RIGHT_BUST_K  (2.9641)
 #define STEER_RIGHT_BUST_B  (0)
 
-#define STEER_MAX_LIMIT_LEFT    25
-#define STEER_MAX_LIMIT_RIGHT   (-25)
 #define STEER_DEADZONE          2
 #define STEER_SATURATION_LIMIT  100
+
+/************************************/
+
+#define STEER_MAX_LIMIT_LEFT    25
+#define STEER_MAX_LIMIT_RIGHT   (-25)
 
 /***        data from steer feedback       ***/
 static steerAngleDegValue_t   steer_angl_deg        = 0;
@@ -61,8 +68,6 @@ void driveSteerCSSetPosition( steerAngleDegValue_t input_angl_deg )
 
     lldControlSetSteerMotorPower( steer_cntl_prc );
 }
-
-
 
 static void gptcb (GPTDriver *gptd)
 {
@@ -105,6 +110,9 @@ static const GPTConfig gpt3cfg = {
 
 static bool             isInitialized = false;
 
+virtual_timer_t         ros_checker_vt;
+
+
 /**
  * @brief       Initialization of units that are needed for steering CS
  * @note        lldControl and lldSteerAngleFB are used
@@ -122,8 +130,19 @@ void driveSteerCSInit( void )
     uint32_t gpt_period = gpt_cs_Freq * 0.02;   // 20 ms => 50 Hz
     gptStartContinuous( gptDriver, gpt_period );
 
+    /***    Check ROS condition      ***/
+
+//    chVTSet( ros_checker_vt, MS2ST())
+
 
     isInitialized = true;
+
+}
+
+void isROSalive( void )
+{
+//    chVTReset (*ros_checker_vt);
+
 
 }
 
