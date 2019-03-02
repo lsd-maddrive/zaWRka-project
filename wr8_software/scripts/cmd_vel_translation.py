@@ -29,6 +29,7 @@ def callback(msg):
             x_cmd += x_delta * sign(msg.linear.x)
 
     z_cmd = np.clip(z_cmd, -25, 25)
+    x_cmd = np.clip(x_cmd, -100, 100)
 
     cmd = Twist()
     cmd.linear.x = x_cmd;
