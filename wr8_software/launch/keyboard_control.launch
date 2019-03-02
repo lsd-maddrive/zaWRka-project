@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<!-- ros-kinetic-rosserial-msgs required!! -->
+
+<!-- https://answers.ros.org/question/41446/a-is-not-in-your-ssh-known_hosts-file/?answer=42629#post-id-42629 -->
+
+<launch>
+	<node pkg="wr8_software" type="cmd_vel_translation.py" name="cmd_converter" output="screen" respawn="true">
+		<remap from="input_cmd_vel" to="raw_cmd_vel" />
+		<remap from="output_cmd_vel" to="robot/cmd_vel" />
+	</node>
+
+	<node pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py" name="keyborad_cmd" output="screen" respawn="true">
+		<remap from="cmd_vel" to="raw_cmd_vel" />
+	</node>
+
+</launch>
