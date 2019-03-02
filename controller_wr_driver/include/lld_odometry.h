@@ -62,6 +62,12 @@ odometrySpeedValue_t lldGetOdometryObjSpeedCMPS( void );
  */
 odometrySpeedValue_t lldGetOdometryObjSpeedMPS( void );
 
+/**
+ * @brief   Get speed of changing orientation of object
+ * @return  Speed in radians per second [rad/s]
+ */
+odometrySpeedValue_t lldGetOdometryObjTettaSpeedRadPS( void );
+
 /**********************************/
 /***    Functions for odometry  ***/
 /**********************************/

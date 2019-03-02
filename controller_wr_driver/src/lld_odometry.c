@@ -63,6 +63,8 @@ odometryValue_t             tetta_rad_angle     = 0;
 odometryValue_t             x_pos_m             = 0;
 odometryValue_t             y_pos_m             = 0;
 
+odometrySpeedValue_t        tetta_speed_rad_s   = 0;
+
 
 
 
@@ -93,8 +95,11 @@ static void gptcb (GPTDriver *gptd)
 
     /***        Tetta calculation              ***/
     odometryValue_t         steer_angl_rad = lldGetSteerAngleRad( );
+
+    tetta_speed_rad_s = ( speed_m_per_sec * tan( steer_angl_rad ) * tetta_k_rad );
+
     /*** It is tetta angle, not changing speed of tetta! ***/
-    tetta_rad_angle +=  ( speed_m_per_sec * tan( steer_angl_rad ) * tetta_k_rad );
+    tetta_rad_angle +=  tetta_speed_rad_s;
 
     /*** Reset tetta integral ***/
     /*** NOTE 0 = 360         ***/
@@ -163,7 +168,7 @@ void lldOdometryInit( void )
 
 /**
  * @brief   Get speed of encoder rotation
- * @return  Speed in revolutions per second [rps]
+ * @return  Speed in revolutions per second [rev/s]
  */
 odometryRawSpeedValue_t lldGetOdometryRawSpeedRPS( void )
 {
@@ -172,7 +177,7 @@ odometryRawSpeedValue_t lldGetOdometryRawSpeedRPS( void )
 
 /**
  * @brief   Get speed of object
- * @return  Speed in cm per second [cmps]
+ * @return  Speed in cm per second [cm/s]
  */
 odometrySpeedValue_t lldGetOdometryObjSpeedCMPS( void )
 {
@@ -181,14 +186,21 @@ odometrySpeedValue_t lldGetOdometryObjSpeedCMPS( void )
 
 /**
  * @brief   Get speed of object
- * @return  Speed in m per second [mps]
+ * @return  Speed in m per second [m/s]
  */
 odometrySpeedValue_t lldGetOdometryObjSpeedMPS( void )
 {
     return speed_m_per_sec;
 }
 
-
+/**
+ * @brief   Get speed of changing orientation of object
+ * @return  Speed in radians per second [rad/s]
+ */
+odometrySpeedValue_t lldGetOdometryObjTettaSpeedRadPS( void )
+{
+    return tetta_speed_rad_s;
+}
 /**
  * @brief   Get tetta (orientation) of objects
  * @return  angle in radians [rad]

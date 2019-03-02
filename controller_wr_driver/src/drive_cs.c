@@ -110,9 +110,6 @@ static const GPTConfig gpt3cfg = {
 
 static bool             isInitialized = false;
 
-virtual_timer_t         ros_checker_vt;
-
-
 /**
  * @brief       Initialization of units that are needed for steering CS
  * @note        lldControl and lldSteerAngleFB are used
@@ -130,19 +127,9 @@ void driveSteerCSInit( void )
     uint32_t gpt_period = gpt_cs_Freq * 0.02;   // 20 ms => 50 Hz
     gptStartContinuous( gptDriver, gpt_period );
 
-    /***    Check ROS condition      ***/
-
-//    chVTSet( ros_checker_vt, MS2ST())
 
 
     isInitialized = true;
-
-}
-
-void isROSalive( void )
-{
-//    chVTReset (*ros_checker_vt);
-
 
 }
 
