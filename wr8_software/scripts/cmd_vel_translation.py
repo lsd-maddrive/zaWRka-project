@@ -5,14 +5,15 @@ from geometry_msgs.msg import Point32, Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 import tf
 import math as m
+import numpy as np
 
 cmd_pub = None
 
 x_cmd = 0
 z_cmd = 0
 
-x_delta = 10
-z_delta = 10
+x_delta = 2
+z_delta = 5
 
 def callback(msg):
     global x_cmd, z_cmd
@@ -26,6 +27,8 @@ def callback(msg):
             z_cmd += z_delta * sign(msg.angular.z)
         if msg.linear.x != 0:
             x_cmd += x_delta * sign(msg.linear.x)
+
+    z_cmd = np.clip(z_cmd, -25, 25)
 
     cmd = Twist()
     cmd.linear.x = x_cmd;
