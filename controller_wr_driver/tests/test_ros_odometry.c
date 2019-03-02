@@ -24,7 +24,7 @@ void testRoutineROSOdometry( void )
         test_y_pos      = lldGetOdometryObjY( OBJ_DIST_M );
         test_tetta_deg  = lldGetOdometryObjTettaDeg( );
 
-        ros_driver_send_pose( test_x_pos, test_y_pos, test_tetta_deg );
+        ros_driver_send_pose( test_x_pos, test_y_pos, test_tetta_deg, 0, 0 );
 
         chThdSleepMilliseconds( 20 );
     }
