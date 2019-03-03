@@ -15,6 +15,4 @@
     <remap from="image" to="usb_cam/image_raw"/>
   </node>
 
-  <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find wr8_software)/rviz/mono_slam.rviz" /> -->
-
 </launch>
