@@ -9,7 +9,7 @@ width
 height
 480
 
-[narrow_stereo]
+[head_camera]
 
 camera matrix
 833.064790 0.000000 298.557402
