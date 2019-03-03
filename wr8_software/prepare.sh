@@ -1,18 +1,19 @@
 #!/bin/bash
 
-sudo apt install ros-kinetic-hector-mapping \
-					ros-kinetic-move-base \
-					ros-kinetic-gmapping \
-					ros-kinetic-global-planner \
-					ros-kinetic-costmap-converter \
-					ros-kinetic-gazebo9-plugins \
-					ros-kinetic-map-server \
-					ros-kinetic-amcl \
-					ros-kinetic-laser-scan-matcher \
-					ros-kinetic-stereo-image-proc \
-					ros-kinetic-image-view \
-					ros-kinetic-teleop-twist-keyboard \
-					ros-kinetic-rosserial-msgs
+sudo apt install ros-$ROS_DISTRO-hector-mapping \
+					ros-$ROS_DISTRO-move-base \
+					ros-$ROS_DISTRO-gmapping \
+					ros-$ROS_DISTRO-global-planner \
+					ros-$ROS_DISTRO-costmap-converter \
+					ros-$ROS_DISTRO-gazebo9-plugins \
+					ros-$ROS_DISTRO-map-server \
+					ros-$ROS_DISTRO-amcl \
+					ros-$ROS_DISTRO-laser-scan-matcher \
+					ros-$ROS_DISTRO-stereo-image-proc \
+					ros-$ROS_DISTRO-image-view \
+					ros-$ROS_DISTRO-teleop-twist-keyboard \
+					ros-$ROS_DISTRO-rosserial-msgs \
+					ros-$ROS_DISTRO-usb-cam
 
 # pip install pygame
 cd scripts/graph_path; pyrcc5 -o resources.py my.qrc
