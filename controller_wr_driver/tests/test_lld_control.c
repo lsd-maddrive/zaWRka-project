@@ -1,5 +1,6 @@
 #include <tests.h>
 #include <lld_control.h>
+#include <lld_odometry.h>
 
 /***************************************************/
 
@@ -68,25 +69,26 @@ void testRawWheelsControlRoutine( void )
 
 void testWheelsControlRoutines( void )
 {
-    palSetLine( LINE_LED2 );
-    sdStart( &SD7, &sdcfg );
-    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
-    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
+//    palSetLine( LINE_LED2 );
+//    sdStart( &SD7, &sdcfg );
+//    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
+//    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
 
     lldControlInit();
+    debug_stream_init( );
 
-    controlValue_t  speed_values_delta  = 5;
+    controlValue_t  speed_values_delta  = 1;
     controlValue_t  speed_value         = 0;
 
-    controlValue_t  steer_values_delta  = 5;
+    controlValue_t  steer_values_delta  = 1;
     controlValue_t  steer_value         = 0;
 
 
-    chprintf( (BaseSequentialStream *)&SD7, "TEST\n\r" );
+//    chprintf( (BaseSequentialStream *)&SD7, "TEST\n\r" );
 
     while ( 1 )
     {
-        char rcv_data = sdGet( &SD7 );
+        char rcv_data = sdGet( &SD3 );
         switch ( rcv_data )
         {
             case 'a':   // Positive speed
@@ -104,6 +106,11 @@ void testWheelsControlRoutines( void )
             case 'w':   // On the right
             steer_value -= steer_values_delta;
 
+            case ' ':
+              speed_value = 0;
+              steer_value = 0;
+              break;
+
             default:
                ;
         }
@@ -113,8 +120,53 @@ void testWheelsControlRoutines( void )
         lldControlSetDrMotorPower( speed_value );
         lldControlSetSteerMotorPower( steer_value );
 
-        chprintf( (BaseSequentialStream *)&SD7, "Powers:\n\r\tSpeed(%d)\tSteer(%d)\n\r\t",
+        dbgprintf( "Speed(%d)\tSteer(%d)\n\r",
                          speed_value, steer_value );
         chThdSleepMilliseconds( 100 );
     }
+}
+
+
+void testWheelsSpeedControlRoutine( void )
+{
+    lldControlInit( );
+    lldOdometryInit( );
+
+    debug_stream_init( );
+
+    controlValue_t          speed_values_delta  = 1;
+    controlValue_t          speed_value         = 0;
+    odometrySpeedValue_t    speed_mps     = 0;
+
+    while ( 1 )
+    {
+        char rcv_data = sdGetTimeout( &SD3, TIME_IMMEDIATE );
+        switch ( rcv_data )
+        {
+            case 'a':   // Positive speed
+              speed_value += speed_values_delta;
+              break;
+
+            case 's':   // Negative speed
+              speed_value -= speed_values_delta;
+              break;
+
+           case ' ':
+             speed_value = 0;
+             break;
+
+           default:
+              ;
+       }
+       speed_mps = lldGetOdometryObjSpeedMPS( );
+       speed_value = CLIP_VALUE( speed_value, -100, 100 );
+
+       lldControlSetDrMotorPower( speed_value );
+
+       dbgprintf( "Speed:(%d)\tC:(%d)\n\r",
+                 (int)(speed_mps * 100 ), speed_value );
+
+       chThdSleepMilliseconds( 100 );
+   }
+
 }

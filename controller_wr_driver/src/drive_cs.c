@@ -10,19 +10,21 @@ pidControllerContext_t steerPIDparam = {
 };
 
 pidControllerContext_t  f_speedPIDparam = {
-  .kp               = 15,
-  .ki               = 0.8,
+  .kp               = 60,
+  .ki               = 0.1,
   .kd               = 0,
-  .integSaturation  = 1000,
-  .proptDeadZone    = 0.1
+  .integSaturation  = 100,
+  .proptDeadZone    = 0.1,
+  .kr               = 70
 };
 
 pidControllerContext_t  b_speedPIDparam = {
-  .kp               = 15,
-  .ki               = 0.5,
+  .kp               = 100,
+  .ki               = 0.1,
   .kd               = 0,
-  .integSaturation  = 1000,
-  .proptDeadZone    = 0.1
+  .integSaturation  = 100,
+  .proptDeadZone    = 0.1,
+  .kr               = 250
 };
 
 
@@ -152,15 +154,21 @@ static void gptcb (GPTDriver *gptd)
     speed_dif       = speed_err - prev_speed_err;
     speed_intg      += speed_err;
 
-    speed_intg  = CLIP_VALUE( speed_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
+//    speed_intg  = CLIP_VALUE( speed_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
 
 //    if( abs(speed_err) <= speedPIDparam.proptDeadZone ) speed_intg = 0;
 
     if( speed_ref >= 0 )
-      speed_cntrl_prc = f_speedPIDparam.kp * speed_err + f_speedPIDparam.ki * speed_intg + f_speedPIDparam.kd * speed_dif;
+    {
+      speed_intg  = CLIP_VALUE( speed_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
+      speed_cntrl_prc = f_speedPIDparam.kp * speed_err + f_speedPIDparam.kr * speed_ref + f_speedPIDparam.ki * speed_intg + f_speedPIDparam.kd * speed_dif;
+    }
     else if( speed_ref < 0 )
-      speed_cntrl_prc = b_speedPIDparam.kp * speed_err + b_speedPIDparam.ki * speed_intg + b_speedPIDparam.kd * speed_dif;
-
+    {
+//      if( abs(speed_err) <= b_speedPIDparam.proptDeadZone ) speed_intg = 0;
+      speed_intg  = CLIP_VALUE( speed_intg, -b_speedPIDparam.integSaturation, b_speedPIDparam.integSaturation );
+      speed_cntrl_prc = b_speedPIDparam.kp * speed_err + b_speedPIDparam.kr * speed_ref + b_speedPIDparam.ki * speed_intg + b_speedPIDparam.kd * speed_dif;
+    }
 
     speed_cntrl_prc = CLIP_VALUE( speed_cntrl_prc, CONTROL_MIN, CONTROL_MAX );
 

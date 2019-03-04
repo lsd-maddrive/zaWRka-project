@@ -13,6 +13,7 @@ typedef struct{
   controllerRate_t  kp;
   controllerRate_t  ki;
   controllerRate_t  kd;
+  controllerRate_t  kr;
 
   controllerError_t integSaturation;
   controllerError_t proptDeadZone;

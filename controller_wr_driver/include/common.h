@@ -19,12 +19,13 @@
 #define     PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND        8
 #define     PROGRAM_ROUTINE_TEST_STEER_ANGLE_LLD_CONTRL 9
 #define     PROGRAM_ROUTINE_TEST_SPEED_CS               10
+#define     PROGRAM_ROUTINE_TEST_SPEED_LL_DRV           11
 #define     PROGRAM_ROUTINE_TEST_ROS_ODOMETRY           20
 #define     PROGRAM_ROUTINE_TEST_ROS_CONTROL            25
 #define     PROGRAM_ROUTINE_TEST_GUI_SERVER             30
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_SPEED_CS
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ROS_CONTROL
 
 
 /**************/
@@ -38,10 +39,12 @@
 /*** LLD LIMITS ***/
 /******************/
 
-#define SPEED_MAX           1920
-#define SPEED_NULL_FORWARD  1520
-#define SPEED_NULL_BACK     1300
-#define SPEED_MIN           1160
+#define SPEED_MAX           1640
+#define SPEED_ZERO          1500
+#define SPEED_NULL_FORWARD  1540
+
+#define SPEED_NULL_BACK     1330
+#define SPEED_MIN           1230
 
 
 #define STEER_MAX           2080

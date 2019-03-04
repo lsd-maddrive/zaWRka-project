@@ -96,7 +96,7 @@ void testSpeedCS ( void )
     float                test_speed_ref     = 0;
     odometrySpeedValue_t test_speed_mps     = 0;
     controlValue_t       test_speed_cntrl   = 0;
-    float                test_speed_delta   = 0.5;
+    float                test_speed_delta   = 0.1;
 
     while( 1 )
     {
@@ -110,16 +110,26 @@ void testSpeedCS ( void )
         case 'd': // right
           test_speed_ref   -= test_speed_delta;
           break;
+        case ' ':
+          test_speed_ref = 0;
+          break;
 
         default:
           ;
       }
       test_speed_mps    = lldGetOdometryObjSpeedMPS( );
-      driveSpeedCSSetSpeed( test_speed_ref );
-      test_speed_cntrl  = driveSpeedGetControlVal( );
+//      if(test_speed_ref == 0)
+//      {
+//        lldControlSetDrMotorPower( 0 );
+//      }
+//      else{
+        driveSpeedCSSetSpeed( test_speed_ref );
 
+//      }
+      lldControlSetSteerMotorPower( 0 );
+      test_speed_cntrl  = driveSpeedGetControlVal( );
       dbgprintf( "C:(%d)\tREF:(%d)\tReal_v:(%d)\n\r",
-                 test_speed_cntrl, (int)(test_speed_ref * 10), (int)(test_speed_mps * 10) );
+                 test_speed_cntrl, (int)(test_speed_ref * 100), (int)(test_speed_mps * 100) );
 
       chThdSleepMilliseconds( 100 );
     }

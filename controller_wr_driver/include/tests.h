@@ -26,6 +26,9 @@ void testRawWheelsControlRoutine( void );
  */
 void testWheelsControlRoutines( void );
 
+
+void testWheelsSpeedControlRoutine( void );
+
 /*********************/
 /*** Encoder tests ***/
 /*********************/
@@ -131,9 +134,12 @@ static inline void testsRoutines( void )
 
     testWheelsControlRoutines( );
 
+    PROGRAM_ROUTINE_TEST_SPEED_LL_DRV
 #elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RAW_LL_DRIVE)
 
-    testRawWheelsControlRoutine( );
+#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_LL_DRV )
+
+    testWheelsSpeedControlRoutine( );
 
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ENCODER )
 
@@ -178,6 +184,7 @@ static inline void testsRoutines( void )
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_CS )
 
     testSpeedCS( );
+
 
 #endif
 }

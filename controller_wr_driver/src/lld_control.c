@@ -98,7 +98,11 @@ void lldControlSetDrMotorPower( controlValue_t inputPrc )
 {
     inputPrc = CLIP_VALUE(inputPrc, CONTROL_MIN, CONTROL_MAX);
 
-    if( inputPrc >= 0)
+    if( inputPrc == 0 )
+    {
+        drDuty   = SPEED_ZERO;
+    }
+    else if( inputPrc > 0)
     {
         drDuty = lld_speed_forward_k * inputPrc + lld_speed_forward_b;
     }

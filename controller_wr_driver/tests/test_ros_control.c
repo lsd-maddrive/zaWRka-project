@@ -49,7 +49,9 @@ void testRosRoutineControl( void )
     {
         print_cntr += 1;
         driveSteerCSSetPosition( test_ros_steer_cntr );
-        lldControlSetDrMotorPower(  test_ros_speed_cntr );
+        driveSpeedCSSetSpeed( test_ros_speed_cntr );
+
+//        lldControlSetDrMotorPower(  test_ros_speed_cntr );
 
         test_enc_speed_rps  = lldGetOdometryRawSpeedRPS( );
         test_speed_mps      = lldGetOdometryObjSpeedMPS( );
