@@ -12,7 +12,7 @@ cmd_pub = None
 x_cmd = 0
 z_cmd = 0
 
-x_delta = 2
+x_delta = 0.05
 z_delta = 5
 
 def callback(msg):
@@ -29,10 +29,10 @@ def callback(msg):
             x_cmd += x_delta * sign(msg.linear.x)
 
     z_cmd = np.clip(z_cmd, -25, 25)
-    x_cmd = np.clip(x_cmd, -100, 100)
+    x_cmd = np.clip(x_cmd, -0.5, 0.5)
 
     cmd = Twist()
-    cmd.linear.x = x_cmd / 100.;
+    cmd.linear.x = x_cmd;
     cmd.angular.z = z_cmd;
 
     # print(cmd)
