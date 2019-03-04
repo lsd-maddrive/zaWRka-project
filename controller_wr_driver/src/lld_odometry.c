@@ -48,7 +48,7 @@ odometryValue_t lldGetOdometryObjDistance( odometryDistanceUnit_t units )
 /***     Variables for speed      ***/
 /************************************/
 
-float                       prev_revs           = 0;
+odometryRawSpeedValue_t     prev_revs           = 0;
 odometryRawSpeedValue_t     revs_per_sec        = 0;
 
 odometryValue_t             prev_distance       = 0;
@@ -65,7 +65,7 @@ odometryValue_t             y_pos_m             = 0;
 
 odometrySpeedValue_t        tetta_speed_rad_s   = 0;
 
-
+rawRevEncoderValue_t        cur_revs   = 0;
 
 
 static void gptcb (GPTDriver *gptd)
@@ -75,17 +75,18 @@ static void gptcb (GPTDriver *gptd)
     /***         Speed calculation                         ***/
 
     /***         Get speed of encoder in revolutions       ***/
-    rawRevEncoderValue_t   cur_revs   = lldGetEncoderRawRevs( );
+    cur_revs   = lldGetEncoderRawRevs( );
 
     revs_per_sec    = (cur_revs - prev_revs) * MS_2_SEC;
 
     prev_revs       = cur_revs;
+
     /*********************************************/
 
     /***    Get speed of object in cm/s and m/s          ***/
     odometryValue_t cur_distance  = lldGetOdometryObjDistance( OBJ_DIST_CM );
 
-    /*  [cm/10ms] * 1000 = [cm/c]   */
+    /*  [cm/10ms] * 100 = [cm/s]   */
     speed_cm_per_sec    = (cur_distance - prev_distance ) * MS_2_SEC;
     /*  [cm/s] * 0.01 = [m/s]       */
     speed_m_per_sec     = speed_cm_per_sec * 0.01;//CM_2_M;
@@ -121,6 +122,16 @@ static void gptcb (GPTDriver *gptd)
     y_pos_m += (speed_m_per_sec * sin(tetta_rad_angle)) * d_t;
     /*********************************************/
 
+}
+
+odometryRawSpeedValue_t lldOdometryGetCurRevs ( void )
+{
+    return cur_revs;
+}
+
+odometryRawSpeedValue_t lldOdometryGetPrevRevs ( void )
+{
+    return prev_revs;
 }
 
 static const GPTConfig gpt2cfg = {

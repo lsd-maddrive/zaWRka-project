@@ -14,7 +14,7 @@ pidControllerContext_t  f_speedPIDparam = {
   .ki               = 0.1,
   .kd               = 0,
   .integSaturation  = 100,
-  .proptDeadZone    = 0.1,
+  .proptDeadZone    = 1,
   .kr               = 70
 };
 
@@ -23,7 +23,7 @@ pidControllerContext_t  b_speedPIDparam = {
   .ki               = 0.1,
   .kd               = 0,
   .integSaturation  = 100,
-  .proptDeadZone    = 0.1,
+  .proptDeadZone    = 1,
   .kr               = 250
 };
 
@@ -71,7 +71,8 @@ static odometrySpeedValue_t speed_ref               = 0;
 static controllerError_t prev_speed_err             = 0;
 static controllerError_t speed_err                  = 0;
 static controllerError_t speed_dif                  = 0;
-static controllerError_t speed_intg                 = 0;
+static controllerError_t f_speed_intg                 = 0;
+static controllerError_t b_speed_intg                 = 0;
 
 /***    Generated control value for lld***/
 controlValue_t          steer_cntl_prc              = 0;
@@ -91,8 +92,7 @@ void driveSteerCSSetPosition( steerAngleDegValue_t input_angl_deg )
 
     steer_angl_deg_ref = input_angl_deg;
 
-    steer_cntl_prc = CLIP_VALUE( steer_cntl_prc, CONTROL_MIN, CONTROL_MAX );
-    lldControlSetSteerMotorPower( steer_cntl_prc );
+
 }
 
 /**
@@ -111,8 +111,7 @@ void driveSpeedCSSetSpeed ( float input_speed )
 {
     speed_ref = input_speed;
 
-    speed_cntrl_prc = CLIP_VALUE( speed_cntrl_prc, CONTROL_MIN, CONTROL_MAX );
-    lldControlSetDrMotorPower( speed_cntrl_prc );
+
 }
 
 /**
@@ -145,36 +144,51 @@ static void gptcb (GPTDriver *gptd)
     prev_steer_angl_deg_err = steer_angl_deg_err;
 
     steer_cntl_prc = CLIP_VALUE( steer_cntl_prc, CONTROL_MIN, CONTROL_MAX );
-/*******************************************/
+
+    lldControlSetSteerMotorPower( steer_cntl_prc );
+
+    /*******************************************/
 
 /***    Controller for Speed CS    ***/
     speed_obj_mps   = lldGetOdometryObjSpeedMPS( );
+//    if( abs(speed_obj_mps) > 2 * speed_ref ) speed_obj_mps = 0;
 
     speed_err       = speed_ref - speed_obj_mps;
     speed_dif       = speed_err - prev_speed_err;
-    speed_intg      += speed_err;
-
-//    speed_intg  = CLIP_VALUE( speed_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
-
-//    if( abs(speed_err) <= speedPIDparam.proptDeadZone ) speed_intg = 0;
 
     if( speed_ref >= 0 )
     {
-      speed_intg  = CLIP_VALUE( speed_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
-      speed_cntrl_prc = f_speedPIDparam.kp * speed_err + f_speedPIDparam.kr * speed_ref + f_speedPIDparam.ki * speed_intg + f_speedPIDparam.kd * speed_dif;
+      f_speed_intg      += speed_err;
+      b_speed_intg      = 0;
+      f_speed_intg  = CLIP_VALUE( f_speed_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
+      speed_cntrl_prc = f_speedPIDparam.kp * speed_err + f_speedPIDparam.kr * speed_ref + f_speedPIDparam.ki * f_speed_intg + f_speedPIDparam.kd * speed_dif;
     }
     else if( speed_ref < 0 )
     {
-//      if( abs(speed_err) <= b_speedPIDparam.proptDeadZone ) speed_intg = 0;
-      speed_intg  = CLIP_VALUE( speed_intg, -b_speedPIDparam.integSaturation, b_speedPIDparam.integSaturation );
-      speed_cntrl_prc = b_speedPIDparam.kp * speed_err + b_speedPIDparam.kr * speed_ref + b_speedPIDparam.ki * speed_intg + b_speedPIDparam.kd * speed_dif;
+      b_speed_intg      += speed_err;
+      f_speed_intg      = 0;
+      b_speed_intg  = CLIP_VALUE( b_speed_intg, -b_speedPIDparam.integSaturation, b_speedPIDparam.integSaturation );
+      speed_cntrl_prc = b_speedPIDparam.kp * speed_err + b_speedPIDparam.kr * speed_ref + b_speedPIDparam.ki * b_speed_intg + b_speedPIDparam.kd * speed_dif;
     }
-
-    speed_cntrl_prc = CLIP_VALUE( speed_cntrl_prc, CONTROL_MIN, CONTROL_MAX );
-
     prev_speed_err = speed_err;
 
+    speed_cntrl_prc = CLIP_VALUE( speed_cntrl_prc, CONTROL_MIN, CONTROL_MAX );
+    lldControlSetDrMotorPower( speed_cntrl_prc );
+
+
 }
+
+float driveSpeedFInteg( void )
+{
+    return f_speed_intg;
+}
+
+float driveSpeedBInteg( void )
+{
+    return b_speed_intg;
+}
+
+
 
 static const GPTConfig gpt3cfg = {
   .frequency =  gpt_cs_Freq,

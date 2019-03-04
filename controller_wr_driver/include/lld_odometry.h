@@ -96,4 +96,15 @@ odometryValue_t lldGetOdometryObjX( odometryDistanceUnit_t units );
  */
 odometryValue_t lldGetOdometryObjY( odometryDistanceUnit_t units );
 
+
+
+
+odometryRawSpeedValue_t lldOdometryGetCurRevs ( void );
+
+
+odometryRawSpeedValue_t lldOdometryGetPrevRevs ( void );
+
+
+
+
 #endif /* INCLUDE_LLD_ODOMETRY_H_ */

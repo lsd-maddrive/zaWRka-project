@@ -1,12 +1,11 @@
 #include <tests.h>
 #include <lld_odometry.h>
-//#include <lld_control.h>
 #include <drive_cs.h>
 
 #include <ros_protos.h>
 
 controlValue_t          test_ros_steer_cntr = 0;
-controlValue_t          test_ros_speed_cntr = 0;
+float                   test_ros_speed_cntr = 0;
 
 //virtual_timer_t         ros_checker_vt;
 
@@ -51,8 +50,6 @@ void testRosRoutineControl( void )
         driveSteerCSSetPosition( test_ros_steer_cntr );
         driveSpeedCSSetSpeed( test_ros_speed_cntr );
 
-//        lldControlSetDrMotorPower(  test_ros_speed_cntr );
-
         test_enc_speed_rps  = lldGetOdometryRawSpeedRPS( );
         test_speed_mps      = lldGetOdometryObjSpeedMPS( );
         test_speed_radps    = lldGetOdometryObjTettaSpeedRadPS( );
@@ -69,8 +66,8 @@ void testRosRoutineControl( void )
         if( print_cntr == 10 )
         {
           palToggleLine( LINE_LED2 );
-          dbgprintf( "ST:(%d)\tSCS:(%d)\tANG:(%d)\n\r",
-                     (int)test_ros_steer_cntr, driveSteerGetControlVal( ), (int)test_steer_angl_deg );
+          dbgprintf( "ST:(%d)\tANG:(%d)\SP:(%d)\n\r",
+                     (int)test_ros_steer_cntr, (int)test_steer_angl_deg, (int)( test_ros_speed_cntr * 100 ) );
 
           print_cntr = 0;
         }
