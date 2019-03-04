@@ -93,10 +93,10 @@ void testSpeedCS ( void )
     driverCSInit( );
     debug_stream_init( );
 
-    int32_t              test_speed_ref     = 0;
+    float                test_speed_ref     = 0;
     odometrySpeedValue_t test_speed_mps     = 0;
     controlValue_t       test_speed_cntrl   = 0;
-    uint32_t             test_speed_delta   = 1;
+    float                test_speed_delta   = 0.5;
 
     while( 1 )
     {
@@ -119,7 +119,7 @@ void testSpeedCS ( void )
       test_speed_cntrl  = driveSpeedGetControlVal( );
 
       dbgprintf( "C:(%d)\tREF:(%d)\tReal_v:(%d)\n\r",
-                 test_speed_cntrl, test_speed_ref, (int)(test_speed_mps * 10) );
+                 test_speed_cntrl, (int)(test_speed_ref * 10), (int)(test_speed_mps * 10) );
 
       chThdSleepMilliseconds( 100 );
     }

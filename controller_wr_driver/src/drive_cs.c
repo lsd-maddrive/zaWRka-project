@@ -18,8 +18,8 @@ pidControllerContext_t  f_speedPIDparam = {
 };
 
 pidControllerContext_t  b_speedPIDparam = {
-  .kp               = 25,
-  .ki               = 0.8,
+  .kp               = 15,
+  .ki               = 0.5,
   .kd               = 0,
   .integSaturation  = 1000,
   .proptDeadZone    = 0.1

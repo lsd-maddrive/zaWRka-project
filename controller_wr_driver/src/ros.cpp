@@ -34,7 +34,7 @@ void ros_driver_set_control_cb( void (*cb_func)(float speed, float steer) )
 
 void cmd_vel_cb( const geometry_msgs::Twist &msg )
 {
-    float cmd_speed = msg.linear.x * 100;
+    float cmd_speed = msg.linear.x;
     float cmd_steer = msg.angular.z;
 
     if ( g_cb_func )
