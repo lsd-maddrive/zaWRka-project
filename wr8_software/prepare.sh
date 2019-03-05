@@ -13,7 +13,9 @@ sudo apt install ros-$ROS_DISTRO-hector-mapping \
 					ros-$ROS_DISTRO-image-view \
 					ros-$ROS_DISTRO-teleop-twist-keyboard \
 					ros-$ROS_DISTRO-rosserial-msgs \
-					ros-$ROS_DISTRO-usb-cam
+					ros-$ROS_DISTRO-interactive-markers \
+					ros-$ROS_DISTRO-usb-cam \
+					ros-$ROS_DISTRO-libg2o
 
 # pip install pygame
 cd scripts/graph_path; pyrcc5 -o resources.py my.qrc

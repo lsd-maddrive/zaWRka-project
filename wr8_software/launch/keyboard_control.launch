@@ -16,8 +16,9 @@
 		<param name="turbo/linear_forward_max" value="0.5" />
 		<param name="turbo/linear_backward_min" value="0.03" />
 		<param name="turbo/linear_backward_max" value="0.3" />
-		<param name="turbo/angular_min" value="2.5" />
-		<param name="turbo/angular_max" value="25" />
+		<!-- 25 deg = 0.43633 rad -->
+		<param name="turbo/angular_min" value="0.043633" />
+		<param name="turbo/angular_max" value="0.43633" />
 
 		<remap from="key_vel" to="robot/cmd_vel" />
 	</node>
