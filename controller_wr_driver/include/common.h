@@ -25,7 +25,7 @@
 #define     PROGRAM_ROUTINE_TEST_GUI_SERVER             30
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ENCODER
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_SPEED_CS
 
 
 /**************/
@@ -46,11 +46,9 @@
 #define SPEED_NULL_BACK     1330
 #define SPEED_MIN           1230
 
-
 #define STEER_MAX           2080
 #define STEER_NULL          1620
 #define STEER_MIN           1160
-
 
 #define CONTROL_MAX         100
 #define CONTROL_NULL        0

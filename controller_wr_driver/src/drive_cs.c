@@ -51,6 +51,9 @@ static  GPTDriver       *gptDriver = &GPTD3;
 #define STEER_MAX_LIMIT_LEFT    25
 #define STEER_MAX_LIMIT_RIGHT   (-25)
 
+#define SPEED_MAX_MPS           3
+#define SPEED_MIN_MPS           (-3)
+
 /***        data from steer feedback       ***/
 static steerAngleDegValue_t   steer_angl_deg        = 0;
 /***  reference steering angle in degrees  ***/
@@ -87,12 +90,9 @@ controlValue_t          speed_cntrl_prc             = 0;
  */
 void driveSteerCSSetPosition( steerAngleDegValue_t input_angl_deg )
 {
-    palToggleLine( LINE_LED1 );
     input_angl_deg = CLIP_VALUE( input_angl_deg, STEER_MAX_LIMIT_RIGHT, STEER_MAX_LIMIT_LEFT );
 
     steer_angl_deg_ref = input_angl_deg;
-
-
 }
 
 /**
@@ -109,9 +109,9 @@ controlValue_t driveSteerGetControlVal ( void )
  */
 void driveSpeedCSSetSpeed ( float input_speed )
 {
+    input_speed = CLIP_VALUE( input_speed, SPEED_MIN_MPS, SPEED_MAX_MPS );
+
     speed_ref = input_speed;
-
-
 }
 
 /**
@@ -150,45 +150,34 @@ static void gptcb (GPTDriver *gptd)
     /*******************************************/
 
 /***    Controller for Speed CS    ***/
-    speed_obj_mps   = lldGetOdometryObjSpeedMPS( );
-//    if( abs(speed_obj_mps) > 2 * speed_ref ) speed_obj_mps = 0;
+    speed_obj_mps   = lldOdometryGetLPFObjSpeedMPS( );
 
     speed_err       = speed_ref - speed_obj_mps;
     speed_dif       = speed_err - prev_speed_err;
 
     if( speed_ref >= 0 )
     {
-      f_speed_intg      += speed_err;
-      b_speed_intg      = 0;
-      f_speed_intg  = CLIP_VALUE( f_speed_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
-      speed_cntrl_prc = f_speedPIDparam.kp * speed_err + f_speedPIDparam.kr * speed_ref + f_speedPIDparam.ki * f_speed_intg + f_speedPIDparam.kd * speed_dif;
+
+        f_speed_intg      += speed_err;
+        b_speed_intg      = 0;
+        f_speed_intg  = CLIP_VALUE( f_speed_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
+
+        if( speed_ref == 0 ) speed_err = 0;
+
+        speed_cntrl_prc = f_speedPIDparam.kp * speed_err + f_speedPIDparam.kr * speed_ref + f_speedPIDparam.ki * f_speed_intg + f_speedPIDparam.kd * speed_dif;
     }
     else if( speed_ref < 0 )
     {
-      b_speed_intg      += speed_err;
-      f_speed_intg      = 0;
-      b_speed_intg  = CLIP_VALUE( b_speed_intg, -b_speedPIDparam.integSaturation, b_speedPIDparam.integSaturation );
-      speed_cntrl_prc = b_speedPIDparam.kp * speed_err + b_speedPIDparam.kr * speed_ref + b_speedPIDparam.ki * b_speed_intg + b_speedPIDparam.kd * speed_dif;
+        b_speed_intg      += speed_err;
+        f_speed_intg      = 0;
+        b_speed_intg  = CLIP_VALUE( b_speed_intg, -b_speedPIDparam.integSaturation, b_speedPIDparam.integSaturation );
+        speed_cntrl_prc = b_speedPIDparam.kp * speed_err + b_speedPIDparam.kr * speed_ref + b_speedPIDparam.ki * b_speed_intg + b_speedPIDparam.kd * speed_dif;
     }
     prev_speed_err = speed_err;
 
     speed_cntrl_prc = CLIP_VALUE( speed_cntrl_prc, CONTROL_MIN, CONTROL_MAX );
     lldControlSetDrMotorPower( speed_cntrl_prc );
-
-
 }
-
-float driveSpeedFInteg( void )
-{
-    return f_speed_intg;
-}
-
-float driveSpeedBInteg( void )
-{
-    return b_speed_intg;
-}
-
-
 
 static const GPTConfig gpt3cfg = {
   .frequency =  gpt_cs_Freq,

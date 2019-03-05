@@ -65,8 +65,16 @@ odometryValue_t             y_pos_m             = 0;
 
 odometrySpeedValue_t        tetta_speed_rad_s   = 0;
 
-rawRevEncoderValue_t        cur_revs   = 0;
+#ifdef LOW_FREQ_CS
+uint8_t                     speed_cs_count      = 0;
+uint8_t                     speed_s_period      = 5;
+odometrySpeedValue_t        speed_cs_cm_p_sec   = 0;
+odometryValue_t             prev_dist_cs        = 0;
+#endif
+odometrySpeedValue_t        prev_speed_lpf      = 0;
+odometrySpeedValue_t        speed_lpf           = 0;
 
+#define SPEED_LPF               (float)0.8
 
 static void gptcb (GPTDriver *gptd)
 {
@@ -75,7 +83,7 @@ static void gptcb (GPTDriver *gptd)
     /***         Speed calculation                         ***/
 
     /***         Get speed of encoder in revolutions       ***/
-    cur_revs   = lldGetEncoderRawRevs( );
+    rawRevEncoderValue_t cur_revs   = lldGetEncoderRawRevs( );
 
     revs_per_sec    = (cur_revs - prev_revs) * MS_2_SEC;
 
@@ -85,11 +93,30 @@ static void gptcb (GPTDriver *gptd)
 
     /***    Get speed of object in cm/s and m/s          ***/
     odometryValue_t cur_distance  = lldGetOdometryObjDistance( OBJ_DIST_CM );
+#ifdef LOW_FREQ_CS
+    /*******************************************************/
+    speed_cs_count += 1;
+    if( speed_cs_count == 1 )
+    {
+        prev_dist_cs = cur_distance;
+    }
+    else if( speed_cs_count == (speed_s_period + 1) )
+    {
+        speed_cs_cm_p_sec = ( cur_distance - prev_dist_cs ) * 20 ;
+        prev_dist_cs = cur_distance;
+        speed_cs_count = 0;
+    }
+    /*******************************************************/
+#endif
 
     /*  [cm/10ms] * 100 = [cm/s]   */
     speed_cm_per_sec    = (cur_distance - prev_distance ) * MS_2_SEC;
     /*  [cm/s] * 0.01 = [m/s]       */
-    speed_m_per_sec     = speed_cm_per_sec * 0.01;//CM_2_M;
+    speed_m_per_sec     = speed_cm_per_sec * CM_2_M;
+
+    /***    LPF - FILTER     ***/
+    speed_lpf           = speed_m_per_sec * ( 1 - SPEED_LPF ) + prev_speed_lpf * SPEED_LPF;
+    prev_speed_lpf      = speed_lpf;
 
     prev_distance       = cur_distance;
     /*********************************************/
@@ -124,16 +151,24 @@ static void gptcb (GPTDriver *gptd)
 
 }
 
-odometryRawSpeedValue_t lldOdometryGetCurRevs ( void )
+/**
+ * @brief   Get filtered by LPF speed of objects
+ */
+odometrySpeedValue_t lldOdometryGetLPFObjSpeedMPS( void )
 {
-    return cur_revs;
+    return speed_lpf;
 }
 
-odometryRawSpeedValue_t lldOdometryGetPrevRevs ( void )
+#ifdef LOW_FREQ_CS
+/**
+ * @brief   Get speed of objects
+ * @note    Low frequency = 20 Hz
+ */
+odometrySpeedValue_t lldOdometryGetObjCSSpeedMPS( void )
 {
-    return prev_revs;
+  return ( speed_cs_cm_p_sec * 0.01 );
 }
-
+#endif
 static const GPTConfig gpt2cfg = {
   .frequency =  gptFreq,
   .callback  =  gptcb,

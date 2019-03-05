@@ -1,3 +1,4 @@
+clc
 clear all
 global dat
 delete(instrfind);
@@ -9,44 +10,44 @@ set(dat, 'ByteOrder', 'littleEndian')
 
 disp 'Ok!'
 
-start = 'p';
+start = 'p';     % start 
 fwrite(dat, start, 'uint8'); 
 
 A = [];
 B = [];
-t = 10;
+t = 20;
 
+for i = 1:t
+   A=fread(dat, [100,1], 'int16');
+   B = [B; A];
+end
+ 
+% start = 'a'; %forward
+% fwrite(dat, start, 'uint8'); 
+% 
 % for i = 1:t
 %    A=fread(dat, [100,1], 'int16');
 %    B = [B; A];
 % end
- 
-start = 'a'; %forward
-fwrite(dat, start, 'uint8'); 
-
-for i = 1:t
-   A=fread(dat, [100,1], 'int16');
-   B = [B; A];
-end
-
-start = 'd'; %backward
-fwrite(dat, start, 'uint8'); 
-
-
-for i = 1:2
-   A=fread(dat, [100,1], 'int16');
-   B = [B; A];
-end
-
-start = 'd'; %backward
-fwrite(dat, start, 'uint8'); 
-for i = 1:t
-   A=fread(dat, [100,1], 'int16');
-   B = [B; A];
-end
-
-start = 'a'; %forward
-fwrite(dat, start, 'uint8'); 
+% 
+% start = 'd'; %backward
+% fwrite(dat, start, 'uint8'); 
+% 
+% 
+% for i = 1:2
+%    A=fread(dat, [100,1], 'int16');
+%    B = [B; A];
+% end
+% 
+% start = 'd'; %backward
+% fwrite(dat, start, 'uint8'); 
+% for i = 1:t
+%    A=fread(dat, [100,1], 'int16');
+%    B = [B; A];
+% end
+% 
+% start = 'a'; %forward
+% fwrite(dat, start, 'uint8'); 
 
 fclose(dat);
 disp 'Finish!'
@@ -66,6 +67,6 @@ disp 'Finish!'
 % hold on
 % plot(SPEED)
 
-plot(B)
-grid on
+% plot(B)
+% grid on
 

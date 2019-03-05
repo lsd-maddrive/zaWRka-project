@@ -63,6 +63,17 @@ odometrySpeedValue_t lldGetOdometryObjSpeedCMPS( void );
 odometrySpeedValue_t lldGetOdometryObjSpeedMPS( void );
 
 /**
+ * @brief   Get filtered by LPF speed of objects
+ */
+odometrySpeedValue_t lldOdometryGetLPFObjSpeedMPS( void );
+
+/**
+ * @brief   Get speed of objects
+ * @note    Low frequency = 20 Hz
+ */
+odometrySpeedValue_t lldOdometryGetObjCSSpeedMPS( void );
+
+/**
  * @brief   Get speed of changing orientation of object
  * @return  Speed in radians per second [rad/s]
  */
@@ -95,16 +106,5 @@ odometryValue_t lldGetOdometryObjX( odometryDistanceUnit_t units );
  * @return  object movement
  */
 odometryValue_t lldGetOdometryObjY( odometryDistanceUnit_t units );
-
-
-
-
-odometryRawSpeedValue_t lldOdometryGetCurRevs ( void );
-
-
-odometryRawSpeedValue_t lldOdometryGetPrevRevs ( void );
-
-
-
 
 #endif /* INCLUDE_LLD_ODOMETRY_H_ */

@@ -91,7 +91,7 @@ static void adc_1_cb ( ADCDriver *adcp, adcsample_t *buffer, size_t n )
     steer_filtered_adc_val = steer_raw_ADC_val * (1 - STEER_LPF_FACTOR) + prev_steer_lpf_adc_val * STEER_LPF_FACTOR;
 
     prev_steer_lpf_adc_val = steer_filtered_adc_val;
-    adc_cb_counter      = 0;
+
 #else
     adc_cb_counter      = 0;
 #endif

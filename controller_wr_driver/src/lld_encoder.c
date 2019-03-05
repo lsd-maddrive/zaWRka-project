@@ -48,12 +48,12 @@ static void extcb_base(EXTDriver *extp, expchannel_t channel)
 
     /***    Reset counter when it reaches the MAX value  ***/
     /***    Count encoder revolutions                    ***/
-    if( enc_tick_cntr == ENC_MAX_TICK_NUM )
+    if( enc_tick_cntr == (ENC_MAX_TICK_NUM - 1) )
     {
         enc_revs_cntr   += 1;
         enc_tick_cntr    = 0;
     }
-    else if( enc_tick_cntr == -ENC_MAX_TICK_NUM )
+    else if( enc_tick_cntr == (-ENC_MAX_TICK_NUM + 1) )
     {
         enc_revs_cntr   -= 1;
         enc_tick_cntr    = 0;

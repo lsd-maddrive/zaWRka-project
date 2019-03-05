@@ -41,7 +41,8 @@ void testRosRoutineControl( void )
     odometryRawSpeedValue_t test_enc_speed_rps  = 0;
     odometrySpeedValue_t    test_speed_radps    = 0;
 
-    float    test_steer_angl_deg = 0;
+    float                   test_steer_angl_deg = 0;
+    float                   test_speed_lpf_mps  = 0;
     uint32_t                print_cntr          = 0;
 
     while( 1 )
@@ -54,7 +55,8 @@ void testRosRoutineControl( void )
         test_speed_mps      = lldGetOdometryObjSpeedMPS( );
         test_speed_radps    = lldGetOdometryObjTettaSpeedRadPS( );
 
-        test_steer_angl_deg  = lldGetSteerAngleDeg( );
+        test_steer_angl_deg = lldGetSteerAngleDeg( );
+        test_speed_lpf_mps  = lldOdometryGetLPFObjSpeedMPS( );
 
         test_x_pos          = lldGetOdometryObjX( OBJ_DIST_M );
         test_y_pos          = lldGetOdometryObjY( OBJ_DIST_M );
@@ -65,9 +67,9 @@ void testRosRoutineControl( void )
 
         if( print_cntr == 10 )
         {
-          palToggleLine( LINE_LED2 );
-          dbgprintf( "ST:(%d)\tANG:(%d)\SP:(%d)\n\r",
-                     (int)test_ros_steer_cntr, (int)test_steer_angl_deg, (int)( test_ros_speed_cntr * 100 ) );
+          dbgprintf( "ST:(%d)\tANG:(%d)\SP_R:(%d)\tSP:(%d)\n\r",
+                     (int)test_ros_steer_cntr, (int)test_steer_angl_deg,
+                     (int)( test_ros_speed_cntr * 100 ), (int)( test_speed_lpf_mps * 100 ) );
 
           print_cntr = 0;
         }

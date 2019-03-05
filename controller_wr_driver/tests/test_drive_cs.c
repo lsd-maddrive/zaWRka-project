@@ -14,18 +14,25 @@
 void testSteeringCS ( void )
 {
     driverCSInit( );
+#ifdef STEER_CS_MATLAB
+    sdStart( &SD7, &sdcfg );
+    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
+    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
+#else
     debug_stream_init( );
-
+#endif
 
     steerAngleDegValue_t    steer_feedback      = 0;
-    int16_t                 steer_matlab_temp   = 0;
+
     steerAngleDegValue_t    steer_pos           = 0;
-    int16_t                 steer_pos_temp      = 0;
+
     steerAngleDegValue_t    steer_pos_delta     = 25;
     controlValue_t          steer_control_prct  = 0;
 
 #ifdef STEER_CS_MATLAB
     uint8_t                 steer_start_flag    = 0;
+    int16_t                 matlab_steer_pos    = 0;
+    int16_t                 matlab_steer_fb_ang = 0;
 #endif
 
 #ifdef STEER_CS_TERMINAL
@@ -36,8 +43,10 @@ void testSteeringCS ( void )
     {
 #ifdef STEER_CS_TERMINAL
         show_count += 1;
-#endif
         char rc_data    = sdGetTimeout( &SD3, TIME_IMMEDIATE );
+#elif STEER_CS_MATLAB
+        char rc_data    = sdGetTimeout( &SD7, TIME_IMMEDIATE );
+#endif
         switch( rc_data )
         {
           case 'a': // left
@@ -73,23 +82,18 @@ void testSteeringCS ( void )
        if( steer_start_flag == 1)
        {
            palToggleLine( LINE_LED3 );
-           steer_matlab_temp = (int)( steer_feedback * 100 );
-           steer_pos_temp    = (int)steer_pos;
-           sdWrite(&SD7, (uint8_t*) &steer_matlab_temp, 2);
-           sdWrite(&SD7, (uint8_t*) &steer_pos_temp, 2);
+           matlab_steer_fb_ang = (int)( steer_feedback * 100 );
+           matlab_steer_pos  = (int)steer_pos;
+           sdWrite(&SD7, (uint8_t*) &matlab_steer_fb_ang, 2);
+           sdWrite(&SD7, (uint8_t*) &matlab_steer_pos, 2);
        }
 
-       chThdSleepMilliseconds( 200 );
-
+       chThdSleepMilliseconds( 10 );
 #endif
-
     }
 }
 
-#define MATLAB_SPEED
-
-
-#ifdef MATLAB_SPEED
+#ifdef SPEED_CS_MATLAB
 static const SerialConfig sdcfg = {
   .speed = 115200,
   .cr1 = 0, .cr2 = 0, .cr3 = 0
@@ -101,8 +105,8 @@ static const SerialConfig sdcfg = {
 */
 void testSpeedCS ( void )
 {
-
-#ifdef MATLAB_SPEED
+      driverCSInit( );
+#ifdef SPEED_CS_MATLAB
     sdStart( &SD7, &sdcfg );
     palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
     palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
@@ -111,48 +115,42 @@ void testSpeedCS ( void )
     int32_t matlab_speed    = 0;
     int32_t matlab_revs     = 0;
 
-    char    steer_matlab_start  = 0;
-    uint8_t steer_start_flag    = 0;
+    int32_t matlab_rare_speed = 0;
+    int32_t matlab_lpf_speed  = 0;
 
-#endif
-    driverCSInit( );
-    lldOdometryInit( );
+    char    matlab_start  = 0;
+    uint8_t matlab_start_flag    = 0;
+#else
     debug_stream_init( );
+#endif
 
     float                test_speed_ref     = 0;
-    odometrySpeedValue_t test_speed_mps     = 0;
-    controlValue_t       test_speed_cntrl   = 0;
     float                test_speed_delta   = 0.1;
-
-    float                b_ing              = 0;
-    float                f_ing              = 0;
-
-    odometryRawSpeedValue_t current_revs    = 0;
-    odometryRawSpeedValue_t previous_revs   = 0;
-
-    float                dist               = 0;
+    odometrySpeedValue_t test_speed_mps     = 0;
+    odometrySpeedValue_t test_speed_lpf     = 0;
+    controlValue_t       test_speed_cntrl   = 0;
 
     while( 1 )
     {
       lldControlSetSteerMotorPower( 0 );
 
-#ifdef MATLAB_SPEED
+#ifdef SPEED_CS_MATLAB
       char rc_data    = sdGetTimeout( &SD7, TIME_IMMEDIATE );
 #else
       char rc_data    = sdGetTimeout( &SD3, TIME_IMMEDIATE );
 #endif
       switch( rc_data )
       {
-        case 'a': // left
+        case 'a':           // forward
           test_speed_ref   += test_speed_delta;
           break;
-        case 'd': // right
+        case 'd':           // backward
           test_speed_ref   -= test_speed_delta;
           break;
 
-#ifdef MATLAB_SPEED
+#ifdef SPEED_CS_MATLAB
         case 'p':
-          steer_start_flag = 1;
+          matlab_start_flag = 1;
           break;
 #endif
         case ' ':
@@ -163,42 +161,28 @@ void testSpeedCS ( void )
           ;
       }
       test_speed_mps    = lldGetOdometryObjSpeedMPS( );
-      current_revs      = lldGetEncoderRawRevs( );
-      previous_revs     = lldOdometryGetPrevRevs( );
-      dist              = lldGetOdometryObjDistance( OBJ_DIST_CM );
-
-      f_ing             = driveSpeedFInteg( );
-      b_ing             = driveSpeedBInteg( );
-
+      test_speed_lpf    = lldOdometryGetLPFObjSpeedMPS( );
 
       driveSpeedCSSetSpeed( test_speed_ref );
 
       lldControlSetSteerMotorPower( 0 );
-
       test_speed_cntrl  = driveSpeedGetControlVal( );
 
-#ifdef MATLAB_SPEED
-
-      if( steer_start_flag == 1)
+#ifdef SPEED_CS_MATLAB
+      if( matlab_start_flag == 1)
       {
-          palToggleLine( LINE_LED3 );
+          matlab_speed          = (int)( test_speed_mps * 100 );
+          matlab_lpf_speed      = (int)( test_speed_lpf * 100 );
 
-          matlab_cntrl  = test_speed_cntrl;
-          matlab_speed  = (int)( test_speed_mps * 100 );
-          matlab_revs   = (int)( current_revs * 500 );
-
-//          sdWrite(&SD7, (uint8_t*) &matlab_cntrl, 2);
           sdWrite(&SD7, (uint8_t*) &matlab_speed, 2);
+          sdWrite(&SD7, (uint8_t*) &matlab_lpf_speed, 2);
       }
-#else
-      dbgprintf( "C:(%d)\tREF:(%d)\tReal_v:(%d)\tD:(%d)\tR:(%d)\n\r",
-                 test_speed_cntrl, (int)(test_speed_ref * 100), (int)(test_speed_mps * 100),
-                 (int)(dist * 10), (int)(current_revs * 10));
-
-//      dbgprintf( "C:(%d)\tREF:(%d)\tReal_v:(%d)\tF_i:(%d)\tB_i:(%d)\n\r",
-//                       test_speed_cntrl, (int)(test_speed_ref * 100), (int)(test_speed_mps * 100),
-//                       (int)f_ing, (int)b_ing );
-#endif
       chThdSleepMilliseconds( 10 );
+#else
+      dbgprintf( "C:(%d)\tREF:(%d)\tReal_v:(%d)\n\r",
+                 test_speed_cntrl, (int)(test_speed_ref * 100), (int)(test_speed_lpf * 100) );
+
+      chThdSleepMilliseconds( 200 );
+#endif
     }
 }
