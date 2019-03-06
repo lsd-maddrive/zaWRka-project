@@ -8,18 +8,18 @@
 % 
 % SP = SP./wind;
 
-RARE = [];
-OFTEN = [];
+REF = [];
+SPEED = [];
 
 for i = 1:2:(length(B)-1)
-   OFTEN = [OFTEN; B(i, 1)];    
+   SPEED = [SPEED; B(i, 1)];    
 end
 
 for j = 2:2:length(B)
-   RARE = [RARE; B(j, 1)];
+   REF = [REF; B(j, 1)];
 end
 
-plot(OFTEN)
+plot(SPEED)
 grid on
 hold on
-plot(RARE)
+plot(REF)

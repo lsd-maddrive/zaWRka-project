@@ -21,8 +21,8 @@ void testROSConnection( void );
 void testRawWheelsControlRoutine( void );
 
 /*
- * @brief   Routine of low level driver control testing
- * @note    The routine has internal infinite loop
+ * @brief   Test steering and speed lld control
+ * @note    Linear speed of object is also displayed
  */
 void testWheelsControlRoutines( void );
 
@@ -124,6 +124,9 @@ void testRoutineROSOdometry( void );
 void testRosRoutineControl( void );
 
 
+void testSpeedFilter( void );
+
+
 static inline void testsRoutines( void )
 {
 #if (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS)
@@ -134,7 +137,6 @@ static inline void testsRoutines( void )
 
     testWheelsControlRoutines( );
 
-    PROGRAM_ROUTINE_TEST_SPEED_LL_DRV
 #elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RAW_LL_DRIVE)
 
 #elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_LL_DRV )
@@ -185,7 +187,9 @@ static inline void testsRoutines( void )
 
     testSpeedCS( );
 
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_FILTER )
 
+    testSpeedFilter( );
 #endif
 }
 

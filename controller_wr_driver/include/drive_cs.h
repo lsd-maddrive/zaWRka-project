@@ -51,4 +51,10 @@ void driveSpeedCSSetSpeed ( float input_speed );
  */
 controlValue_t driveSpeedGetControlVal ( void );
 
+
+float driveSpeedGetGlobalFloatControl( void );
+
+float driveSpeedGetGlobalRefSpeed( void );
+
+
 #endif /* INCLUDE_DRIVE_CS_H_ */

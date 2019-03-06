@@ -67,7 +67,7 @@ void testRosRoutineControl( void )
 
         if( print_cntr == 10 )
         {
-          dbgprintf( "ST:(%d)\tANG:(%d)\SP_R:(%d)\tSP:(%d)\n\r",
+          dbgprintf( "ST:(%d)\tANG:(%d)\tSP_R:(%d)\tSP:(%d)\n\r",
                      (int)test_ros_steer_cntr, (int)test_steer_angl_deg,
                      (int)( test_ros_speed_cntr * 100 ), (int)( test_speed_lpf_mps * 100 ) );
 

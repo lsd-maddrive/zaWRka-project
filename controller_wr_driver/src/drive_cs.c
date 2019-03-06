@@ -10,7 +10,7 @@ pidControllerContext_t steerPIDparam = {
 };
 
 pidControllerContext_t  f_speedPIDparam = {
-  .kp               = 60,
+  .kp               = 55,
   .ki               = 0.1,
   .kd               = 0,
   .integSaturation  = 100,
@@ -19,12 +19,12 @@ pidControllerContext_t  f_speedPIDparam = {
 };
 
 pidControllerContext_t  b_speedPIDparam = {
-  .kp               = 100,
+  .kp               = 150,
   .ki               = 0.1,
   .kd               = 0,
   .integSaturation  = 100,
   .proptDeadZone    = 1,
-  .kr               = 250
+  .kr               = 300
 };
 
 
@@ -80,6 +80,9 @@ static controllerError_t b_speed_intg                 = 0;
 /***    Generated control value for lld***/
 controlValue_t          steer_cntl_prc              = 0;
 controlValue_t          speed_cntrl_prc             = 0;
+
+
+float                   check_cntrl_val             = 0;
 
 /**
  * @brief       Control system for steering wheels
@@ -160,9 +163,12 @@ static void gptcb (GPTDriver *gptd)
 
         f_speed_intg      += speed_err;
         b_speed_intg      = 0;
-        f_speed_intg  = CLIP_VALUE( f_speed_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
+        f_speed_intg      = CLIP_VALUE( f_speed_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
 
-        if( speed_ref == 0 ) speed_err = 0;
+        if( speed_ref == 0 ) speed_err      = 0;
+        if( speed_err == 0 ) f_speed_intg   = 0;
+
+        check_cntrl_val = f_speedPIDparam.kp * speed_err + f_speedPIDparam.kr * speed_ref + f_speedPIDparam.ki * f_speed_intg + f_speedPIDparam.kd * speed_dif;
 
         speed_cntrl_prc = f_speedPIDparam.kp * speed_err + f_speedPIDparam.kr * speed_ref + f_speedPIDparam.ki * f_speed_intg + f_speedPIDparam.kd * speed_dif;
     }
@@ -171,6 +177,9 @@ static void gptcb (GPTDriver *gptd)
         b_speed_intg      += speed_err;
         f_speed_intg      = 0;
         b_speed_intg  = CLIP_VALUE( b_speed_intg, -b_speedPIDparam.integSaturation, b_speedPIDparam.integSaturation );
+
+        check_cntrl_val = b_speedPIDparam.kp * speed_err + b_speedPIDparam.kr * speed_ref + b_speedPIDparam.ki * b_speed_intg + b_speedPIDparam.kd * speed_dif;
+
         speed_cntrl_prc = b_speedPIDparam.kp * speed_err + b_speedPIDparam.kr * speed_ref + b_speedPIDparam.ki * b_speed_intg + b_speedPIDparam.kd * speed_dif;
     }
     prev_speed_err = speed_err;
@@ -178,6 +187,16 @@ static void gptcb (GPTDriver *gptd)
     speed_cntrl_prc = CLIP_VALUE( speed_cntrl_prc, CONTROL_MIN, CONTROL_MAX );
     lldControlSetDrMotorPower( speed_cntrl_prc );
 }
+
+float driveSpeedGetGlobalFloatControl( void )
+{
+    return check_cntrl_val;
+}
+float driveSpeedGetGlobalRefSpeed( void )
+{
+    return speed_ref;
+}
+
 
 static const GPTConfig gpt3cfg = {
   .frequency =  gpt_cs_Freq,

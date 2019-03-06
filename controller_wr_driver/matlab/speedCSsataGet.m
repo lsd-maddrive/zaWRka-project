@@ -12,61 +12,82 @@ disp 'Ok!'
 
 start = 'p';     % start 
 fwrite(dat, start, 'uint8'); 
-
+disp 'start!'
 A = [];
 B = [];
-t = 20;
 
-for i = 1:t
+t1 = 20;
+
+for i = 1:t1
    A=fread(dat, [100,1], 'int16');
    B = [B; A];
 end
  
-% start = 'a'; %forward
-% fwrite(dat, start, 'uint8'); 
-% 
-% for i = 1:t
-%    A=fread(dat, [100,1], 'int16');
-%    B = [B; A];
-% end
-% 
-% start = 'd'; %backward
-% fwrite(dat, start, 'uint8'); 
-% 
-% 
-% for i = 1:2
-%    A=fread(dat, [100,1], 'int16');
-%    B = [B; A];
-% end
-% 
-% start = 'd'; %backward
-% fwrite(dat, start, 'uint8'); 
-% for i = 1:t
-%    A=fread(dat, [100,1], 'int16');
-%    B = [B; A];
-% end
-% 
-% start = 'a'; %forward
-% fwrite(dat, start, 'uint8'); 
+start = 'a'; %forward
+fwrite(dat, start, 'uint8'); 
 
+t2 = 10;
+for i = 1:t2
+   A=fread(dat, [100,1], 'int16');
+   B = [B; A];
+end
+
+
+start = 'd'; %backward
+fwrite(dat, start, 'uint8'); 
+ 
+fwrite(dat, start, 'uint8'); 
+t3 = 10;
+for i = 1:t3
+   A=fread(dat, [100,1], 'int16');
+   B = [B; A];
+end
+
+fwrite(dat, start, 'uint8'); 
+t3 = 5;
+for i = 1:t3
+   A=fread(dat, [100,1], 'int16');
+   B = [B; A];
+end
+
+start = 'a'; %backward
+fwrite(dat, start, 'uint8');
+
+t4 = 5;
+for i = 1:t4
+   A=fread(dat, [100,1], 'int16');
+   B = [B; A];
+end
+
+fwrite(dat, start, 'uint8');
+
+t4 = 5;
+for i = 1:t4
+   A=fread(dat, [100,1], 'int16');
+   B = [B; A];
+end
+
+% % start = 'a'; %forward
+% % fwrite(dat, start, 'uint8'); 
+% 
 fclose(dat);
 disp 'Finish!'
-
-% CNTRL = [];
-% SPEED = []; 
-% for i = 1: 2: (length(B) - 1)
-%     CNTRL = [CNTRL; B(i, 1)];
-% end
-% CNTRL = CNTRL./100;
-% for r = 2: 2:length(B)
-%    SPEED = [SPEED; B(r, 1)]; 
-% end
 % 
-% plot(CNTRL)
-% grid on 
-% hold on
-% plot(SPEED)
-
+% % CNTRL = [];
+% % SPEED = []; 
+% % for i = 1: 2: (length(B) - 1)
+% %     CNTRL = [CNTRL; B(i, 1)];
+% % end
+% % CNTRL = CNTRL./100;
+% % for r = 2: 2:length(B)
+% %    SPEED = [SPEED; B(r, 1)]; 
+% % end
+% % 
+% % plot(CNTRL)
+% % grid on 
+% % hold on
+% % plot(SPEED)
+% 
 % plot(B)
 % grid on
 

@@ -3,7 +3,7 @@
 
 
 #define pwm1Freq        1000000
-#define pwm1Period      20000           // 50 Hz
+#define pwm1Period      10000           // 100 Hz
 
 /***  PWM configuration pins    ***/
 /***  PE9 - Driving wheels      ***/

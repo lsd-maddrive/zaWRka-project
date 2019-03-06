@@ -93,12 +93,14 @@ void testSteeringCS ( void )
     }
 }
 
+//#define SPEED_CS_MATLAB
 #ifdef SPEED_CS_MATLAB
 static const SerialConfig sdcfg = {
   .speed = 115200,
   .cr1 = 0, .cr2 = 0, .cr3 = 0
 };
 #endif
+
 
 /*
  * @brief   Test speed control system with feedback
@@ -124,8 +126,13 @@ void testSpeedCS ( void )
     debug_stream_init( );
 #endif
 
+    debug_stream_init( );
+
     float                test_speed_ref     = 0;
     float                test_speed_delta   = 0.1;
+    float                check_glob_ref_sp  = 0;
+    float                check_float_cntr   = 0;
+
     odometrySpeedValue_t test_speed_mps     = 0;
     odometrySpeedValue_t test_speed_lpf     = 0;
     controlValue_t       test_speed_cntrl   = 0;
@@ -143,6 +150,9 @@ void testSpeedCS ( void )
       {
         case 'a':           // forward
           test_speed_ref   += test_speed_delta;
+          break;
+        case 's':           // backward
+          test_speed_ref   -= test_speed_delta;
           break;
         case 'd':           // backward
           test_speed_ref   -= test_speed_delta;
@@ -163,26 +173,126 @@ void testSpeedCS ( void )
       test_speed_mps    = lldGetOdometryObjSpeedMPS( );
       test_speed_lpf    = lldOdometryGetLPFObjSpeedMPS( );
 
+
+      check_float_cntr  = driveSpeedGetGlobalFloatControl( );
+      test_speed_cntrl  = driveSpeedGetControlVal( );
+
       driveSpeedCSSetSpeed( test_speed_ref );
 
       lldControlSetSteerMotorPower( 0 );
-      test_speed_cntrl  = driveSpeedGetControlVal( );
+
 
 #ifdef SPEED_CS_MATLAB
       if( matlab_start_flag == 1)
       {
           matlab_speed          = (int)( test_speed_mps * 100 );
           matlab_lpf_speed      = (int)( test_speed_lpf * 100 );
+          matlab_cntrl          = (int)( test_speed_ref * 100 );
 
-          sdWrite(&SD7, (uint8_t*) &matlab_speed, 2);
+          sdWrite(&SD7, (uint8_t*) &matlab_cntrl, 2);
           sdWrite(&SD7, (uint8_t*) &matlab_lpf_speed, 2);
       }
       chThdSleepMilliseconds( 10 );
 #else
-      dbgprintf( "C:(%d)\tREF:(%d)\tReal_v:(%d)\n\r",
-                 test_speed_cntrl, (int)(test_speed_ref * 100), (int)(test_speed_lpf * 100) );
+      dbgprintf( "C:(%d)]\tC_Fl:(%d)\tREF:(%d)\tReal_v:(%d)\n\r",
+                 test_speed_cntrl, (int)( check_float_cntr * 10 ),
+                 (int)(test_speed_ref * 100),
+                 (int)(test_speed_lpf * 100) );
 
-      chThdSleepMilliseconds( 200 );
+      chThdSleepMilliseconds( 100 );
 #endif
     }
+}
+
+
+/*
+ * @brief   Test LPF for speed control system
+*/
+void testSpeedFilter( void )
+{
+    driverCSInit( );
+#ifdef SPEED_CS_MATLAB
+    sdStart( &SD7, &sdcfg );
+    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
+    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
+
+    int32_t matlab_cntrl    = 0;
+    int32_t matlab_speed    = 0;
+    int32_t matlab_revs     = 0;
+
+    int32_t matlab_rare_speed = 0;
+    int32_t matlab_lpf_speed  = 0;
+
+    char    matlab_start  = 0;
+    uint8_t matlab_start_flag    = 0;
+ #else
+    debug_stream_init( );
+ #endif
+
+    float                test_speed_ref     = 0;
+    float                test_speed_delta   = 0.1;
+
+    odometrySpeedValue_t test_speed_mps     = 0;
+    odometrySpeedValue_t test_speed_lpf     = 0;
+
+
+     while( 1 )
+     {
+       lldControlSetSteerMotorPower( 0 );
+
+ #ifdef SPEED_CS_MATLAB
+       char rc_data    = sdGetTimeout( &SD7, TIME_IMMEDIATE );
+ #else
+       char rc_data    = sdGetTimeout( &SD3, TIME_IMMEDIATE );
+ #endif
+       switch( rc_data )
+       {
+         case 'a':           // forward
+           test_speed_ref   += test_speed_delta;
+           break;
+         case 's':           // backward
+           test_speed_ref   -= test_speed_delta;
+           break;
+         case 'd':           // backward
+           test_speed_ref   -= (2 * test_speed_delta);
+           break;
+ #ifdef SPEED_CS_MATLAB
+         case 'p':
+           matlab_start_flag = 1;
+           break;
+ #endif
+         case ' ':
+           test_speed_ref = 0;
+           break;
+
+         default:
+           ;
+       }
+       test_speed_mps    = lldGetOdometryObjSpeedMPS( );
+       test_speed_lpf    = lldOdometryGetLPFObjSpeedMPS( );
+
+       driveSpeedCSSetSpeed( test_speed_ref );
+
+       lldControlSetSteerMotorPower( 0 );
+
+
+ #ifdef SPEED_CS_MATLAB
+       if( matlab_start_flag == 1)
+       {
+           matlab_speed          = (int)( test_speed_mps * 100 );
+           matlab_lpf_speed      = (int)( test_speed_lpf * 100 );
+
+           sdWrite(&SD7, (uint8_t*) &matlab_speed, 2);
+           sdWrite(&SD7, (uint8_t*) &matlab_lpf_speed, 2);
+       }
+       chThdSleepMilliseconds( 10 );
+ #else
+       dbgprintf( "REF:(%d)\tReal_v:(%d)\n\r",
+                  (int)(test_speed_ref * 100),
+                  (int)(test_speed_lpf * 100) );
+
+       chThdSleepMilliseconds( 100 );
+ #endif
+     }
+
 }
