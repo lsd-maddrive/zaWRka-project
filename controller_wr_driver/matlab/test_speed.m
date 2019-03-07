@@ -10,6 +10,12 @@
 
 REF = [];
 SPEED = [];
+T = []; 
+
+for t = 0:1:(length(B)/2)-1
+   
+    T = [T; t*10];  
+end
 
 for i = 1:2:(length(B)-1)
    SPEED = [SPEED; B(i, 1)];    
@@ -19,7 +25,7 @@ for j = 2:2:length(B)
    REF = [REF; B(j, 1)];
 end
 
-plot(SPEED)
+plot(T, SPEED)
 grid on
 hold on
-plot(REF)
+plot(T, REF)

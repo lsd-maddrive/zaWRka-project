@@ -86,11 +86,11 @@ void testWheelsControlRoutines( void )
 #else
     debug_stream_init( );
 #endif
-    debug_stream_init( );
+
     lldControlInit( );
     lldOdometryInit( );
 
-    controlValue_t          speed_values_delta  = 1;
+    controlValue_t          speed_values_delta  = 25;
     controlValue_t          speed_value         = 0;
 
     controlValue_t          steer_values_delta  = 1;
@@ -102,20 +102,20 @@ void testWheelsControlRoutines( void )
     while ( 1 )
     {
 #ifdef SERIAL_SD7
-        char rcv_data = sdGetTimeout( &SD3, TIME_IMMEDIATE );
-        char matlab_data = sdGetTimeout( &SD7, TIME_IMMEDIATE );
-        if( matlab_data == 'p' ) matlab_start_flag = 1;
+
+        char rcv_data = sdGetTimeout( &SD7, TIME_IMMEDIATE );
+
 #else
         char rcv_data = sdGetTimeout( &SD3, TIME_IMMEDIATE );
 #endif
         switch ( rcv_data )
         {
             case 'a':   // Positive speed
-              speed_value += speed_values_delta;
+              speed_value += 15; //speed_values_delta;
               break;
 
             case 'd':   // Negative speed
-              speed_value -= speed_values_delta;
+              speed_value = -1; //speed_values_delta;
               break;
 
             case 's':
@@ -154,6 +154,7 @@ void testWheelsControlRoutines( void )
         if( matlab_start_flag == 1 )
         {
           matlab_speed_cmps = (int)( test_speed_lpf * 100 );
+          sdWrite(&SD7, (uint8_t*) &speed_value, 2);
           sdWrite(&SD7, (uint8_t*) &matlab_speed_cmps, 2);
         }
 //        chprintf( (BaseSequentialStream *)&SD7, "Speed(%d)\tSteer(%d)\n\r",
