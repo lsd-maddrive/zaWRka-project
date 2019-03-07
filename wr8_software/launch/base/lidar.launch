@@ -1,5 +1,11 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="lidar_x" default="0.17" />
+  <arg name="lidar_z" default="0.15" />
+
+  <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" 
+          args="$(arg lidar_x) 0.0 $(arg lidar_z) 0.0 0.0 0.0 /base_link /laser_frame 40" />
+
   <node name="ydlidar_node"  pkg="ydlidar"  type="ydlidar_node" output="screen" respawn="false" >
     <param name="port"         type="string" value="/dev/ydlidar"/>  
     <param name="baudrate"     type="int"    value="115200"/>

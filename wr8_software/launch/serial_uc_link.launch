@@ -6,6 +6,7 @@
 <launch>
 	<machine name="nuc" user="user-sau-nuc" address="192.168.31.99" />
 	<arg name="device" default="/dev/ttyACM0" />
+
 	<!-- <arg name="device" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0" /> -->
 
     <group ns="robot">
@@ -21,10 +22,8 @@
     </group>
 
     <include file="$(find wr8_software)/launch/base/lidar.launch">
+        <arg name="lidar_x" value="0.17" />
+        <arg name="lidar_z" value="0.15" />
     </include>
-
-    <!-- Robot param TF -->
-    <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" 
-            args="0.17 0.0 0.15 0.0 0.0 0.0 /base_link /laser_frame 40" />
 
 </launch>
