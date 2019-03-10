@@ -9,9 +9,12 @@ static void update_encoder( void )
 	encoder_value += 10;
 }
 
+
+
 void testROSConnection( void )
 {
 	ros_driver_init( NORMALPRIO );
+	debug_stream_init();
 
 	uint32_t	prev_enc_value 	= 0;
 	float 		prev_time 		= 0;
@@ -52,6 +55,8 @@ void testROSConnection( void )
 		ros_driver_send_encoder_speed( d_enc / d_time );
 
 		ros_driver_send_steering( 30 * sin( time / 100000 ) );
+
+
 
 		chThdSleepMilliseconds( 100 );
 	}

@@ -1,5 +1,6 @@
 #include <ros.h>
 #include <ros_protos.h>
+#include <common.h>
 
 /*===========================================================================*/
 /* ROS things                                                                */
@@ -15,13 +16,13 @@
 #include <geometry_msgs/Point32.h>
 #include <geometry_msgs/Twist.h>
 
+#include <std_srvs/Trigger.h>
 
-bool task_triggered = false;
-void trigger_task_cb( const std_msgs::UInt8 &msg )
+void trigger_task_cb( const std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &resp )
 {   
-    (void)msg;
+    dbgprintf( "Called\n\r" );
 
-    task_triggered = true;
+    resp.success = true;
 }
 
 
@@ -49,12 +50,13 @@ std_msgs::Float32           f32_encspeed_raw_msg;
 std_msgs::Float32           f32_steer_angle_msg;
 geometry_msgs::Point32      odometry_pose;
 
+ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>    srvc_check("check", &trigger_task_cb);                             
+
 ros::Publisher                                  topic_encoder_raw("encoder_raw", &i32_enc_raw_msg);
 ros::Publisher                                  topic_encspeed_raw("encspeed_raw", &f32_encspeed_raw_msg);
 ros::Publisher                                  topic_pose("odom_pose", &odometry_pose);
 ros::Publisher                                  topic_steer("steer_angle", &f32_steer_angle_msg);
 
-ros::Subscriber<std_msgs::UInt8>                topic_task_trigger("set_task", &trigger_task_cb);
 ros::Subscriber<geometry_msgs::Twist>           topic_cmd("cmd_vel", &cmd_vel_cb);
 
 
@@ -161,8 +163,10 @@ void ros_driver_init( tprio_t prio )
     ros_node.advertise( topic_pose );
 
     /* ROS subscribers */
-    ros_node.subscribe( topic_task_trigger );
     ros_node.subscribe( topic_cmd );
+
+    /* ROS service servers */
+    ros_node.advertiseService( srvc_check );
 
     chThdCreateStatic( waSpinner, sizeof(waSpinner), prio, Spinner, NULL );
 }

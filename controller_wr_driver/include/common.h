@@ -8,6 +8,10 @@
 #include <stdlib.h>
 #include <math.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define     PROGRAM_ROUTINE_MASTER                      0
 #define     PROGRAM_ROUTINE_TEST_LL_DRIVER              1
 #define     PROGRAM_ROUTINE_TEST_RAW_LL_DRIVE           2
@@ -26,7 +30,7 @@
 #define     PROGRAM_ROUTINE_TEST_GUI_SERVER             30
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_LL_DRIVER
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ROS
 
 
 /**************/
@@ -73,5 +77,8 @@ void dbgprintf( const char* format, ... );
 #define WHEEL_BASE_CM       30
 #define WHEEL_BASE_M        0.3
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* INCLUDE_COMMON_H_ */
