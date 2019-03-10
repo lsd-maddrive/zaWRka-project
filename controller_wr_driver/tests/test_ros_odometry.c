@@ -4,10 +4,14 @@
 #include <lld_odometry.h>
 #include <ros_protos.h>
 
+/*
+ * @brief   Test odometry via ROS
+ * @note    Frequency = 50 Hz
+*/
 void testRoutineROSOdometry( void )
 {
     ros_driver_init( NORMALPRIO );
-    lldSteerAngleFBInit( );
+//    lldSteerAngleFBInit( );
     lldOdometryInit( );
 
     odometryValue_t         test_x_pos      = 0;
@@ -20,9 +24,9 @@ void testRoutineROSOdometry( void )
         test_y_pos      = lldGetOdometryObjY( OBJ_DIST_M );
         test_tetta_deg  = lldGetOdometryObjTettaDeg( );
 
-        ros_driver_send_pose( test_x_pos, test_y_pos, test_tetta_deg );
+        ros_driver_send_pose( test_x_pos, test_y_pos, test_tetta_deg, 0, 0 );
 
-        chThdSleepMilliseconds( 100 );
+        chThdSleepMilliseconds( 20 );
     }
 
 }

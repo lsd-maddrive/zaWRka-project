@@ -3,14 +3,14 @@
 
 
 #define pwm1Freq        1000000
-#define pwm1Period      20000           // 50 Hz
+#define pwm1Period      10000           // 100 Hz
 
 /***  PWM configuration pins    ***/
-/***  PE9 - Steering            ***/
+/***  PE9 - Driving wheels      ***/
 #define PE9_ACTIVE      PWM_OUTPUT_ACTIVE_HIGH
 #define PE9_DISABLE     PWM_OUTPUT_DISABLED
 #define drivePWMch      0
-/***  PE11 - Braking            ***/
+/***  PE11 - Steering wheels     ***/
 #define PE11_ACTIVE     PWM_OUTPUT_ACTIVE_HIGH
 #define PE11_DISABLE    PWM_OUTPUT_DISABLED
 #define steerPWMch      1
@@ -98,7 +98,11 @@ void lldControlSetDrMotorPower( controlValue_t inputPrc )
 {
     inputPrc = CLIP_VALUE(inputPrc, CONTROL_MIN, CONTROL_MAX);
 
-    if( inputPrc >= 0)
+    if( inputPrc == 0 )
+    {
+        drDuty   = SPEED_ZERO;
+    }
+    else if( inputPrc > 0)
     {
         drDuty = lld_speed_forward_k * inputPrc + lld_speed_forward_b;
     }
@@ -133,7 +137,9 @@ void lldControlSetSteerMotorRawPower( rawPwmValue_t dutyCycleSteer)
 /**
  * @brief   Set power for steering motor
  * @param   inputPrc   Motor power value [-100 100]
- *                     central position = 0
+ *                     100  - max left
+ *                     center = 0
+ *                     -100 - max right
  */
 void lldControlSetSteerMotorPower( controlValue_t inputPrc )
 {

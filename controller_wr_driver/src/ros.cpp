@@ -18,8 +18,29 @@
 
 bool task_triggered = false;
 void trigger_task_cb( const std_msgs::UInt8 &msg )
-{
+{   
+    (void)msg;
+
     task_triggered = true;
+}
+
+
+void (*g_cb_func)(float speed, float steer) = NULL;
+
+void ros_driver_set_control_cb( void (*cb_func)(float speed, float steer) )
+{
+    g_cb_func = cb_func;
+}
+
+void cmd_vel_cb( const geometry_msgs::Twist &msg )
+{
+    float cmd_speed = msg.linear.x;
+    float cmd_steer = msg.angular.z * 180 / M_PI;
+
+    if ( g_cb_func )
+    {
+        g_cb_func( cmd_speed, cmd_steer );
+    }
 }
 
 ros::NodeHandle             ros_node;
@@ -34,6 +55,8 @@ ros::Publisher                                  topic_pose("odom_pose", &odometr
 ros::Publisher                                  topic_steer("steer_angle", &f32_steer_angle_msg);
 
 ros::Subscriber<std_msgs::UInt8>                topic_task_trigger("set_task", &trigger_task_cb);
+ros::Subscriber<geometry_msgs::Twist>           topic_cmd("cmd_vel", &cmd_vel_cb);
+
 
 /*
  * ROS spin thread - used to receive messages
@@ -61,8 +84,10 @@ void ros_driver_send_steering( float steer_angle )
     topic_steer.publish(&f32_steer_angle_msg);
 }
 
-void ros_driver_send_pose( float x, float y, float dir )
+void ros_driver_send_pose( float x, float y, float dir, float vx, float uz )
 {
+    vx = vx; uz = uz;
+
     odometry_pose.x = x;
     odometry_pose.y = y;
     odometry_pose.z = dir;
@@ -132,11 +157,12 @@ void ros_driver_init( tprio_t prio )
     /* ROS publishers */
     ros_node.advertise( topic_encoder_raw );
     ros_node.advertise( topic_encspeed_raw );
-    ros_node.advertise( topic_pose );
     ros_node.advertise( topic_steer );
+    ros_node.advertise( topic_pose );
 
     /* ROS subscribers */
     ros_node.subscribe( topic_task_trigger );
+    ros_node.subscribe( topic_cmd );
 
     chThdCreateStatic( waSpinner, sizeof(waSpinner), prio, Spinner, NULL );
 }

@@ -21,10 +21,13 @@ void testROSConnection( void );
 void testRawWheelsControlRoutine( void );
 
 /*
- * @brief   Routine of low level driver control testing
- * @note    The routine has internal infinite loop
+ * @brief   Test steering and speed lld control
+ * @note    Linear speed of object is also displayed
  */
 void testWheelsControlRoutines( void );
+
+
+void testWheelsSpeedControlRoutine( void );
 
 /*********************/
 /*** Encoder tests ***/
@@ -70,16 +73,58 @@ void testSteerAngleSendData( void );
 */
 void testSteerAngleDetection( void );
 
+/*
+ * @brief
+ */
+void testSteerAngleGetControlAngleCoeffitient( void );
+
+
+/*************************************/
+/***    Control System tests       ***/
+/*************************************/
+
+/*
+ * @brief   Test steering control system with feedback
+ * @note    There are 2 options:
+ *          - Show data in Terminal
+ *          - Send limited number of data to Matlab
+*/
+void testSteeringCS ( void );
+
+/*
+ * @brief   Test speed control system with feedback
+*/
+void testSpeedCS ( void );
+
+
 /***********************/
 /***    GUI tests    ***/
 /***********************/
+
+/*
+ * @brief   Test GUI with odometry
+*/
 void testGUIRoutineServer ( void );
 
 
 /***********************/
 /***    ROS tests    ***/
 /***********************/
+
+/*
+ * @brief   Test odometry via ROS
+ * @note    Frequency = 50 Hz
+*/
 void testRoutineROSOdometry( void );
+
+/*
+ * @brief   Test odometry, speed and steering control via ROS
+ * @note    Frequency = 50 Hz
+*/
+void testRosRoutineControl( void );
+
+
+void testSpeedFilter( void );
 
 
 static inline void testsRoutines( void )
@@ -94,7 +139,9 @@ static inline void testsRoutines( void )
 
 #elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RAW_LL_DRIVE)
 
-    testRawWheelsControlRoutine( );
+#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_LL_DRV )
+
+    testWheelsSpeedControlRoutine( );
 
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ENCODER )
 
@@ -116,7 +163,7 @@ static inline void testsRoutines( void )
 
     testSteerAngleSendData( );
 
-#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_TEST_GUI_SERVER )
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_GUI_SERVER )
 
     testGUIRoutineServer( );
 
@@ -124,6 +171,25 @@ static inline void testsRoutines( void )
 
     testRoutineROSOdometry( );
 
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS_CONTROL )
+
+    testRosRoutineControl( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEERING_CS )
+
+    testSteeringCS( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEER_ANGLE_LLD_CONTRL )
+
+    testSteerAngleGetControlAngleCoeffitient( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_CS )
+
+    testSpeedCS( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_FILTER )
+
+    testSpeedFilter( );
 #endif
 }
 

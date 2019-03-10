@@ -2,16 +2,16 @@
 #include <lld_steer_angle_fb.h>
 #include <lld_control.h>
 
-#define STEER_FB_MATLAB
-//#define ADC_CHECK
-#define TEST_STEER_LPF
+#define STEER_FB_TERMINAL
+#define ANGLE_CHECK
+#define TEST_STEER_MEAN_FILTER
 
+#ifdef STEER_FB_MATLAB
 static const SerialConfig sdcfg = {
   .speed = 115200,
-  .cr1 = 0,
-  .cr2 = 0,
-  .cr3 = 0
+  .cr1 = 0, .cr2 = 0, .cr3 = 0
 };
+#endif
 
 /*
  * @brief   Test for routine of getting steering angle
@@ -21,12 +21,15 @@ static const SerialConfig sdcfg = {
 */
 void testSteerAngleSendData( void )
 {
+#ifdef STEER_FB_MATLAB
     sdStart( &SD7, &sdcfg );
-    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );    // TX
-    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );    // RX
+    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
+    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
+#endif
 
     lldSteerAngleFBInit( );
     lldControlInit( );
+    debug_stream_init( );
 
     steerAngleRawValue_t    test_raw_steer          = 0;
     steerAngleRawValue_t    test_mean_raw_steer     = 0;
@@ -37,7 +40,7 @@ void testSteerAngleSendData( void )
 
 
     controlValue_t          test_steer_cntrl        = 0;
-    controlValue_t          test_delta_steer_cntr   = 10;
+    controlValue_t          test_delta_steer_cntr   = 5;
 
 #ifdef STEER_FB_MATLAB
     char                    steer_matlab_start  = 0;
@@ -51,15 +54,13 @@ void testSteerAngleSendData( void )
         test_mean_raw_steer = lldGetSteerAngleFiltrMeanRawADC( );
         test_lpf_raw_steer  = lldGetSteerAngleFiltrLPFRawADC( );
 
-        palToggleLine( LINE_LED1 );
-
         test_rad_angle      = lldGetSteerAngleRad( );
         test_deg_angle      = lldGetSteerAngleDeg( );
 
 
 
 #ifdef STEER_FB_TERMINAL
-        char rc_data = sdGetTimeout( &SD7, TIME_IMMEDIATE );
+        char rc_data = sdGetTimeout( &SD3, TIME_IMMEDIATE );
 
         switch( rc_data )
         {
@@ -88,13 +89,13 @@ void testSteerAngleSendData( void )
 
 #ifdef ADC_CHECK
 
-        chprintf( (BaseSequentialStream *)&SD7, "CONTROL:(%d)\tADC_RAW:(%d)\tMEAN_RAW:(%d)\n\r",
+        dbgprintf( "C:(%d)\tA_RAW:(%d)\tMEAN_RAW:(%d)\n\r",
                   test_steer_cntrl, test_raw_steer, test_mean_raw_steer );
 #endif
 
 #ifdef ANGLE_CHECK
 
-        chprintf( (BaseSequentialStream *)&SD7, "CONTROL:(%d)\tRAD:(%d)\tDEG:(%d)\n\r",
+        dbgprintf( "CONTROL:(%d)\tRAD:(%d)\tDEG:(%d)\n\r",
                   test_steer_cntrl, (int)(test_rad_angle * 10), (int)test_deg_angle );
 #endif
         chThdSleepMilliseconds( 300 );
@@ -119,7 +120,7 @@ void testSteerAngleSendData( void )
 #endif
         }
 
-        chThdSleepMilliseconds( 10 );
+        chThdSleepMilliseconds( 0.5 );
 #endif
 
     }
@@ -132,10 +133,6 @@ void testSteerAngleSendData( void )
 */
 void testSteerAngleDetection( void )
 {
-    sdStart( &SD7, &sdcfg );
-    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );    // TX
-    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );    // RX
-
     lldControlInit( );
 
     while(1)
@@ -156,7 +153,46 @@ void testSteerAngleDetection( void )
 
         chThdSleepMilliseconds( 200 );
     }
+}
 
+void testSteerAngleGetControlAngleCoeffitient( void )
+{
+    lldControlInit( );
+    lldSteerAngleFBInit( );
+
+    controlValue_t          steer_cntrl             = 0;
+    controlValue_t          steer_cntrl_delta       = 1;
+
+    steerAngleDegValue_t    steer_feedback_deg      = 0;
+
+    while( 1 )
+    {
+
+        char rc_data    = sdGetTimeout( &SD7, TIME_IMMEDIATE );
+        switch( rc_data )
+        {
+          case 'a': // left turn
+            steer_cntrl   += steer_cntrl_delta;
+            break;
+          case 'd': // right turn
+            steer_cntrl   -= steer_cntrl_delta;
+            break;
+          default:
+            ;
+        }
+
+        steer_feedback_deg  = lldGetSteerAngleDeg( );
+
+        steer_cntrl = CLIP_VALUE( steer_cntrl, -100, 100 );
+
+        lldControlSetSteerMotorPower( steer_cntrl );
+
+        chprintf( (BaseSequentialStream *)&SD7, "DEG:(%d)\tCONTROL:(%d)\n\r",
+                                  (int)(steer_feedback_deg * 100 ), steer_cntrl );
+
+        chThdSleepMilliseconds( 200 );
+
+    }
 
 }
 

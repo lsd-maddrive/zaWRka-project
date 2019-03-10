@@ -3,17 +3,27 @@
 
 /***************************************************/
 
+
+#define MATLAB_ENCODER
+
+#ifdef MATLAB_ENCODER
 static const SerialConfig sdcfg = {
   .speed = 115200,
   .cr1 = 0, .cr2 = 0, .cr3 = 0
 };
+#endif
 
 void testEncoderCommonRoutine( void )
 {
+#ifdef MATLAB_ENCODER
     sdStart( &SD7, &sdcfg );
     palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
     palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
 
+    int32_t matlab_revs = 0;
+    uint8_t matlab_start_flag = 0;
+
+#endif
     lldEncoderInit( );
 
     rawEncoderValue_t       enc_test_ticks       = 0;
@@ -35,6 +45,20 @@ void testEncoderCommonRoutine( void )
 #endif
         enc_test_dir        = lldGetEncoderDirection( );
 
+#ifdef MATLAB_ENCODER
+        char rc_data    = sdGetTimeout( &SD7, TIME_IMMEDIATE );
+
+        if( rc_data == 'p') matlab_start_flag = 1;
+
+        if( matlab_start_flag == 1 )
+        {
+          matlab_revs = (int)(enc_test_revs * 500);
+          sdWrite(&SD7, (uint8_t*) &matlab_revs, 2);
+        }
+        chThdSleepMilliseconds( 10 );
+#else
+
+
 #ifdef ABSOLUTE_ENCODER
         chprintf( (BaseSequentialStream *)&SD7, "Ticks:(%d)\tRevs:(%d)\tAbs_Revs:(%d)\tDir:(%d)\n\r",
                   enc_test_ticks, enc_test_revs, enc_test_abs_revs, enc_test_dir);
@@ -44,6 +68,7 @@ void testEncoderCommonRoutine( void )
 #endif
 
         chThdSleepMilliseconds( 200 );
+#endif
 
     }
 

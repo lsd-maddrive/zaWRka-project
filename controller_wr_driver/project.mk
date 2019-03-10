@@ -6,15 +6,18 @@ PROJECT_MODULES = src/lld_control.c        			\
 				  src/lld_encoder.c					\
 				  src/lld_odometry.c				\
 				  src/lld_steer_angle_fb.c			\
+				  src/drive_cs.c					\
 				  
 PROJECT_TESTS   = tests/test_lld_control.c     		\
 				  tests/test_remote_control.c		\
+				  tests/test_drive_cs.c				\
 				  tests/test_lld_encoder.c			\
 				  tests/test_lld_odometry.c			\
 				  tests/test_lld_steer_angle_fb.c	\
 				  tests/test_ros.c					\
 				  tests/test_gui_server.c			\
 				  tests/test_ros_odometry.c			\
+				  tests/test_ros_control.c			\
 				  		
 PROJECT_CSRC    = src/main.c src/common.c src/debug.c src/usbcfg.c \
     				$(PROJECT_MODULES) $(PROJECT_TESTS)
