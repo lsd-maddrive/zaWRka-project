@@ -48,5 +48,5 @@ sudo apt install ros-$ROS_DISTRO-hector-mapping \
 # ros-$ROS_DISTRO-gazebo9-plugins \
 
 
-pip install pygame pyserial
+pip install pygame pyserial catkin-pkg rospkg
 cd wr8_software/scripts/graph_path; pyrcc5 -o resources.py my.qrc
