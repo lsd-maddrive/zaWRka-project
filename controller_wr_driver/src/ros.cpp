@@ -20,12 +20,19 @@
 #include <std_srvs/Trigger.h>
 #include <wr8_msgs/SteerParams.h>
 
-ros_driver_cb_ctx_t default_cb_ctx = {
+static const ros_driver_cb_ctx_t default_cb_ctx = {
     .cmd_cb                 = NULL,
-    .set_steer_params_cb    = NULL
+    .set_steer_params_cb    = NULL,
+    .reset_odometry_cb      = NULL
 };
 
-ros_driver_cb_ctx_t last_cb_ctx = default_cb_ctx;
+static ros_driver_cb_ctx_t last_cb_ctx = default_cb_ctx;
+
+
+ros_driver_cb_ctx_t ros_driver_get_new_cb_ctx( void )
+{
+    return default_cb_ctx;
+}
 
 void ros_driver_set_cb_ctx( ros_driver_cb_ctx_t *ctx )
 {
@@ -38,6 +45,7 @@ void ros_driver_set_cb_ctx( ros_driver_cb_ctx_t *ctx )
 void trigger_task_cb( const std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &resp )
 {   
     (void)req;
+    (void)resp;
 
     dbgprintf( "Called %s\n\r", __FUNCTION__ );
 
@@ -47,7 +55,7 @@ void trigger_task_cb( const std_srvs::TriggerRequest &req, std_srvs::TriggerResp
 void steer_params_cb( const wr8_msgs::SteerParamsRequest &req, wr8_msgs::SteerParamsResponse &resp )
 {
     (void)req;
-    resp = resp;
+    (void)resp;
 
     dbgprintf( "Called %s\n\r", __FUNCTION__ );
 
@@ -57,7 +65,21 @@ void steer_params_cb( const wr8_msgs::SteerParamsRequest &req, wr8_msgs::SteerPa
     }
 }
 
+void reset_odometry_cb( const std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &resp )
+{
+    (void)req;
+    (void)resp;
+
+    dbgprintf( "Called %s\n\r", __FUNCTION__ );
+
+    if ( last_cb_ctx.reset_odometry_cb )
+    {
+        last_cb_ctx.reset_odometry_cb();
+    }
+}
+
 ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>             srvc_check("check", &trigger_task_cb);                             
+ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>             srvc_rst_odom("reset_odometry", &reset_odometry_cb);                             
 ros::ServiceServer<wr8_msgs::SteerParamsRequest, wr8_msgs::SteerParamsResponse>     srvc_steer_params("set_steer_params", &steer_params_cb);
 
 void cmd_vel_cb( const geometry_msgs::Twist &msg )
@@ -80,11 +102,13 @@ std_msgs::Int32             i32_enc_raw_msg;
 std_msgs::Float32           f32_encspeed_raw_msg;
 std_msgs::Float32           f32_steer_angle_msg;
 std_msgs::Float32MultiArray odometry_pose;
+std_msgs::Int8              i8_state_msg;
 
 ros::Publisher              topic_encoder_raw("encoder_raw", &i32_enc_raw_msg);
 ros::Publisher              topic_encspeed_raw("encspeed_raw", &f32_encspeed_raw_msg);
 ros::Publisher              topic_pose("odom_pose", &odometry_pose);
 ros::Publisher              topic_steer("steer_angle", &f32_steer_angle_msg);
+ros::Publisher              topic_state("state", &i8_state_msg);
 
 /*
  * ROS spin thread - used to receive messages
@@ -105,11 +129,18 @@ static THD_FUNCTION(Spinner, arg)
 
 //=======================================================
 
+void ros_driver_send_state( int8_t state )
+{
+    i8_state_msg.data = state;
+
+    topic_state.publish( &i8_state_msg );
+}
+
 void ros_driver_send_steering( float steer_angle )
 {
     f32_steer_angle_msg.data = steer_angle;
 
-    topic_steer.publish(&f32_steer_angle_msg);
+    topic_steer.publish( &f32_steer_angle_msg );
 }
 
 void ros_driver_send_pose( float x, float y, float dir, float vx, float uz )
@@ -133,14 +164,14 @@ void ros_driver_send_encoder_raw( int32_t value )
 {
     i32_enc_raw_msg.data = value;
 
-    topic_encoder_raw.publish(&i32_enc_raw_msg);
+    topic_encoder_raw.publish( &i32_enc_raw_msg );
 }
 
 void ros_driver_send_encoder_speed( float value )
 {
     f32_encspeed_raw_msg.data = value;
 
-    topic_encspeed_raw.publish(&f32_encspeed_raw_msg);
+    topic_encspeed_raw.publish( &f32_encspeed_raw_msg );
 }
 
 
@@ -193,6 +224,7 @@ void ros_driver_init( tprio_t prio )
     ros_node.advertise( topic_encspeed_raw );
     ros_node.advertise( topic_steer );
     ros_node.advertise( topic_pose );
+    ros_node.advertise( topic_state );
 
     /* ROS subscribers */
     ros_node.subscribe( topic_cmd );
@@ -200,6 +232,7 @@ void ros_driver_init( tprio_t prio )
     /* ROS service servers */
     ros_node.advertiseService( srvc_check );
     ros_node.advertiseService( srvc_steer_params );
+    ros_node.advertiseService( srvc_rst_odom );
 
     chThdCreateStatic( waSpinner, sizeof(waSpinner), prio, Spinner, NULL );
 }
