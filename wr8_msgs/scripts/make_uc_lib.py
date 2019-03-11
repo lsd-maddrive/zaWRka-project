@@ -86,9 +86,9 @@ if (len(sys.argv) < 2):
 path = sys.argv[1]
 if path[-1] == "/":
     path = path[0:-1]
-print "\nExporting to %s" % path
+print("\nExporting to %s" % path)
 
-rospack = rospkg.RosPack('~/catkin_ws/src')
+rospack = rospkg.RosPack()
 rosserial_client_copy_files(rospack, path+"/ros_lib/")
 rosserial_generate(rospack, path+"/ros_lib", ROS_TO_EMBEDDED_TYPES)
 
