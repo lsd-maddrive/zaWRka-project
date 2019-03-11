@@ -91,7 +91,8 @@ if path[-1] == "/":
 print("\nExporting to %s" % path)
 
 rospack = rospkg.RosPack([os.path.join(catkin_path, 'src/AutoNetChallenge'),
-                          os.path.join(catkin_path, 'src/rosserial/rosserial_client')])
+                          os.path.join(catkin_path, 'src/rosserial/rosserial_client'),
+                          os.path.join(catkin_path, 'src/rosserial/rosserial_msgs')])
 
 rosserial_client_copy_files(rospack, path+"/ros_lib/")
 rosserial_generate(rospack, path+"/ros_lib", ROS_TO_EMBEDDED_TYPES)

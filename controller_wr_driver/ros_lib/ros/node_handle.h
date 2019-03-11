@@ -322,7 +322,6 @@ public:
           {
             requestSyncTime();
             negotiateTopics();
-
             last_sync_time = c_time;
             last_sync_receive_time = c_time;
             return SPIN_ERR;
