@@ -7,7 +7,6 @@ Driver | Pins | Input / Output
 -------|------|-------
   PWM1 | PE_11 |output (channel 1)
 
-
 ## Драйвер управления приводом движения 
 Driver | Pins | Input / Output
 -------|------|-------
@@ -25,14 +24,13 @@ Driver | Pins | Input / Output
 ## Драйвер одометрии
 Driver | Pins | Input / Output
 -------|------|-------
-  GPT2 |	  | 
+   VT  |	    | freq = 100 Hz
 
 ## Драйвер OC от рулевой сервы
 Driver | Pins | Input / Output
 -------|------|-------
   ADC1 | PC0  | Input (Channel 10)
-  GPT4 |      |
-  
+  GPT4 |      | 
 
 ## Драйвер ручного управления
 Driver | Pins | Input / Output
@@ -43,4 +41,9 @@ ICU8 | C6 | input (Timer 8)
 ## Драйвер для СУ приводами
 Driver | Pins | Input / Output
 -------|------|-------
-  GPT3 |      | steering control
+   VT  |      | steering/speed control (100 Hz)
+
+## Драйвер отслеживания заряда батарей
+Driver | Pins | Input / Output
+-------|------|-------
+  ADC3 | 

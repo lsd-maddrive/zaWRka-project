@@ -26,6 +26,12 @@ void testRawWheelsControlRoutine( void );
  */
 void testWheelsControlRoutines( void );
 
+/*
+ * @brief   Calibration of ESC for driving wheels
+ * @note    send Neutral, then MAX, then MIN
+ */
+void testDrivingWheelsESCCalibration ( void );
+
 
 void testWheelsSpeedControlRoutine( void );
 
@@ -127,6 +133,8 @@ void testRosRoutineControl( void );
 void testSpeedFilter( void );
 
 
+
+
 static inline void testsRoutines( void )
 {
 #if (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS)
@@ -138,6 +146,8 @@ static inline void testsRoutines( void )
     testWheelsControlRoutines( );
 
 #elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RAW_LL_DRIVE)
+
+    testRawWheelsControlRoutine( );
 
 #elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_LL_DRV )
 
@@ -190,6 +200,11 @@ static inline void testsRoutines( void )
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_FILTER )
 
     testSpeedFilter( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ESC_CALIBRATION )
+
+    testDrivingWheelsESCCalibration( );
+
 #endif
 }
 

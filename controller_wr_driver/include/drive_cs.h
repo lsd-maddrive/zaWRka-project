@@ -27,6 +27,17 @@ typedef struct{
 void driverCSInit( void );
 
 /**
+ * @brief       Set parameters for Steering controller
+ */
+void driveSteerCSSetParam( pidControllerContext_t steer_param );
+
+/**
+ * @brief       Set parameters for Speed controller
+ */
+void driveSpeedCSSetParam( pidControllerContext_t speed_param );
+
+
+/**
  * @brief       Control system for steering wheels
  * @param       value of angle in degrees [ -25; 25 ]
  * @note        max left    =>     25 |  100

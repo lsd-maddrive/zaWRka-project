@@ -15,16 +15,17 @@ extern "C" {
 #define     PROGRAM_ROUTINE_MASTER                      0
 #define     PROGRAM_ROUTINE_TEST_LL_DRIVER              1
 #define     PROGRAM_ROUTINE_TEST_RAW_LL_DRIVE           2
-#define     PROGRAM_ROUTINE_TEST_ENCODER                3
-#define     PROGRAM_ROUTINE_TEST_ODOMETRY               4
-#define     PROGRAM_ROUTINE_TEST_RC                     5
-#define     PROGRAM_ROUTINE_TEST_STEERING_CS            6
-#define     PROGRAM_ROUTINE_TEST_STEER_ANGL_CALC        7
-#define     PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND        8
-#define     PROGRAM_ROUTINE_TEST_STEER_ANGLE_LLD_CONTRL 9
-#define     PROGRAM_ROUTINE_TEST_SPEED_CS               10
-#define     PROGRAM_ROUTINE_TEST_SPEED_LL_DRV           11
-#define     PROGRAM_ROUTINE_TEST_SPEED_FILTER           12
+#define     PROGRAM_ROUTINE_TEST_ESC_CALIBRATION        3
+#define     PROGRAM_ROUTINE_TEST_ENCODER                4
+#define     PROGRAM_ROUTINE_TEST_ODOMETRY               5
+#define     PROGRAM_ROUTINE_TEST_RC                     6
+#define     PROGRAM_ROUTINE_TEST_STEERING_CS            7
+#define     PROGRAM_ROUTINE_TEST_STEER_ANGL_CALC        8
+#define     PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND        9
+#define     PROGRAM_ROUTINE_TEST_STEER_ANGLE_LLD_CONTRL 10
+#define     PROGRAM_ROUTINE_TEST_SPEED_CS               11
+#define     PROGRAM_ROUTINE_TEST_SPEED_LL_DRV           12
+#define     PROGRAM_ROUTINE_TEST_SPEED_FILTER           13
 #define     PROGRAM_ROUTINE_TEST_ROS_ODOMETRY           20
 #define     PROGRAM_ROUTINE_TEST_ROS_CONTROL            25
 #define     PROGRAM_ROUTINE_TEST_GUI_SERVER             30
@@ -44,12 +45,14 @@ extern "C" {
 /*** LLD LIMITS ***/
 /******************/
 
-#define SPEED_MAX           1640
-#define SPEED_ZERO          1500
-#define SPEED_NULL_FORWARD  1540
+#define SPEED_MAX           1643    //2000
 
-#define SPEED_NULL_BACK     1330
-#define SPEED_MIN           1230
+#define SPEED_ZERO          1500
+
+#define SPEED_NULL_FORWARD  1543    // 1500
+
+#define SPEED_NULL_BACK     1457
+#define SPEED_MIN           1357    //1000
 
 #define STEER_MAX           2080
 #define STEER_NULL          1620
