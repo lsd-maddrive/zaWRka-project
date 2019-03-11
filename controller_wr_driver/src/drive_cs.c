@@ -9,6 +9,17 @@ pidControllerContext_t steerPIDparam = {
   .proptDeadZone    = 2
 };
 
+/***    Not used for now, I guess will be used after testing    ***/
+pidControllerContext_t speedPIDparam = {
+  .kp               = 0,
+  .ki               = 0.3,
+  .kd               = 0,
+  .integSaturation  = 100,
+  .proptDeadZone    = 2
+};
+
+
+
 pidControllerContext_t  f_speedPIDparam = {
   .kp               = 55,
   .ki               = 0.1,
@@ -86,6 +97,34 @@ float                   check_cntrl_val             = 0;
 
 #define                 VT_PID_CALC_MS              10
 static virtual_timer_t  pid_update_vt;
+
+
+
+/**
+ * @brief       Set parameters for Steering controller
+ */
+void driveSteerCSSetParam( pidControllerContext_t steer_param )
+{
+    steerPIDparam.kp                = steer_param.kp;
+    steerPIDparam.ki                = steer_param.ki;
+    steerPIDparam.kd                = steer_param.kd;
+    steerPIDparam.integSaturation   = steer_param.integSaturation;
+    steerPIDparam.proptDeadZone     = steer_param.proptDeadZone;
+}
+
+/**
+ * @brief       Set parameters for Speed controller
+ */
+void driveSpeedCSSetParam( pidControllerContext_t speed_param )
+{
+    speedPIDparam.kp                = speed_param.kp;
+    speedPIDparam.ki                = speed_param.ki;
+    speedPIDparam.kd                = speed_param.kd;
+    speedPIDparam.integSaturation   = speed_param.integSaturation;
+    speedPIDparam.proptDeadZone     = speed_param.proptDeadZone;
+}
+
+
 
 /**
  * @brief       Control system for steering wheels
