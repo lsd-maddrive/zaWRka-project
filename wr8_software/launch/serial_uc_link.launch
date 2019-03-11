@@ -5,7 +5,9 @@
 
 <launch>
 	<machine name="nuc" user="user-sau-nuc" address="192.168.31.99" />
-	<arg name="device" default="/dev/ttyACM0" />
+    
+    <!-- <arg name="device" default="/dev/ttyACM1" /> -->
+	<arg name="device" default="/dev/serial/by-id/usb-STMicroelectronics_ChibiOS_RT_Virtual_COM_Port_404-if00" />
     <arg name="link_only" default="false" />
 
 	<!-- <arg name="device" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0" /> -->
