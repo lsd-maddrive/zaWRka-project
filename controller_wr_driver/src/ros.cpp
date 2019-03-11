@@ -12,53 +12,79 @@
 #include <std_msgs/UInt8.h>
 #include <std_msgs/Int8.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Bool.h>
 #include <geometry_msgs/Point32.h>
 #include <geometry_msgs/Twist.h>
 
 #include <std_srvs/Trigger.h>
+#include <wr8_msgs/SteerParams.h>
+
+ros_driver_cb_ctx_t default_cb_ctx = {
+    .cmd_cb                 = NULL,
+    .set_steer_params_cb    = NULL
+};
+
+ros_driver_cb_ctx_t last_cb_ctx = default_cb_ctx;
+
+void ros_driver_set_cb_ctx( ros_driver_cb_ctx_t *ctx )
+{
+    if ( ctx )
+        last_cb_ctx = *ctx;
+    else
+        last_cb_ctx = default_cb_ctx;
+}
 
 void trigger_task_cb( const std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &resp )
 {   
-    dbgprintf( "Called\n\r" );
+    (void)req;
+
+    dbgprintf( "Called %s\n\r", __FUNCTION__ );
 
     resp.success = true;
 }
 
-
-void (*g_cb_func)(float speed, float steer) = NULL;
-
-void ros_driver_set_control_cb( void (*cb_func)(float speed, float steer) )
+void steer_params_cb( const wr8_msgs::SteerParamsRequest &req, wr8_msgs::SteerParamsResponse &resp )
 {
-    g_cb_func = cb_func;
+    (void)req;
+    resp = resp;
+
+    dbgprintf( "Called %s\n\r", __FUNCTION__ );
+
+    if ( last_cb_ctx.set_steer_params_cb )
+    {
+        last_cb_ctx.set_steer_params_cb( req.left_k, req.right_k );
+    }
 }
+
+ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>             srvc_check("check", &trigger_task_cb);                             
+ros::ServiceServer<wr8_msgs::SteerParamsRequest, wr8_msgs::SteerParamsResponse>     srvc_steer_params("set_steer_params", &steer_params_cb);
 
 void cmd_vel_cb( const geometry_msgs::Twist &msg )
 {
     float cmd_speed = msg.linear.x;
     float cmd_steer = msg.angular.z * 180 / M_PI;
 
-    if ( g_cb_func )
+    if ( last_cb_ctx.cmd_cb )
     {
-        g_cb_func( cmd_speed, cmd_steer );
+        last_cb_ctx.cmd_cb( cmd_speed, cmd_steer );
     }
 }
 
+ros::Subscriber<geometry_msgs::Twist>           topic_cmd("cmd_vel", &cmd_vel_cb);
+
+
 ros::NodeHandle             ros_node;
+
 std_msgs::Int32             i32_enc_raw_msg;
 std_msgs::Float32           f32_encspeed_raw_msg;
 std_msgs::Float32           f32_steer_angle_msg;
-geometry_msgs::Point32      odometry_pose;
+std_msgs::Float32MultiArray odometry_pose;
 
-ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>    srvc_check("check", &trigger_task_cb);                             
-
-ros::Publisher                                  topic_encoder_raw("encoder_raw", &i32_enc_raw_msg);
-ros::Publisher                                  topic_encspeed_raw("encspeed_raw", &f32_encspeed_raw_msg);
-ros::Publisher                                  topic_pose("odom_pose", &odometry_pose);
-ros::Publisher                                  topic_steer("steer_angle", &f32_steer_angle_msg);
-
-ros::Subscriber<geometry_msgs::Twist>           topic_cmd("cmd_vel", &cmd_vel_cb);
-
+ros::Publisher              topic_encoder_raw("encoder_raw", &i32_enc_raw_msg);
+ros::Publisher              topic_encspeed_raw("encspeed_raw", &f32_encspeed_raw_msg);
+ros::Publisher              topic_pose("odom_pose", &odometry_pose);
+ros::Publisher              topic_steer("steer_angle", &f32_steer_angle_msg);
 
 /*
  * ROS spin thread - used to receive messages
@@ -88,11 +114,17 @@ void ros_driver_send_steering( float steer_angle )
 
 void ros_driver_send_pose( float x, float y, float dir, float vx, float uz )
 {
-    vx = vx; uz = uz;
+    static const int data_length = 5;
+    static float data[data_length];
 
-    odometry_pose.x = x;
-    odometry_pose.y = y;
-    odometry_pose.z = dir;
+    data[0] = x;
+    data[1] = y;
+    data[2] = dir;
+    data[3] = vx;
+    data[4] = uz;
+
+    odometry_pose.data          = data;
+    odometry_pose.data_length   = data_length;
 
     topic_pose.publish( &odometry_pose );
 }
@@ -167,6 +199,7 @@ void ros_driver_init( tprio_t prio )
 
     /* ROS service servers */
     ros_node.advertiseService( srvc_check );
+    ros_node.advertiseService( srvc_steer_params );
 
     chThdCreateStatic( waSpinner, sizeof(waSpinner), prio, Spinner, NULL );
 }

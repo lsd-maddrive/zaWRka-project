@@ -86,25 +86,43 @@ static const char STEERPARAMS[] = "wr8_msgs/SteerParams";
   class SteerParamsResponse : public ros::Msg
   {
     public:
+      typedef int8_t _dummy_type;
+      _dummy_type dummy;
 
-    SteerParamsResponse()
+    SteerParamsResponse():
+      dummy(0)
     {
     }
 
     virtual int serialize(unsigned char *outbuffer) const
     {
       int offset = 0;
+      union {
+        int8_t real;
+        uint8_t base;
+      } u_dummy;
+      u_dummy.real = this->dummy;
+      *(outbuffer + offset + 0) = (u_dummy.base >> (8 * 0)) & 0xFF;
+      offset += sizeof(this->dummy);
       return offset;
     }
 
     virtual int deserialize(unsigned char *inbuffer)
     {
       int offset = 0;
+      union {
+        int8_t real;
+        uint8_t base;
+      } u_dummy;
+      u_dummy.base = 0;
+      u_dummy.base |= ((uint8_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      this->dummy = u_dummy.real;
+      offset += sizeof(this->dummy);
      return offset;
     }
 
     const char * getType(){ return STEERPARAMS; };
-    const char * getMD5(){ return "d41d8cd98f00b204e9800998ecf8427e"; };
+    const char * getMD5(){ return "f19c17840e71ac5736972b2b4d4c6188"; };
 
   };
 

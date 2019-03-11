@@ -28,12 +28,25 @@ void ros_driver_send_steering( float steer_angle );
  */
 void ros_driver_send_pose( float x, float y, float dir, float vx, float uz );
 
-/*
- * Cb returned arguments:
- * 		speed - Speed task (-100;100) [%]
- * 		steer - Steering task (-25;25) [deg]
- */
-void ros_driver_set_control_cb( void (*cb_func)(float speed, float steer) );
+typedef struct
+{
+	/*
+	 * Cb returned arguments:
+	 * 		speed - Speed task (-0.5;0.5) [m/s]
+	 * 		steer - Steering task (-25;25) [deg]
+	 */
+	void (*cmd_cb)(float speed, float steer);
+
+	/*
+	 * It is better to use structure with parameters
+	 */
+	void (*set_steer_params_cb)(float k_left, float k_right);
+
+} ros_driver_cb_ctx_t;
+
+void ros_driver_set_cb_ctx( ros_driver_cb_ctx_t *ctx );
+
+
 
 #ifdef __cplusplus
 }
