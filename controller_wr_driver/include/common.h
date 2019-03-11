@@ -27,7 +27,7 @@
 #define     PROGRAM_ROUTINE_TEST_GUI_SERVER             30
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_SPEED_CS
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ODOMETRY
 
 
 /**************/

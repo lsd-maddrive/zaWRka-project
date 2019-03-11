@@ -3,13 +3,14 @@
 #include <lld_odometry.h>
 #include <lld_steer_angle_fb.h>
 
+#if 0
 /************************************/
 /***    GPT Configuration Zone    ***/
 /************************************/
 #define gptFreq     10000
 static  GPTDriver   *gptDriver = &GPTD2;
 /************************************/
-
+#endif
 /************************************/
 /***     Coefficient variables    ***/
 /************************************/
@@ -76,6 +77,11 @@ odometrySpeedValue_t        speed_lpf           = 0;
 
 #define SPEED_LPF               (float)0.8
 
+
+#define                 VT_ODOM_MS              10
+static virtual_timer_t  odom_update_vt;
+
+#if 0
 static void gptcb (GPTDriver *gptd)
 {
     gptd = gptd;
@@ -150,6 +156,7 @@ static void gptcb (GPTDriver *gptd)
     /*********************************************/
 
 }
+#endif
 
 /**
  * @brief   Get filtered by LPF speed of objects
@@ -169,12 +176,96 @@ odometrySpeedValue_t lldOdometryGetObjCSSpeedMPS( void )
   return ( speed_cs_cm_p_sec * 0.01 );
 }
 #endif
+
+#if 0
 static const GPTConfig gpt2cfg = {
   .frequency =  gptFreq,
   .callback  =  gptcb,
   .cr2       =  0,
   .dier      =  0U
 };
+
+#endif
+
+static void odom_update_vt_cb( void *arg )
+{
+    arg = arg;
+
+/***         Speed calculation                         ***/
+
+    /***         Get speed of encoder in revolutions       ***/
+    rawRevEncoderValue_t cur_revs   = lldGetEncoderRawRevs( );
+
+    revs_per_sec    = (cur_revs - prev_revs) * MS_2_SEC;
+
+    prev_revs       = cur_revs;
+
+    /*********************************************/
+
+    /***    Get speed of object in cm/s and m/s          ***/
+    odometryValue_t cur_distance  = lldGetOdometryObjDistance( OBJ_DIST_CM );
+#ifdef LOW_FREQ_CS
+    /*******************************************************/
+    speed_cs_count += 1;
+    if( speed_cs_count == 1 )
+    {
+        prev_dist_cs = cur_distance;
+    }
+    else if( speed_cs_count == (speed_s_period + 1) )
+    {
+        speed_cs_cm_p_sec = ( cur_distance - prev_dist_cs ) * 20 ;
+        prev_dist_cs = cur_distance;
+        speed_cs_count = 0;
+    }
+    /*******************************************************/
+#endif
+
+    /*  [cm/10ms] * 100 = [cm/s]   */
+    speed_cm_per_sec    = (cur_distance - prev_distance ) * MS_2_SEC;
+    /*  [cm/s] * 0.01 = [m/s]       */
+    speed_m_per_sec     = speed_cm_per_sec * CM_2_M;
+
+    /***    LPF - FILTER     ***/
+    speed_lpf           = speed_m_per_sec * ( 1 - SPEED_LPF ) + prev_speed_lpf * SPEED_LPF;
+    prev_speed_lpf      = speed_lpf;
+
+    prev_distance       = cur_distance;
+    /*********************************************/
+
+    /***        Tetta calculation              ***/
+    odometryValue_t         steer_angl_rad = lldGetSteerAngleRad( );
+
+    tetta_speed_rad_s = ( speed_m_per_sec * tan( steer_angl_rad ) * tetta_k_rad );
+
+    /*** It is tetta angle, not changing speed of tetta! ***/
+    tetta_rad_angle +=  tetta_speed_rad_s;
+
+    /*** Reset tetta integral ***/
+    /*** NOTE 0 = 360         ***/
+    if(tetta_rad_angle > ( 2 * M_PI ) )
+    {
+            tetta_rad_angle   = tetta_rad_angle - ( 2 * M_PI );
+    }
+    if( tetta_rad_angle < 0 )
+    {
+        tetta_rad_angle = ( 2 * M_PI ) + tetta_rad_angle;
+    }
+    /**********************************************/
+
+    /***        X calculation                  ***/
+    x_pos_m += (speed_m_per_sec * cos(tetta_rad_angle)) * d_t;
+    /*********************************************/
+
+    /***        Y calculation                  ***/
+    y_pos_m += (speed_m_per_sec * sin(tetta_rad_angle)) * d_t;
+    /*********************************************/
+
+
+    chSysLockFromISR();
+    // reset VT
+    chVTSetI(&odom_update_vt, MS2ST( VT_ODOM_MS ), odom_update_vt_cb, NULL);
+    chSysUnlockFromISR();
+}
 
 static bool         isInitialized       = false;
 
@@ -188,11 +279,15 @@ void lldOdometryInit( void )
 {
     if ( isInitialized )
             return;
-
+#if 0
     /*** Start working GPT driver in asynchronous mode ***/
     gptStart( gptDriver, &gpt2cfg );
     uint32_t gpt_period = gptFreq * 0.01;   // 10 ms
     gptStartContinuous( gptDriver, gpt_period );
+#endif
+    chVTObjectInit(&odom_update_vt);
+    chVTSet( &odom_update_vt, MS2ST( VT_ODOM_MS ), odom_update_vt_cb, NULL );
+
 
     lldEncoderInit( );
 

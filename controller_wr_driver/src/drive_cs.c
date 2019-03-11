@@ -85,7 +85,7 @@ controlValue_t          speed_cntrl_prc             = 0;
 float                   check_cntrl_val             = 0;
 
 #define                 VT_PID_CALC_MS              10
-virtual_timer_t         pid_update_vt;
+static virtual_timer_t  pid_update_vt;
 
 /**
  * @brief       Control system for steering wheels
@@ -204,6 +204,7 @@ static const GPTConfig gpt3cfg = {
 
 static void pid_update_vt_cb( void *arg)
 {
+    arg = arg; // to avoid warnings
     palToggleLine( LINE_LED2 );
 
 /***    I-controller for Steering CS    ***/
@@ -302,6 +303,7 @@ void driverCSInit( void )
     uint32_t gpt_period = gpt_cs_Freq * 0.01;   // 10 ms => 100 Hz
     gptStartContinuous( gptDriver, gpt_period );
 #endif
+    chVTObjectInit(&pid_update_vt);
     chVTSet( &pid_update_vt, MS2ST( VT_PID_CALC_MS ), pid_update_vt_cb, NULL );
 
     isInitialized = true;

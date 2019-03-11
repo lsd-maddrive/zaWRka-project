@@ -24,7 +24,7 @@ Driver | Pins | Input / Output
 ## Драйвер одометрии
 Driver | Pins | Input / Output
 -------|------|-------
-  GPT2 |	  | 
+   VT  |	    | freq = 100 Hz
 
 ## Драйвер OC от рулевой сервы
 Driver | Pins | Input / Output
@@ -41,7 +41,7 @@ ICU8 | C6 | input (Timer 8)
 ## Драйвер для СУ приводами
 Driver | Pins | Input / Output
 -------|------|-------
-   VT  |      | steering/speed control
+   VT  |      | steering/speed control (100 Hz)
 
 ## Драйвер отслеживания заряда батарей
 Driver | Pins | Input / Output
