@@ -14,9 +14,7 @@ if [ "$CALL_DIR" != "." ]; then
 	exit 1
 fi
 
-CATKIN_SRC_DIR="$HOME/catkin_ws/src"
-mkdir -p $CATKIN_SRC_DIR
-
+CATKIN_SRC_DIR="$CATKIN_WS/src"
 
 git -C $CATKIN_SRC_DIR/rosserial pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/ros-drivers/rosserial.git
 git -C $CATKIN_SRC_DIR/ydlidar pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/EAIBOT/ydlidar.git
