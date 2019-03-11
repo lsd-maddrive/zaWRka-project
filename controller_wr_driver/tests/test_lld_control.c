@@ -15,24 +15,24 @@ static const SerialConfig sdcfg = {
 void testRawWheelsControlRoutine( void )
 {
     palSetLine( LINE_LED1 );
-    sdStart( &SD7, &sdcfg );
-    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
-    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
-
+//    sdStart( &SD7, &sdcfg );
+//    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
+//    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
+    debug_stream_init( );
     lldControlInit();
 
-    controlValue_t  speed_values_delta  = 20;
-    controlValue_t  speed_value         = 1520;
+    controlValue_t  speed_values_delta  = 10;
+    controlValue_t  speed_value         = 1500;
 
     controlValue_t  steer_values_delta  = 20;
     controlValue_t  steer_value         = 1620;
 
 
-    chprintf( (BaseSequentialStream *)&SD7, "TEST RAW\n\r" );
+//    chprintf( (BaseSequentialStream *)&SD7, "TEST RAW\n\r" );
 
     while ( 1 )
     {
-        char rcv_data = sdGet( &SD7 );
+        char rcv_data = sdGetTimeout( &SD3, TIME_IMMEDIATE );
         switch ( rcv_data )
         {
             case 'a':   // Positive speed
@@ -42,6 +42,11 @@ void testRawWheelsControlRoutine( void )
             case 's':   // Negative speed
             speed_value -= speed_values_delta;
             break;
+
+            case ' ':
+              speed_value = 1500;
+              steer_value = 1620;
+
 
             case 'q':   // On the left
             steer_value += steer_values_delta;
@@ -56,13 +61,14 @@ void testRawWheelsControlRoutine( void )
                 ;
         }
 
-        speed_value = CLIP_VALUE( speed_value, 1160, 1920 );
+        speed_value = CLIP_VALUE( speed_value, 1000, 2000 );
         lldControlSetDrMotorRawPower( speed_value );
 
         steer_value = CLIP_VALUE( steer_value, 1200, 2040 );
         lldControlSetSteerMotorRawPower( steer_value );
 
-        chprintf( (BaseSequentialStream *)&SD7, "Powers:\n\r\tSteer:(%d)\tSpeed:(%d)\n\r\t", steer_value, speed_value );
+        dbgprintf( "SP:(%d)\tST:(%d)\n\r", speed_value, steer_value );
+//        chprintf( (BaseSequentialStream *)&SD7, "Powers:\n\r\tSteer:(%d)\tSpeed:(%d)\n\r\t", steer_value, speed_value );
 
         chThdSleepMilliseconds( 100 );
     }
@@ -167,6 +173,23 @@ void testWheelsControlRoutines( void )
     }
 }
 
+static virtual_timer_t         update_vt;
+
+
+void testFunc( void )
+{
+  palToggleLine( LINE_LED2 );
+}
+
+static void update_vt_cb( void *arg)
+{
+    testFunc();
+    chSysLockFromISR();
+    // reset VT
+    chVTSetI(&update_vt, MS2ST(1000), update_vt_cb, NULL);
+    chSysUnlockFromISR();
+
+}
 
 void testWheelsSpeedControlRoutine( void )
 {
@@ -174,6 +197,10 @@ void testWheelsSpeedControlRoutine( void )
     lldOdometryInit( );
 
     debug_stream_init( );
+
+    chVTObjectInit(&update_vt);
+    chVTSet( &update_vt, MS2ST( 1000 ), update_vt_cb, NULL );
+    palSetLine( LINE_LED1 );
 
     controlValue_t          speed_values_delta  = 1;
     controlValue_t          speed_value         = 0;
@@ -210,4 +237,45 @@ void testWheelsSpeedControlRoutine( void )
        chThdSleepMilliseconds( 100 );
    }
 
+}
+
+/*
+ * @brief   Calibration of ESC for driving wheels
+ * @note    send Neutral, then MAX, then MIN
+ */
+void testDrivingWheelsESCCalibration ( void )
+{
+    lldControlInit( );
+    debug_stream_init( );
+
+    controlValue_t          speed_value         = SPEED_ZERO;
+
+    while( 1 )
+    {
+        char rcv_data = sdGetTimeout( &SD3, TIME_IMMEDIATE );
+
+        switch ( rcv_data )
+        {
+            case 'a':   // MAX forward
+              speed_value = SPEED_MAX;
+              break;
+
+            case 's':   // MAX backward
+              speed_value = SPEED_MIN;
+              break;
+
+           case ' ':    // Neutral = Stop
+             speed_value = SPEED_ZERO;
+             break;
+
+           default:
+              ;
+       }
+
+       lldControlSetDrMotorRawPower( speed_value );
+
+       dbgprintf( "Speed:(%d)\n\r", speed_value);
+
+       chThdSleepMilliseconds( 100 );
+    }
 }
