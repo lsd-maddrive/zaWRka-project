@@ -19,11 +19,15 @@
 
 #include <std_srvs/Trigger.h>
 #include <wr8_msgs/SteerParams.h>
+#include <wr8_msgs/ControlParams.h>
 
 static const ros_driver_cb_ctx_t default_cb_ctx = {
     .cmd_cb                 = NULL,
     .set_steer_params_cb    = NULL,
-    .reset_odometry_cb      = NULL
+    .reset_odometry_cb      = NULL,
+
+    .get_control_params     = NULL,
+    .set_control_params_cb  = NULL
 };
 
 static ros_driver_cb_ctx_t last_cb_ctx = default_cb_ctx;
@@ -42,12 +46,13 @@ void ros_driver_set_cb_ctx( ros_driver_cb_ctx_t *ctx )
         last_cb_ctx = default_cb_ctx;
 }
 
+
 void trigger_task_cb( const std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &resp )
 {   
     (void)req;
     (void)resp;
 
-    dbgprintf( "Called %s\n\r", __FUNCTION__ );
+    dbgprintf( "Called [%s]\n\r", __FUNCTION__ );
 
     resp.success = true;
 }
@@ -57,11 +62,42 @@ void steer_params_cb( const wr8_msgs::SteerParamsRequest &req, wr8_msgs::SteerPa
     (void)req;
     (void)resp;
 
-    dbgprintf( "Called %s\n\r", __FUNCTION__ );
+    dbgprintf( "Called [%s]\n\r", __FUNCTION__ );
 
     if ( last_cb_ctx.set_steer_params_cb )
     {
         last_cb_ctx.set_steer_params_cb( req.left_k, req.right_k );
+    }
+}
+
+void control_params_cb( const wr8_msgs::ControlParamsRequest &req, wr8_msgs::ControlParamsResponse &resp )
+{
+    (void)req;
+    (void)resp;
+
+    dbgprintf( "Called %d [%s]\n\r", req.request_only, __FUNCTION__ );
+
+    if ( req.request_only && last_cb_ctx.get_control_params )
+    {
+        control_params_setup_t params = last_cb_ctx.get_control_params();
+
+        static const size_t data_length = 2;
+        static float data[data_length];
+
+        data[0] = params.esc_min_dc_offset;
+        data[1] = params.esc_max_dc_offset;
+
+        resp.params = data;
+        resp.params_length = data_length;
+    }
+
+    if ( last_cb_ctx.set_control_params_cb )
+    {
+        control_params_setup_t params;
+        params.esc_min_dc_offset = req.esc_min_dc_offset;
+        params.esc_max_dc_offset = req.esc_max_dc_offset;
+
+        last_cb_ctx.set_control_params_cb( &params );
     }
 }
 
@@ -70,7 +106,7 @@ void reset_odometry_cb( const std_srvs::TriggerRequest &req, std_srvs::TriggerRe
     (void)req;
     (void)resp;
 
-    dbgprintf( "Called %s\n\r", __FUNCTION__ );
+    dbgprintf( "Called [%s]\n\r", __FUNCTION__ );
 
     if ( last_cb_ctx.reset_odometry_cb )
     {
@@ -81,6 +117,7 @@ void reset_odometry_cb( const std_srvs::TriggerRequest &req, std_srvs::TriggerRe
 ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>             srvc_check("check", &trigger_task_cb);                             
 ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>             srvc_rst_odom("reset_odometry", &reset_odometry_cb);                             
 ros::ServiceServer<wr8_msgs::SteerParamsRequest, wr8_msgs::SteerParamsResponse>     srvc_steer_params("set_steer_params", &steer_params_cb);
+ros::ServiceServer<wr8_msgs::ControlParamsRequest, wr8_msgs::ControlParamsResponse> srvc_cntrl_params("set_control_params", &control_params_cb);
 
 void cmd_vel_cb( const geometry_msgs::Twist &msg )
 {
@@ -145,7 +182,7 @@ void ros_driver_send_steering( float steer_angle )
 
 void ros_driver_send_pose( float x, float y, float dir, float vx, float uz )
 {
-    static const int data_length = 5;
+    static const size_t data_length = 5;
     static float data[data_length];
 
     data[0] = x;
@@ -232,6 +269,7 @@ void ros_driver_init( tprio_t prio )
     /* ROS service servers */
     ros_node.advertiseService( srvc_check );
     ros_node.advertiseService( srvc_steer_params );
+    ros_node.advertiseService( srvc_cntrl_params );
     ros_node.advertiseService( srvc_rst_odom );
 
     chThdCreateStatic( waSpinner, sizeof(waSpinner), prio, Spinner, NULL );

@@ -3,6 +3,7 @@
 
 #include <ch.h>
 #include <stdint.h>
+#include <params.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,6 +49,9 @@ typedef struct
 	void (*set_steer_params_cb)( float k_left, float k_right );
 
 	void (*reset_odometry_cb)( void );
+
+	control_params_setup_t (*get_control_params)( void );
+	void (*set_control_params_cb)( control_params_setup_t * );
 
 } ros_driver_cb_ctx_t;
 

@@ -8,7 +8,7 @@
     
     <!-- <arg name="device" default="/dev/ttyACM1" /> -->
 	<arg name="device" default="/dev/serial/by-id/usb-STMicroelectronics_ChibiOS_RT_Virtual_COM_Port_404-if00" />
-    <arg name="link_only" default="false" />
+    <arg name="lidar" default="false" />
 
 	<!-- <arg name="device" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0" /> -->
 
@@ -24,7 +24,7 @@
         </node>    
     </group>
 
-    <group unless="$(arg link_only)">
+    <group if="$(arg lidar)">
         <include file="$(find wr8_software)/launch/base/lidar.launch">
             <arg name="lidar_x" value="0.17" />
             <arg name="lidar_z" value="0.15" />

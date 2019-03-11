@@ -58,6 +58,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   SteerParams.srv
+  ControlParams.srv
 )
 
 ## Generate actions in the 'action' folder

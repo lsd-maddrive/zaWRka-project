@@ -15,15 +15,17 @@ fi
 
 CATKIN_SRC_DIR="$CATKIN_WS/src"
 
-git -C $CATKIN_SRC_DIR/rosserial pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/ros-drivers/rosserial.git
+# git -C $CATKIN_SRC_DIR/rosserial pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/ros-drivers/rosserial.git
 git -C $CATKIN_SRC_DIR/ydlidar pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/EAIBOT/ydlidar.git
 git -C $CATKIN_SRC_DIR/teb_local_planner pull 	|| git -C $CATKIN_SRC_DIR clone https://github.com/rst-tu-dortmund/teb_local_planner.git
 git -C $CATKIN_SRC_DIR/teleop_tools pull 		|| git -C $CATKIN_SRC_DIR clone https://github.com/KaiL4eK/teleop_tools.git
+# git -C $CATKIN_SRC_DIR/geometry pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/ros/geometry.git
+# git -C $CATKIN_SRC_DIR/geometry2 pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/ros/geometry2.git
 
-git -C wr8_gui_server/smart_vehicle_gui pull || git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
+git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
 
-sudo apt purge ros-$ROS_DISTRO-rosserial* \
-				ros-$ROS_DISTRO-teb-local-planner* \
+# sudo apt purge ros-$ROS_DISTRO-rosserial*
+sudo apt purge ros-$ROS_DISTRO-teb-local-planner*
 
 sudo apt install ros-$ROS_DISTRO-hector-mapping \
 					ros-$ROS_DISTRO-move-base \
@@ -40,10 +42,11 @@ sudo apt install ros-$ROS_DISTRO-hector-mapping \
 					ros-$ROS_DISTRO-usb-cam \
 					ros-$ROS_DISTRO-libg2o \
 					ros-$ROS_DISTRO-qt-build \
+					ros-$ROS_DISTRO-rosserial* \
 					pyqt5-dev-tools
 
 # ros-$ROS_DISTRO-gazebo9-plugins \
 
 
-# pip install pygame
+pip install pygame pyserial
 cd wr8_software/scripts/graph_path; pyrcc5 -o resources.py my.qrc
