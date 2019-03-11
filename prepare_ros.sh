@@ -1,7 +1,5 @@
 #!/bin/bash
 
-CALL_DIR=`dirname $0`
-
 CATKIN_WS=`catkin locate`
 ret=$?
 if [ $ret -ne 0 ]; then
@@ -9,6 +7,7 @@ if [ $ret -ne 0 ]; then
 	exit 1
 fi
 
+CALL_DIR=`dirname $0`
 if [ "$CALL_DIR" != "." ]; then
 	echo "Must be called inside repository"
 	exit 1

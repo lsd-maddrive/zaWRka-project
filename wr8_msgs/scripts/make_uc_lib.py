@@ -78,18 +78,21 @@ ROS_TO_EMBEDDED_TYPES = {
 }
 
 # Enforce correct inputs
-if (len(sys.argv) < 2):
+if (len(sys.argv) < 3):
     print(__usage__)
     exit(1)
 
 # Sanitize output path
+catkin_path = sys.argv[2]
+
 path = sys.argv[1]
 if path[-1] == "/":
     path = path[0:-1]
 print("\nExporting to %s" % path)
 
-rospack = rospkg.RosPack(['/home/alexey/catkin_ws/src/AutoNetChallenge',
-                          '/home/alexey/catkin_ws/src/rosserial/rosserial_client'])
+rospack = rospkg.RosPack([os.path.join(catkin_path, 'src/AutoNetChallenge'),
+                          os.path.join(catkin_path, 'src/rosserial/rosserial_client')])
+
 rosserial_client_copy_files(rospack, path+"/ros_lib/")
 rosserial_generate(rospack, path+"/ros_lib", ROS_TO_EMBEDDED_TYPES)
 
