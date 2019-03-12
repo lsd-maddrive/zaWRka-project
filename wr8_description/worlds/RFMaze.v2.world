@@ -4,7 +4,7 @@
     <gui>
       <camera name="user_camera">
         <!-- <projection_type>orthographic</projection_type> -->
-        <pose>0 0 10 0 1.57079632679 0</pose>
+        <pose>6 6 25 0 1.57079632679 1.57079632679</pose>
       </camera>
     </gui>
     <include>

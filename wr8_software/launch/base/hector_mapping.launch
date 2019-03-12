@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="scan_topic"  default="scan" />
-  <arg name="base_frame"  default="base_footprint"/>
+  <arg name="base_frame"  default="base_link"/>
   <arg name="odom_frame"  default="odom"/>
   <arg name="map_resol"  default="0.05"/>
 
@@ -16,9 +16,9 @@
 
     <!-- Map size / start point -->
     <param name="map_resolution" value="$(arg map_resol)"/>
-    <param name="map_size" value="400"/>
-    <param name="map_start_x" value="0.1"/>
-    <param name="map_start_y" value="0.9" />
+    <param name="map_size" value="500"/>
+    <param name="map_start_x" value="0.5"/>
+    <param name="map_start_y" value="0.5" />
     <param name="map_multi_res_levels" value="2" />
 
     <!-- Map update parameters -->

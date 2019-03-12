@@ -1,18 +1,24 @@
 <?xml version="1.0"?>
 <launch>
  
+<!--   <include file="$(find wr8_software)/launch/base/laser_scan_matcher.launch" >
+    <arg name="base_frame" value="base_footprint" />
+    <arg name="odom_topic" value="ackermann_drive_controller/odom" />
+  </include> -->
+
   <!-- <node pkg="rosservice" type="rosservice" name="reset_odom" args="call car/reset_odom"/> -->
   <!-- <node pkg="rosservice" type="rosservice" name="reset_gz" args="call gazebo/reset_simulation"/> -->
 
   <node name="map_server" pkg="map_server" type="map_server" args="$(find wr8_software)/maps/map2_h.yaml" />
 
   <include file="$(find wr8_software)/launch/base/amcl.launch">
-
+    <arg name="base_frame" value="base_footprint" />
+    <arg name="odom_frame" value="odom" />
   </include>
 
   <include file="$(find wr8_software)/launch/base/move_base.launch">
     <arg name="base_frame" value="base_footprint" />
-    <!-- <arg name="odom_topic" value="ackermann_drive_controller/odom" /> -->
+    <arg name="odom_topic" value="ackermann_drive_controller/odom" />
     <arg name="cmd_topic" value="car/cmd_vel" />
   </include>
 

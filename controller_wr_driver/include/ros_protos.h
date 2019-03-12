@@ -3,6 +3,7 @@
 
 #include <ch.h>
 #include <stdint.h>
+#include <params.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,11 +30,43 @@ void ros_driver_send_steering( float steer_angle );
 void ros_driver_send_pose( float x, float y, float dir, float vx, float uz );
 
 /*
- * Cb returned arguments:
- * 		speed - Speed task (-100;100) [%]
- * 		steer - Steering task (-25;25) [deg]
+ *	Not set yet, just sending
  */
-void ros_driver_set_control_cb( void (*cb_func)(float speed, float steer) );
+void ros_driver_send_state( int8_t state );
+
+typedef struct
+{
+	/*
+	 * Cb returned arguments:
+	 * 		speed - Speed task (-0.5;0.5) [m/s]
+	 * 		steer - Steering task (-25;25) [deg]
+	 */
+	void (*cmd_cb)( float speed, float steer );
+
+	/*
+	 * It is better to use structure with parameters
+	 */
+	void (*set_steer_params_cb)( float k_left, float k_right );
+
+	void (*reset_odometry_cb)( void );
+
+	control_params_setup_t (*get_control_params)( void );
+	void (*set_control_params_cb)( control_params_setup_t * );
+
+} ros_driver_cb_ctx_t;
+
+/*
+ * Use this function to get clean (default) cb_ctx first!
+ */
+ros_driver_cb_ctx_t ros_driver_get_new_cb_ctx( void );
+
+/*
+ * Put filled cb_ctx pointer to this to set new callbacks
+ * Setting NULL resets all callbacks to default behaviour (no callbacks)
+ */
+void ros_driver_set_cb_ctx( ros_driver_cb_ctx_t *ctx );
+
+
 
 #ifdef __cplusplus
 }

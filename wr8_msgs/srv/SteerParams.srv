@@ -1,0 +1,4 @@
+float32 left_k
+float32 right_k
+---
+int8 dummy

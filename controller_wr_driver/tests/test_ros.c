@@ -9,9 +9,25 @@ static void update_encoder( void )
 	encoder_value += 10;
 }
 
+control_params_setup_t test_get_control_params( void )
+{
+	control_params_setup_t params;
+
+	params.esc_min_dc_offset = 1540 - 1500;
+	params.esc_max_dc_offset = 2000 - 1500;
+
+	return params;
+}
+
 void testROSConnection( void )
 {
 	ros_driver_init( NORMALPRIO );
+	debug_stream_init();
+
+	ros_driver_cb_ctx_t cb_ctx = ros_driver_get_new_cb_ctx();
+	cb_ctx.get_control_params = test_get_control_params;
+
+	ros_driver_set_cb_ctx( &cb_ctx );
 
 	uint32_t	prev_enc_value 	= 0;
 	float 		prev_time 		= 0;
@@ -52,6 +68,7 @@ void testROSConnection( void )
 		ros_driver_send_encoder_speed( d_enc / d_time );
 
 		ros_driver_send_steering( 30 * sin( time / 100000 ) );
+		ros_driver_send_pose( 5, 4, 3, 2, 1 );
 
 		chThdSleepMilliseconds( 100 );
 	}

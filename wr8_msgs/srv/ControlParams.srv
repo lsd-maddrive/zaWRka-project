@@ -1,0 +1,5 @@
+bool request_only
+int32 esc_min_dc_offset
+int32 esc_max_dc_offset
+---
+float32[] params

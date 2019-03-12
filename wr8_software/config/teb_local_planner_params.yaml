@@ -19,10 +19,10 @@ TebLocalPlannerROS:
     cmd_angle_instead_rotvel: True
 
     max_vel_x: 0.4
-    max_vel_x_backwards: 0.2
-    max_vel_theta: 0.25
-    acc_lim_x: 0.3
-    acc_lim_theta: 0.5
+    max_vel_x_backwards: 0.3
+    max_vel_theta: 0.43
+    acc_lim_x: 0.15
+    acc_lim_theta: 0.15
     # Just to avoid too high turn
     min_turning_radius: 0.52
     # min_turning_radius: 1.5
@@ -44,7 +44,7 @@ TebLocalPlannerROS:
     free_goal_vel: False
 
     # Obstacles
-    min_obstacle_dist: 0.5
+    min_obstacle_dist: 0.15
 
     include_costmap_obstacles: True
     costmap_obstacles_behind_robot_dist: 1.0
@@ -66,8 +66,8 @@ TebLocalPlannerROS:
     weight_acc_lim_theta: 1
     weight_kinematics_nh: 1000
     weight_kinematics_forward_drive: 1
-    weight_kinematics_turning_radius: 1
-    weight_optimaltime: 30
+    weight_kinematics_turning_radius: 10
+    weight_optimaltime: 50
     weight_obstacle: 50
     weight_dynamic_obstacle: 10 # not in use yet
     # selection_alternative_time_cost: False # not in use yet

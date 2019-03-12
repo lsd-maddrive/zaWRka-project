@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node pkg="tf" type="static_transform_publisher" name="base_2_cam" args="0 0 0 0 0 0 base_link camera 100" />
+  <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" respawn="false" output="screen" >
+    <param name="video_device" value="/dev/video1" />
+    <param name="image_width" value="640" />
+    <param name="image_height" value="480" />
+    <param name="pixel_format" value="yuyv" />
+    <param name="camera_frame_id" value="camera" />
+    <param name="io_method" value="mmap"/>
+  </node>
+
+  <node name="camera_check" pkg="camera_calibration" type="cameracalibrator.py" respawn="false" output="screen" args="--size 7x5 --square 0.03 camera:=usb_cam">
+    <remap from="image" to="usb_cam/image_raw"/>
+  </node>
+
+</launch>
