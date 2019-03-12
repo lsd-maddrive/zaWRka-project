@@ -101,7 +101,6 @@ void lldEncoderInit( void )
     extSetChannelMode( &EXTD1, 3, &null_conf );
 
     /* Set initialization flag */
-
     isInitialized = true;
 }
 

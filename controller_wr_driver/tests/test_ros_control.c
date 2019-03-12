@@ -37,6 +37,17 @@ void changeSteerParams( float min, float max )
     /* change limits */
 }
 
+control_params_setup_t get_esc_control_params( void )
+{
+    control_params_setup_t params;
+
+    params.esc_min_dc_offset = SPEED_ZERO - SPEED_MIN;
+    params.esc_max_dc_offset = SPEED_MAX - SPEED_ZERO;
+
+    return params;
+}
+
+
 /*
  * @brief   Test odometry, speed and steering control via ROS
  * @note    Frequency = 50 Hz
@@ -67,18 +78,24 @@ void testRosRoutineControl( void )
     float                   test_speed_lpf_mps  = 0;
     uint32_t                print_cntr          = 0;
 
-    control_params_setup_t cntr_params;
-    cntr_params.esc_min_dc_offset   = SPEED_ZERO - SPEED_MIN;
-    cntr_params.esc_max_dc_offset   = SPEED_MAX - SPEED_ZERO;
+//    control_params_setup_t cntr_params;
+//    cntr_params.esc_min_dc_offset   = SPEED_ZERO - SPEED_MIN;
+//    cntr_params.esc_max_dc_offset   = SPEED_MAX - SPEED_ZERO;
+
 
     ros_driver_cb_ctx_t cb_ctx      = ros_driver_get_new_cb_ctx();
     cb_ctx.cmd_cb                   = cntrl_handler;
     cb_ctx.set_steer_params_cb      = changeSteerParams;
     cb_ctx.reset_odometry_cb        = lldResetOdomety;
+    cb_ctx.get_control_params       = get_esc_control_params;
 
+    ros_driver_set_cb_ctx( &cb_ctx );
 
+    systime_t time = chVTGetSystemTimeX();
     while( 1 )
     {
+        time += MS2ST(20);
+
         print_cntr += 1;
 
         driveSteerCSSetPosition( test_ros_steer_cntr );
@@ -107,6 +124,6 @@ void testRosRoutineControl( void )
           print_cntr = 0;
         }
 
-        chThdSleepMilliseconds( 20 );
+        chThdSleepUntil(time);
     }
 }

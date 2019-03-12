@@ -32,7 +32,7 @@ extern "C" {
 #define     PROGRAM_ROUTINE_TEST_GUI_SERVER             40
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_BUTTON_STATE
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ROS_CONTROL
 
 
 /**************/
