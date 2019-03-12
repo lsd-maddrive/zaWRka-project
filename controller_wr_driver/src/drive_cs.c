@@ -98,8 +98,6 @@ float                   check_cntrl_val             = 0;
 #define                 VT_PID_CALC_MS              10
 static virtual_timer_t  pid_update_vt;
 
-
-
 /**
  * @brief       Set parameters for Steering controller
  */
@@ -123,8 +121,6 @@ void driveSpeedCSSetParam( pidControllerContext_t speed_param )
     speedPIDparam.integSaturation   = speed_param.integSaturation;
     speedPIDparam.proptDeadZone     = speed_param.proptDeadZone;
 }
-
-
 
 /**
  * @brief       Control system for steering wheels
