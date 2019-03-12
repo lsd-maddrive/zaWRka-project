@@ -1,0 +1,6 @@
+#ifndef INCLUDE_LLD_LIGHT_H_
+#define INCLUDE_LLD_LIGHT_H_
+
+
+
+#endif /* INCLUDE_LLD_LIGHT_H_ */

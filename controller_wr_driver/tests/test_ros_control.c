@@ -7,13 +7,34 @@
 controlValue_t          test_ros_steer_cntr = 0;
 float                   test_ros_speed_cntr = 0;
 
-//virtual_timer_t         ros_checker_vt;
+virtual_timer_t         ros_checker_vt;
 
+
+static void ros_is_dead_cb( void *arg )
+{
+    test_ros_speed_cntr = 0;
+    test_ros_steer_cntr = 0;
+
+    chSysLockFromISR();
+    chVTSet( &ros_checker_vt, MS2ST( 500 ), ros_is_dead_cb, NULL );
+    chSysUnlockFromISR();
+}
+
+void ros_is_alive( void )
+{
+    palToggleLine( LINE_LED1 ); // just to check
+    chVTSet( &ros_checker_vt, MS2ST( 500 ), ros_is_dead_cb, NULL );
+}
 
 void cntrl_handler (float speed, float steer)
 {
     test_ros_speed_cntr = speed;
     test_ros_steer_cntr = steer;
+}
+
+void changeSteerParams( float min, float max )
+{
+    /* change limits */
 }
 
 /*
@@ -24,13 +45,14 @@ void testRosRoutineControl( void )
 {
     ros_driver_init( NORMALPRIO );
 
-    ros_driver_set_control_cb( cntrl_handler );
+//    ros_driver_set_control_cb( cntrl_handler );
 
     lldOdometryInit( );
     driverCSInit( );
     debug_stream_init( );
 
-//    chVTSet( ros_checker_vt, MS2ST( 1000 ), )
+    chVTObjectInit(&ros_checker_vt);
+    chVTSet( &ros_checker_vt, MS2ST( 500 ), ros_is_dead_cb, NULL );
 
 
     odometryValue_t         test_x_pos          = 0;
@@ -45,9 +67,20 @@ void testRosRoutineControl( void )
     float                   test_speed_lpf_mps  = 0;
     uint32_t                print_cntr          = 0;
 
+    control_params_setup_t cntr_params;
+    cntr_params.esc_min_dc_offset   = SPEED_ZERO - SPEED_MIN;
+    cntr_params.esc_max_dc_offset   = SPEED_MAX - SPEED_ZERO;
+
+    ros_driver_cb_ctx_t cb_ctx      = ros_driver_get_new_cb_ctx();
+    cb_ctx.cmd_cb                   = cntrl_handler;
+    cb_ctx.set_steer_params_cb      = changeSteerParams;
+    cb_ctx.reset_odometry_cb        = lldResetOdomety;
+
+
     while( 1 )
     {
         print_cntr += 1;
+
         driveSteerCSSetPosition( test_ros_steer_cntr );
         driveSpeedCSSetSpeed( test_ros_speed_cntr );
 
@@ -75,8 +108,5 @@ void testRosRoutineControl( void )
         }
 
         chThdSleepMilliseconds( 20 );
-
     }
-
-
 }

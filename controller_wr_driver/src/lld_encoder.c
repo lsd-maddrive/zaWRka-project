@@ -58,14 +58,6 @@ static void extcb_base(EXTDriver *extp, expchannel_t channel)
         enc_revs_cntr   -= 1;
         enc_tick_cntr    = 0;
     }
-
-}
-
-static void extcb_dir(EXTDriver *extp, expchannel_t channel)
-{
-    (void)extp;
-    (void)channel;
-
 }
 
 /***    NULL Point of encoder processing    ***/
@@ -80,40 +72,6 @@ static void extcb_null(EXTDriver *extp, expchannel_t channel)
 
 }
 
-/********************************/
-/*** Configuration structures ***/
-/********************************/
-
-
-static const EXTConfig extcfg =
-{
-   {
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_RISING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb_null}, // PD3
-    {EXT_CH_MODE_BOTH_EDGES  | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb_dir},  // PD4
-    {EXT_CH_MODE_RISING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD , extcb_base}, // PD5
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL},
-    {EXT_CH_MODE_DISABLED, NULL}
-  }
-};
-
 static bool         isInitialized       = false;
 
 /**
@@ -125,7 +83,22 @@ void lldEncoderInit( void )
     if ( isInitialized )
             return;
 
-    extStart( &EXTD1, &extcfg );
+    EXTChannelConfig base_conf = {
+         .mode = EXT_CH_MODE_RISING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD,
+         .cb = extcb_base
+
+    };
+
+    EXTChannelConfig null_conf = {
+         .mode = EXT_CH_MODE_RISING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOD,
+         .cb = extcb_null
+
+    };
+
+    commonExtDriverInit( );
+
+    extSetChannelMode( &EXTD1, 5, &base_conf );
+    extSetChannelMode( &EXTD1, 3, &null_conf );
 
     /* Set initialization flag */
 
@@ -161,6 +134,7 @@ bool lldGetEncoderDirection( void )
  */
 rawRevEncoderValue_t   lldGetEncoderRawRevs( void )
 {
+    palToggleLine( LINE_LED1 );
     return ( enc_revs_cntr + enc_tick_cntr / (float)ENC_MAX_TICK_NUM );
 }
 

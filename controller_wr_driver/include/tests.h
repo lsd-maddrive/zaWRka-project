@@ -132,6 +132,7 @@ void testRosRoutineControl( void );
 
 void testSpeedFilter( void );
 
+void testButtonRoutine( void );
 
 
 
@@ -204,6 +205,11 @@ static inline void testsRoutines( void )
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ESC_CALIBRATION )
 
     testDrivingWheelsESCCalibration( );
+
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_BUTTON_STATE)
+
+    testButtonRoutine( );
 
 #endif
 }
