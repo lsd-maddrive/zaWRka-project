@@ -26,12 +26,13 @@ extern "C" {
 #define     PROGRAM_ROUTINE_TEST_SPEED_CS               11
 #define     PROGRAM_ROUTINE_TEST_SPEED_LL_DRV           12
 #define     PROGRAM_ROUTINE_TEST_SPEED_FILTER           13
-#define     PROGRAM_ROUTINE_TEST_ROS_ODOMETRY           20
-#define     PROGRAM_ROUTINE_TEST_ROS_CONTROL            25
-#define     PROGRAM_ROUTINE_TEST_GUI_SERVER             30
+#define     PROGRAM_ROUTINE_TEST_BUTTON_STATE           20
+#define     PROGRAM_ROUTINE_TEST_ROS_ODOMETRY           30
+#define     PROGRAM_ROUTINE_TEST_ROS_CONTROL            35
+#define     PROGRAM_ROUTINE_TEST_GUI_SERVER             40
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ROS
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_BUTTON_STATE
 
 
 /**************/
@@ -79,6 +80,15 @@ void dbgprintf( const char* format, ... );
 #define WHEEL_RADIUS_M      0.04
 #define WHEEL_BASE_CM       30
 #define WHEEL_BASE_M        0.3
+
+
+/**
+ * @brief   Initialize EXT driver with empty config
+ * @note    Safe to call any times, it checks state of previous call
+ * @note    Must be called before EXT driver work
+ */
+void commonExtDriverInit ( void );
+
 
 #ifdef __cplusplus
 }

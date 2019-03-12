@@ -62,7 +62,7 @@ ros_driver_cb_ctx_t ros_driver_get_new_cb_ctx( void );
 
 /*
  * Put filled cb_ctx pointer to this to set new callbacks
- * Setting NULL resets all callbacks to default behaviour (no callbacks)
+ * Setting NULL resets all callbacks to default behavior (no callbacks)
  */
 void ros_driver_set_cb_ctx( ros_driver_cb_ctx_t *ctx );
 

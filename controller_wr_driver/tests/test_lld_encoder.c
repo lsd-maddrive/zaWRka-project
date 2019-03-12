@@ -4,7 +4,7 @@
 /***************************************************/
 
 
-#define MATLAB_ENCODER
+//#define MATLAB_ENCODER
 
 #ifdef MATLAB_ENCODER
 static const SerialConfig sdcfg = {
@@ -22,7 +22,8 @@ void testEncoderCommonRoutine( void )
 
     int32_t matlab_revs = 0;
     uint8_t matlab_start_flag = 0;
-
+#else
+    debug_stream_init( );
 #endif
     lldEncoderInit( );
 
@@ -33,10 +34,15 @@ void testEncoderCommonRoutine( void )
 #endif
     uint8_t                enc_test_dir         = 0;
 
-    chprintf( (BaseSequentialStream *)&SD7, "TEST ENCODER\n\r" );
+    systime_t time = chVTGetSystemTimeX();
 
     while( 1 )
     {
+#ifdef MATLAB_ENCODER
+        time += MS2ST(10);
+#else
+        time += MS2ST(100);
+#endif
 
         enc_test_ticks      = lldGetEncoderRawTicks( );
         enc_test_revs       = lldGetEncoderRawRevs( );
@@ -55,21 +61,20 @@ void testEncoderCommonRoutine( void )
           matlab_revs = (int)(enc_test_revs * 500);
           sdWrite(&SD7, (uint8_t*) &matlab_revs, 2);
         }
-        chThdSleepMilliseconds( 10 );
+        chThdSleepUntil(time);
 #else
 
 
 #ifdef ABSOLUTE_ENCODER
-        chprintf( (BaseSequentialStream *)&SD7, "Ticks:(%d)\tRevs:(%d)\tAbs_Revs:(%d)\tDir:(%d)\n\r",
+        dbgprintf( "Ts:(%d)\tRs:(%d)\tA_Rs:(%d)\tD:(%d)\n\r",
                   enc_test_ticks, enc_test_revs, enc_test_abs_revs, enc_test_dir);
+        chThdSleepUntil(time);
 #else
-        chprintf( (BaseSequentialStream *)&SD7, "Ticks:(%d)\tRevs:(%d)\tDir:(%d)\n\r",
-                         enc_test_ticks, (int)enc_test_revs, enc_test_dir);
+        dbgprintf( "Ts:(%d)\tRs:(%d)\tD:(%d)\n\r",
+                   enc_test_ticks, (int)enc_test_revs, enc_test_dir );
+        chThdSleepUntil(time);
 #endif
 
-        chThdSleepMilliseconds( 200 );
 #endif
-
     }
-
 }
