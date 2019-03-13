@@ -25,7 +25,8 @@ git -C $CATKIN_SRC_DIR/teleop_tools pull 		|| git -C $CATKIN_SRC_DIR clone https
 git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
 git -C wr8_ai/neural_networks pull 				|| git -C wr8_ai clone https://github.com/KaiL4eK/neural_networks.git
 
-ln -sf ../../neural_networks/_common/ncs.py wr8_ai/src/wr8_ai/ncs.py
+# ln -sf ../../neural_networks/_common/ncs.py                     	wr8_ai/src/wr8_ai/ncs.py
+# ln -sf ../../../neural_networks/TSD/keras-yolo3/utils   	        wr8_ai/src/wr8_ai/yolo
 
 sudo apt purge ros-$ROS_DISTRO-rosserial*
 sudo apt purge ros-$ROS_DISTRO-teb-local-planner*

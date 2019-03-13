@@ -6,6 +6,8 @@ from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 
 import wr8_ai.ncs as ncs
+from wr8_ai.yolo import yolo 
+
 
 class ImageReceiverROS:
 
@@ -33,6 +35,11 @@ def main():
     config_path = rospy.get_param('~config_path')
 
     model = ncs.InferNCS(graph_path, fp16=False)
+
+    if not model.is_opened():
+        rospy.logerr('Failed to init device')
+        return
+
     rospy.loginfo('Model created')
 
     with open(config_path) as config_buffer:    
@@ -55,9 +62,5 @@ def main():
             continue
 
 
-
 if __name__ == '__main__':
     main()
-
-
-
