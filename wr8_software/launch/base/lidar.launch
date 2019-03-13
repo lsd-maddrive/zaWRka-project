@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="lidar_x" default="0.17" />
-  <arg name="lidar_z" default="0.15" />
+  <arg name="lidar_x" default="0.14" />
+  <arg name="lidar_z" default="0.14" />
 
   <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" 
           args="$(arg lidar_x) 0.0 $(arg lidar_z) 0.0 0.0 0.0 /base_link /laser_frame 40" />
