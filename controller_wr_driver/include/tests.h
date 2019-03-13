@@ -33,7 +33,11 @@ void testWheelsControlRoutines( void );
 void testDrivingWheelsESCCalibration ( void );
 
 
-void testWheelsSpeedControlRoutine( void );
+/*
+ * @brief   Test for speed max/min limits calibration
+ * @note    show linear speed and control signal in %
+ */
+void testSpeedLimitsCalibrationRoutine( void );
 
 /*********************/
 /*** Encoder tests ***/
@@ -134,7 +138,7 @@ void testSpeedFilter( void );
 
 void testButtonRoutine( void );
 
-
+void testSpeedSinusRoutine( void );
 
 static inline void testsRoutines( void )
 {
@@ -150,9 +154,9 @@ static inline void testsRoutines( void )
 
     testRawWheelsControlRoutine( );
 
-#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_LL_DRV )
+#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_LIMIT_CALIB )
 
-    testWheelsSpeedControlRoutine( );
+    testSpeedLimitsCalibrationRoutine( );
 
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ENCODER )
 
@@ -210,6 +214,10 @@ static inline void testsRoutines( void )
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_BUTTON_STATE)
 
     testButtonRoutine( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_SIN )
+
+    testSpeedSinusRoutine( );
 
 #endif
 }

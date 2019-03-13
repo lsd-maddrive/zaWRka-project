@@ -11,31 +11,30 @@ pidControllerContext_t steerPIDparam = {
 
 /***    Not used for now, I guess will be used after testing    ***/
 pidControllerContext_t speedPIDparam = {
-  .kp               = 0,
-  .ki               = 0.3,
-  .kd               = 0,
-  .integSaturation  = 100,
-  .proptDeadZone    = 2
-};
-
-
-
-pidControllerContext_t  f_speedPIDparam = {
-  .kp               = 55,
+  .kp               = 80,
   .ki               = 0.1,
   .kd               = 0,
-  .integSaturation  = 100,
-  .proptDeadZone    = 1,
-  .kr               = 70
+  .integSaturation  = 15,
+  .proptDeadZone    = 0,
+  .kr               = 0
+};
+
+pidControllerContext_t  f_speedPIDparam = {
+  .kp               = 150,
+  .ki               = 2,
+  .kd               = 0,
+  .integSaturation  = 70,
+  .proptDeadZone    = 0,
+  .kr               = 0
 };
 
 pidControllerContext_t  b_speedPIDparam = {
-  .kp               = 150,
+  .kp               = 50,
   .ki               = 0.1,
   .kd               = 0,
-  .integSaturation  = 100,
-  .proptDeadZone    = 1,
-  .kr               = 300
+  .integSaturation  = 10,
+  .proptDeadZone    = 0,
+  .kr               = 0
 };
 
 #if 0
@@ -85,8 +84,11 @@ static odometrySpeedValue_t speed_ref               = 0;
 static controllerError_t prev_speed_err             = 0;
 static controllerError_t speed_err                  = 0;
 static controllerError_t speed_dif                  = 0;
+static controllerError_t speed_intg                 = 0;
 static controllerError_t f_speed_intg               = 0;
+static controllerError_t f_cntr_intg                = 0;
 static controllerError_t b_speed_intg               = 0;
+static controllerError_t b_cntr_intg                = 0;
 
 /***    Generated control value for lld***/
 controlValue_t          steer_cntl_prc              = 0;
@@ -95,7 +97,7 @@ controlValue_t          speed_cntrl_prc             = 0;
 
 float                   check_cntrl_val             = 0;
 
-#define                 VT_PID_CALC_MS              10
+#define                 VT_PID_CALC_MS              5
 static virtual_timer_t  pid_update_vt;
 
 /**
@@ -268,9 +270,35 @@ static void pid_update_vt_cb( void *arg)
 /***    Controller for Speed CS    ***/
     speed_obj_mps   = lldOdometryGetLPFObjSpeedMPS( );
 
-    speed_err       = speed_ref - speed_obj_mps;
-    speed_dif       = speed_err - prev_speed_err;
+    speed_err       =  speed_ref - speed_obj_mps;
+    speed_dif       =  speed_err - prev_speed_err;
+//    speed_intg      += speed_err;
 
+    if( speed_ref >= 0 )
+    {
+        f_speed_intg      += speed_err;
+        b_speed_intg      = 0;
+        f_cntr_intg      =  f_speedPIDparam.ki * f_speed_intg;
+        f_speed_intg      =  CLIP_VALUE( f_speed_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
+
+        //        if( speed_ref == 0 ) speed_err = 0;
+        speed_cntrl_prc = f_speedPIDparam.kp * speed_err + f_speedPIDparam.kr * speed_ref + f_cntr_intg + f_speedPIDparam.kd * speed_dif;
+    }
+    else if( speed_ref < 0 )
+    {
+        b_speed_intg      += speed_err;
+        f_speed_intg      = 0;
+        b_cntr_intg      =  b_speedPIDparam.ki * b_speed_intg;
+        b_speed_intg      =  CLIP_VALUE( b_speed_intg, -b_speedPIDparam.integSaturation, b_speedPIDparam.integSaturation );
+        if( speed_ref == 0 ) speed_err      = 0;
+        speed_cntrl_prc = b_speedPIDparam.kp * speed_err + b_speedPIDparam.kr * speed_ref + b_cntr_intg + b_speedPIDparam.kd * speed_dif;
+    }
+
+
+//    if( speed_obj_mps == speed_ref ) speed_intg = 0;
+
+
+#if 0
     if( speed_ref >= 0 )
     {
 
@@ -289,12 +317,13 @@ static void pid_update_vt_cb( void *arg)
     {
         b_speed_intg      += speed_err;
         f_speed_intg      = 0;
-        b_speed_intg  = CLIP_VALUE( b_speed_intg, -b_speedPIDparam.integSaturation, b_speedPIDparam.integSaturation );
+        b_speed_intg      = CLIP_VALUE( b_speed_intg, -b_speedPIDparam.integSaturation, b_speedPIDparam.integSaturation );
 
         check_cntrl_val = b_speedPIDparam.kp * speed_err + b_speedPIDparam.kr * speed_ref + b_speedPIDparam.ki * b_speed_intg + b_speedPIDparam.kd * speed_dif;
 
         speed_cntrl_prc = b_speedPIDparam.kp * speed_err + b_speedPIDparam.kr * speed_ref + b_speedPIDparam.ki * b_speed_intg + b_speedPIDparam.kd * speed_dif;
     }
+#endif
     prev_speed_err = speed_err;
 
     speed_cntrl_prc = CLIP_VALUE( speed_cntrl_prc, CONTROL_MIN, CONTROL_MAX );

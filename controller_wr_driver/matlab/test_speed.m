@@ -18,14 +18,19 @@ for t = 0:1:(length(B)/2)-1
 end
 
 for i = 1:2:(length(B)-1)
-   SPEED = [SPEED; B(i, 1)];    
+   SPEED = [SPEED; B(i, 1)]; 
+   
+   REF = [REF; B(i+1, 1)];
+   
 end
-
-for j = 2:2:length(B)
-   REF = [REF; B(j, 1)];
-end
+% 
+% for j = 2:2:length(B)
+%    REF = [REF; B(j, 1)];
+% end
 
 plot(T, SPEED)
 grid on
 hold on
 plot(T, REF)
+xlabel('t, ms');
+ylabel('speed, cm/s');

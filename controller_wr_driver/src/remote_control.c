@@ -1,6 +1,15 @@
 #include <tests.h>
 #include <remote_control.h>
 
+#define RC_STEER_MAX    2080
+#define RC_STEER_NULL   1620
+#define RC_STEER_MIN    1160
+
+#define RC_SPEED_MAX    2000
+#define RC_SPEED_NULL   1500
+#define RC_SPEED_MIN    1000
+
+
 
 #define icuSteering         PAL_LINE( GPIOE, 5 )
 #define icuSpeed            PAL_LINE( GPIOC, 6 )
@@ -25,7 +34,7 @@ static void icuWidthcb_steer(ICUDriver *icup)
     steer_rc = icuGetWidthX(icup);                // ...X - can work anywhere
                                                   // return width in ticks
 
-  if( steer_rc < STEER_MAX && steer_rc > STEER_MIN ) // Protection from electrical noise
+  if( steer_rc < RC_STEER_MAX && steer_rc > RC_STEER_MIN ) // Protection from electrical noise
   {
       chSysLockFromISR();
       chThdResumeI(&trp_rcmode, MSG_OK);            /* Resuming the thread with message.*/
@@ -39,7 +48,7 @@ static void icuWidthcb_speed(ICUDriver *icup)
     speed_temp  = icuGetWidthX(icup);               // ...X - can work anywhere
                                                     // return width in ticks
     /*** Protection from electrical noise ***/
-    if( speed_temp < SPEED_MAX && speed_temp > SPEED_MIN ) speed_rc = speed_temp;
+    if( speed_temp < RC_SPEED_MAX && speed_temp > RC_SPEED_MIN ) speed_rc = speed_temp;
 
 
 }
@@ -117,11 +126,11 @@ void remoteControlInit( int32_t prio )
     if ( isInitialized )
             return;
 
-    icu_steer_k = (float)( CONTROL_MAX - CONTROL_MIN )/( STEER_MAX - STEER_MIN );
-    icu_steer_b = -( icu_steer_k * STEER_NULL - CONTROL_NULL );
+    icu_steer_k = (float)( CONTROL_MAX - CONTROL_MIN )/( RC_STEER_MAX - RC_STEER_MIN );
+    icu_steer_b = -( icu_steer_k * RC_STEER_NULL - CONTROL_NULL );
 
-    icu_speed_k = (float)( CONTROL_MAX - CONTROL_MIN )/( SPEED_MAX - SPEED_MIN );
-    icu_speed_b = -( icu_speed_k * SPEED_NULL_FORWARD - CONTROL_NULL );
+    icu_speed_k = (float)( CONTROL_MAX - CONTROL_MIN )/( RC_SPEED_MAX - RC_SPEED_MIN );
+    icu_speed_b = -( icu_speed_k * RC_SPEED_NULL - CONTROL_NULL );
 
     icuStart( icuSteerDriver, &icucfg_steer );
     palSetLineMode( icuSteering, PAL_MODE_ALTERNATE(3) );

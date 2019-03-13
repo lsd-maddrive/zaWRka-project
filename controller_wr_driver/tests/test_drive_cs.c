@@ -93,7 +93,7 @@ void testSteeringCS ( void )
     }
 }
 
-//#define SPEED_CS_MATLAB
+#define SPEED_CS_MATLAB
 #ifdef SPEED_CS_MATLAB
 static const SerialConfig sdcfg = {
   .speed = 115200,
@@ -113,12 +113,14 @@ void testSpeedCS ( void )
     palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
     palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
 
-    int32_t matlab_cntrl    = 0;
-    int32_t matlab_speed    = 0;
-    int32_t matlab_revs     = 0;
+    int16_t matlab_cntrl    = 0;
+    int16_t matlab_speed    = 0;
+    int16_t matlab_revs     = 0;
 
-    int32_t matlab_rare_speed = 0;
-    int32_t matlab_lpf_speed  = 0;
+    int16_t matlab_get_cntr = 0;
+
+    int16_t matlab_rare_speed = 0;
+    int16_t matlab_lpf_speed  = 0;
 
     char    matlab_start  = 0;
     uint8_t matlab_start_flag    = 0;
@@ -126,10 +128,8 @@ void testSpeedCS ( void )
     debug_stream_init( );
 #endif
 
-    debug_stream_init( );
-
     float                test_speed_ref     = 0;
-    float                test_speed_delta   = 0.1;
+    float                test_speed_delta   = 0.2;
     float                check_glob_ref_sp  = 0;
     float                check_float_cntr   = 0;
 
@@ -152,7 +152,7 @@ void testSpeedCS ( void )
           test_speed_ref   += test_speed_delta;
           break;
         case 's':           // backward
-          test_speed_ref   -= test_speed_delta;
+          test_speed_ref   -= (2 * test_speed_delta);
           break;
         case 'd':           // backward
           test_speed_ref   -= test_speed_delta;
@@ -186,10 +186,11 @@ void testSpeedCS ( void )
       if( matlab_start_flag == 1)
       {
           matlab_speed          = (int)( test_speed_mps * 100 );
-          matlab_lpf_speed      = (int)( test_speed_lpf * 100 );
-          matlab_cntrl          = (int)( test_speed_ref * 100 );
-
+          matlab_lpf_speed      = (int)( test_speed_lpf * 1000 );
+          matlab_cntrl          = (int)( test_speed_ref * 1000 );
+          matlab_get_cntr       = (int)( test_speed_cntrl);
           sdWrite(&SD7, (uint8_t*) &matlab_cntrl, 2);
+//          sdWrite(&SD7, (uint8_t*) &matlab_get_cntr, 2);
           sdWrite(&SD7, (uint8_t*) &matlab_lpf_speed, 2);
       }
       chThdSleepMilliseconds( 10 );

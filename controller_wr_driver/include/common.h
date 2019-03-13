@@ -24,15 +24,16 @@ extern "C" {
 #define     PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND        9
 #define     PROGRAM_ROUTINE_TEST_STEER_ANGLE_LLD_CONTRL 10
 #define     PROGRAM_ROUTINE_TEST_SPEED_CS               11
-#define     PROGRAM_ROUTINE_TEST_SPEED_LL_DRV           12
+#define     PROGRAM_ROUTINE_TEST_SPEED_LIMIT_CALIB      12
 #define     PROGRAM_ROUTINE_TEST_SPEED_FILTER           13
+#define     PROGRAM_ROUTINE_TEST_SPEED_SIN              14
 #define     PROGRAM_ROUTINE_TEST_BUTTON_STATE           20
 #define     PROGRAM_ROUTINE_TEST_ROS_ODOMETRY           30
 #define     PROGRAM_ROUTINE_TEST_ROS_CONTROL            35
 #define     PROGRAM_ROUTINE_TEST_GUI_SERVER             40
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ROS_CONTROL
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_SPEED_CS
 
 
 /**************/
@@ -46,14 +47,13 @@ extern "C" {
 /*** LLD LIMITS ***/
 /******************/
 
-#define SPEED_MAX           1643    //2000
+#define SPEED_MAX           1650    //2000
+#define SPEED_NULL_FORWARD  1550    // 1500
 
 #define SPEED_ZERO          1500
 
-#define SPEED_NULL_FORWARD  1543    // 1500
-
-#define SPEED_NULL_BACK     1457
-#define SPEED_MIN           1357    //1000
+#define SPEED_NULL_BACK     1450
+#define SPEED_MIN           1350    //1000
 
 #define STEER_MAX           2080
 #define STEER_NULL          1620

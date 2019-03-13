@@ -173,41 +173,29 @@ void testWheelsControlRoutines( void )
     }
 }
 
-static virtual_timer_t         update_vt;
+#define VT_PRINT_PERIOD         100
 
-
-void testFunc( void )
-{
-  palToggleLine( LINE_LED2 );
-}
-
-static void update_vt_cb( void *arg)
-{
-    testFunc();
-    chSysLockFromISR();
-    // reset VT
-    chVTSetI(&update_vt, MS2ST(1000), update_vt_cb, NULL);
-    chSysUnlockFromISR();
-
-}
-
-void testWheelsSpeedControlRoutine( void )
+/*
+ * @brief   Test for speed max/min limits calibration
+ * @note    show linear speed and control signal in %
+ */
+void testSpeedLimitsCalibrationRoutine( void )
 {
     lldControlInit( );
     lldOdometryInit( );
 
     debug_stream_init( );
 
-    chVTObjectInit(&update_vt);
-    chVTSet( &update_vt, MS2ST( 1000 ), update_vt_cb, NULL );
-    palSetLine( LINE_LED1 );
-
     controlValue_t          speed_values_delta  = 1;
     controlValue_t          speed_value         = 0;
     odometrySpeedValue_t    speed_mps     = 0;
 
+    systime_t time = chVTGetSystemTimeX();
+
     while ( 1 )
     {
+        time += MS2ST(VT_PRINT_PERIOD);
+
         char rcv_data = sdGetTimeout( &SD3, TIME_IMMEDIATE );
         switch ( rcv_data )
         {
@@ -219,7 +207,7 @@ void testWheelsSpeedControlRoutine( void )
               speed_value -= speed_values_delta;
               break;
 
-           case ' ':
+           case ' ':    // Reset = Stop
              speed_value = 0;
              break;
 
@@ -234,10 +222,92 @@ void testWheelsSpeedControlRoutine( void )
        dbgprintf( "Speed:(%d)\tC:(%d)\n\r",
                  (int)(speed_mps * 100 ), speed_value );
 
-       chThdSleepMilliseconds( 100 );
+       chThdSleepUntil(time);
    }
-
 }
+
+/*** NOT REALLY GOOD TEST ***/
+void testSpeedSinusRoutine( void )
+{
+    sdStart( &SD7, &sdcfg );
+    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
+    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
+
+    lldControlInit( );
+    lldOdometryInit( );
+
+    int16_t                 speed_value   = 0;
+    odometrySpeedValue_t    speed_mps     = 0;
+    int32_t                 show_cntr     = 0;
+    int16_t                 matlab_speed  = 0;
+    int32_t                 matlab_cnt    = 0;
+    int8_t                  matlab_start_flag = 0;
+
+    int16_t                 test_sin[16] = {0, 5, 10, 15, 20, 15, 10, 5, 0,
+                                            -5, -10, -15, -20, -15, -10, -5};
+
+    int32_t                 index         = 0;
+    char                    rc_data       = 'g';
+
+    while( 1 )
+    {
+
+        rc_data    = sdGetTimeout( &SD7, TIME_IMMEDIATE );
+
+        switch( rc_data )
+        {
+            case 'p':
+              matlab_start_flag = 1;
+              break;
+
+            case 'f':
+              matlab_start_flag = 2;
+              break;
+
+            default:
+              ;
+        }
+
+        if( matlab_start_flag == 1 )
+        {
+           palSetLine( LINE_LED1 );
+           if( show_cntr % 10 == 0 )
+           {
+                if( index == 16)
+                {
+                    index = 0;
+//                    rc_data = 'f';
+//                    break;
+                }
+                speed_value = test_sin[index];
+                matlab_cnt  = test_sin[index];
+                index += 1;
+            }
+
+
+            lldControlSetDrMotorPower( speed_value );
+            speed_mps       = lldOdometryGetLPFObjSpeedMPS( );
+
+            matlab_speed    = (int)( speed_mps * 100 * 10 );
+            sdWrite( &SD7, (uint8_t*) &matlab_cnt, 2);
+            sdWrite( &SD7, (uint8_t*) &matlab_speed, 2);
+
+            show_cntr += 1;
+        }
+        else if( matlab_start_flag == 2 )
+        {
+          show_cntr = 0;
+          index = 0;
+          speed_value = 0;
+          palClearLine( LINE_LED1 );
+          lldControlSetDrMotorPower( speed_value );
+
+        }
+
+        chThdSleepMilliseconds( 5 );
+    }
+}
+
 
 /*
  * @brief   Calibration of ESC for driving wheels
