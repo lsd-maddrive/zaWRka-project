@@ -6,7 +6,7 @@
 
 void testGUIRoutineServer( void )
 {
-    ros_driver_init( NORMALPRIO );
+    ros_driver_init( NORMALPRIO, NULL );
     lldEncoderInit( );
     lldSteeringControlInit( );
 

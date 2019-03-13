@@ -54,7 +54,13 @@ control_params_setup_t get_esc_control_params( void )
 */
 void testRosRoutineControl( void )
 {
-    ros_driver_init( NORMALPRIO );
+    ros_driver_cb_ctx_t cb_ctx      = ros_driver_get_new_cb_ctx();
+    cb_ctx.cmd_cb                   = cntrl_handler;
+    // cb_ctx.set_steer_params_cb      = changeSteerParams;
+    cb_ctx.reset_odometry_cb        = lldResetOdomety;
+    // cb_ctx.get_control_params       = get_esc_control_params;
+
+    ros_driver_init( NORMALPRIO, &cb_ctx );
 
 //    ros_driver_set_control_cb( cntrl_handler );
 
@@ -77,19 +83,6 @@ void testRosRoutineControl( void )
     float                   test_steer_angl_deg = 0;
     float                   test_speed_lpf_mps  = 0;
     uint32_t                print_cntr          = 0;
-
-//    control_params_setup_t cntr_params;
-//    cntr_params.esc_min_dc_offset   = SPEED_ZERO - SPEED_MIN;
-//    cntr_params.esc_max_dc_offset   = SPEED_MAX - SPEED_ZERO;
-
-
-    ros_driver_cb_ctx_t cb_ctx      = ros_driver_get_new_cb_ctx();
-    cb_ctx.cmd_cb                   = cntrl_handler;
-    cb_ctx.set_steer_params_cb      = changeSteerParams;
-    cb_ctx.reset_odometry_cb        = lldResetOdomety;
-    cb_ctx.get_control_params       = get_esc_control_params;
-
-    ros_driver_set_cb_ctx( &cb_ctx );
 
     systime_t time = chVTGetSystemTimeX();
     while( 1 )

@@ -13,27 +13,44 @@ extern "C" {
 /*** ROS ***/
 /***********/
 
-void ros_driver_init( tprio_t prio );
+/* 
+ * Send current wheel rotation state
+ * Args:
+ * 		value - Wheel rotation position [rev]
+ */
 void ros_driver_send_encoder_raw( int32_t value );
 
-/* value - Encoder rotation speed [rev/s] */
+/* 
+ * Send current wheel rotation speed
+ * Args:
+ * 		value - Wheel rotation speed [rev/s] 
+ */
 void ros_driver_send_encoder_speed( float value );
 
 void ros_driver_send_steering( float steer_angle );
 /*
- * x - Pose x coordinate [meters]
- * y - Pose y coordinate [meters]
- * dir - Direction angle [degree]
- * vx - Transltaion speed [m/s]
- * uz - Rotation speed [rad/s]
+ * Send state in terms of position/speed
+ * Args:
+ * 		x - Pose x coordinate [meters]
+ * 		y - Pose y coordinate [meters]
+ * 		dir - Direction angle [degree]
+ * 		vx - Transltaion speed [m/s]
+ * 		uz - Rotation speed [rad/s]
  */
 void ros_driver_send_pose( float x, float y, float dir, float vx, float uz );
 
 /*
- *	Not set yet, just sending
+ * Send processing state of car
+ * Args:
+ *		state - index of state
+ *			1 - IDLE state
+ *			2 - RUN state
  */
 void ros_driver_send_state( int8_t state );
 
+/***
+ * WARNING! Never create this structure by yourself, use ros_driver_get_new_cb_ctx() instead
+ */
 typedef struct
 {
 	/*
@@ -46,27 +63,31 @@ typedef struct
 	/*
 	 * It is better to use structure with parameters
 	 */
-	void (*set_steer_params_cb)( float k_left, float k_right );
+	// void (*set_steer_params_cb)( float k_left, float k_right );
 
 	void (*reset_odometry_cb)( void );
 
-	control_params_setup_t (*get_control_params)( void );
-	void (*set_control_params_cb)( control_params_setup_t * );
+	// control_params_setup_t (*get_control_params)( void );
+	// void (*set_control_params_cb)( control_params_setup_t * );
 
 } ros_driver_cb_ctx_t;
 
 /*
- * Use this function to get clean (default) cb_ctx first!
+ * Get callback context
+ * Return:
+ * 		<ros_driver_cb_ctx_t> - structure with callback functions pointers
  */
 ros_driver_cb_ctx_t ros_driver_get_new_cb_ctx( void );
 
 /*
- * Put filled cb_ctx pointer to this to set new callbacks
- * Setting NULL resets all callbacks to default behavior (no callbacks)
+ * Initialize ROS module
+ * Args:
+ * 		prio - priority of polling thread
+ * 		ctx  - pointer to callback context function
+ * 				To get default <ros_driver_cb_ctx_t> use ros_driver_get_new_cb_ctx()
+ * 				Setting this field as NULL resets all callbacks
  */
-void ros_driver_set_cb_ctx( ros_driver_cb_ctx_t *ctx );
-
-
+void ros_driver_init( tprio_t prio, ros_driver_cb_ctx_t *ctx );
 
 #ifdef __cplusplus
 }
