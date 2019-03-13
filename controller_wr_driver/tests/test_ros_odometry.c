@@ -10,7 +10,7 @@
 */
 void testRoutineROSOdometry( void )
 {
-    ros_driver_init( NORMALPRIO );
+    ros_driver_init( NORMALPRIO, NULL );
 //    lldSteerAngleFBInit( );
     lldOdometryInit( );
 
