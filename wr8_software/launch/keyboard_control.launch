@@ -12,8 +12,8 @@
 
 	<node pkg="key_teleop" type="key_teleop.py" name="keyborad_cmd" output="screen" respawn="false">
 		<param name="turbo/steps" value="10" />
-		<param name="turbo/linear_forward_min" value="0.05" />
-		<param name="turbo/linear_forward_max" value="0.5" />
+		<param name="turbo/linear_forward_min" value="0.04" />
+		<param name="turbo/linear_forward_max" value="0.4" />
 		<param name="turbo/linear_backward_min" value="0.03" />
 		<param name="turbo/linear_backward_max" value="0.3" />
 		<!-- 25 deg = 0.43633 rad -->

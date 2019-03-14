@@ -8,4 +8,5 @@ echo "Sync with $HEAD_USER@$HEAD_ADDR"
 DST="$HEAD_USER@$HEAD_ADDR:~/catkin_ws/src"
 
 rsync -avzPc ../AutoNetChallenge/ 	$DST/AutoNetChallenge/ --exclude='sync_target.sh' \
-															--exclude='controller_wr_driver'
+															--exclude='controller_wr_driver' \
+															--exclude='neural_networks'
