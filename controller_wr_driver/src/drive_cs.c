@@ -20,31 +20,23 @@ pidControllerContext_t speedPIDparam = {
 };
 
 pidControllerContext_t  f_speedPIDparam = {
-  .kp               = 150,
-  .ki               = 2,
+  .kp               = 40,
+  .ki               = 0.4,
   .kd               = 0,
-  .integSaturation  = 70,
-  .proptDeadZone    = 0,
+  .integSaturation  = 30,
+  .proptDeadZone    = 0.07,
   .kr               = 0
 };
 
 pidControllerContext_t  b_speedPIDparam = {
-  .kp               = 50,
-  .ki               = 0.1,
+  .kp               = 40,
+  .ki               = 0.4,
   .kd               = 0,
-  .integSaturation  = 10,
+  .integSaturation  = 30,
   .proptDeadZone    = 0,
   .kr               = 0
 };
 
-#if 0
-/************************************/
-/***    GPT Configuration Zone    ***/
-/************************************/
-#define gpt_cs_Freq     10000
-static  GPTDriver       *gptDriver = &GPTD3;
-/************************************/
-#endif
 /************************************/
 /***    CONTROLLER PARAMETRS      ***/
 /************************************/
@@ -165,80 +157,6 @@ controlValue_t driveSpeedGetControlVal ( void )
     return speed_cntrl_prc;
 }
 
-#if 0
-static void gptcb (GPTDriver *gptd)
-{
-
-    gptd = gptd;
-/***    I-controller for Steering CS    ***/
-    steer_angl_deg      =   lldGetSteerAngleDeg( );
-
-    steer_angl_deg_err  =   steer_angl_deg_ref - steer_angl_deg;
-    steer_angl_deg_dif  =   steer_angl_deg_err - prev_steer_angl_deg_err;
-    steer_angl_deg_intg +=  steer_angl_deg_err;
-
-    steer_angl_deg_intg = CLIP_VALUE( steer_angl_deg_intg, -steerPIDparam.integSaturation, steerPIDparam.integSaturation );
-    if( abs( steer_angl_deg_err ) <= steerPIDparam.proptDeadZone ) steer_angl_deg_intg = 0;
-
-    if( steer_angl_deg_ref >= 0 )   // left
-       steer_cntl_prc  = ( steer_angl_deg_ref * STEER_LEFT_BUST_K + STEER_LEFT_BUST_B) + steer_angl_deg_intg * steerPIDparam.ki;
-    else if( steer_angl_deg_ref < 0 )
-       steer_cntl_prc  = ( steer_angl_deg_ref * STEER_RIGHT_BUST_K + STEER_RIGHT_BUST_B) + steer_angl_deg_intg * steerPIDparam.ki;
-
-    prev_steer_angl_deg_err = steer_angl_deg_err;
-
-    steer_cntl_prc = CLIP_VALUE( steer_cntl_prc, CONTROL_MIN, CONTROL_MAX );
-
-    lldControlSetSteerMotorPower( steer_cntl_prc );
-
-    /*******************************************/
-
-/***    Controller for Speed CS    ***/
-    speed_obj_mps   = lldOdometryGetLPFObjSpeedMPS( );
-
-    speed_err       = speed_ref - speed_obj_mps;
-    speed_dif       = speed_err - prev_speed_err;
-
-    if( speed_ref >= 0 )
-    {
-
-        f_speed_intg      += speed_err;
-        b_speed_intg      = 0;
-        f_speed_intg      = CLIP_VALUE( f_speed_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
-
-        if( speed_ref == 0 ) speed_err      = 0;
-        if( speed_err == 0 ) f_speed_intg   = 0;
-
-        check_cntrl_val = f_speedPIDparam.kp * speed_err + f_speedPIDparam.kr * speed_ref + f_speedPIDparam.ki * f_speed_intg + f_speedPIDparam.kd * speed_dif;
-
-        speed_cntrl_prc = f_speedPIDparam.kp * speed_err + f_speedPIDparam.kr * speed_ref + f_speedPIDparam.ki * f_speed_intg + f_speedPIDparam.kd * speed_dif;
-    }
-    else if( speed_ref < 0 )
-    {
-        b_speed_intg      += speed_err;
-        f_speed_intg      = 0;
-        b_speed_intg  = CLIP_VALUE( b_speed_intg, -b_speedPIDparam.integSaturation, b_speedPIDparam.integSaturation );
-
-        check_cntrl_val = b_speedPIDparam.kp * speed_err + b_speedPIDparam.kr * speed_ref + b_speedPIDparam.ki * b_speed_intg + b_speedPIDparam.kd * speed_dif;
-
-        speed_cntrl_prc = b_speedPIDparam.kp * speed_err + b_speedPIDparam.kr * speed_ref + b_speedPIDparam.ki * b_speed_intg + b_speedPIDparam.kd * speed_dif;
-    }
-    prev_speed_err = speed_err;
-
-    speed_cntrl_prc = CLIP_VALUE( speed_cntrl_prc, CONTROL_MIN, CONTROL_MAX );
-    lldControlSetDrMotorPower( speed_cntrl_prc );
-}
-
-
-
-static const GPTConfig gpt3cfg = {
-  .frequency =  gpt_cs_Freq,
-  .callback  =  gptcb,
-  .cr2       =  0,
-  .dier      =  0U
-};
-#endif
-
 static void pid_update_vt_cb( void *arg)
 {
     arg = arg; // to avoid warnings
@@ -276,26 +194,29 @@ static void pid_update_vt_cb( void *arg)
 
     if( speed_ref >= 0 )
     {
-        f_speed_intg      += speed_err;
-        b_speed_intg      = 0;
-        f_cntr_intg      =  f_speedPIDparam.ki * f_speed_intg;
-        f_speed_intg      =  CLIP_VALUE( f_speed_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
-
-        //        if( speed_ref == 0 ) speed_err = 0;
+        f_speed_intg     += f_speedPIDparam.ki * speed_err;
+        b_speed_intg     = 0;
+        f_cntr_intg      =  f_speed_intg;
+        f_cntr_intg      =  CLIP_VALUE( f_cntr_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
+        if( speed_ref == 0 )
+        {
+            if( speed_err >= (-f_speedPIDparam.proptDeadZone) && speed_err <= f_speedPIDparam.proptDeadZone )
+            {
+                f_speed_intg    = 0;
+            }
+        }
         speed_cntrl_prc = f_speedPIDparam.kp * speed_err + f_speedPIDparam.kr * speed_ref + f_cntr_intg + f_speedPIDparam.kd * speed_dif;
     }
     else if( speed_ref < 0 )
     {
-        b_speed_intg      += speed_err;
+        b_speed_intg      += b_speedPIDparam.ki * speed_err;
         f_speed_intg      = 0;
-        b_cntr_intg      =  b_speedPIDparam.ki * b_speed_intg;
-        b_speed_intg      =  CLIP_VALUE( b_speed_intg, -b_speedPIDparam.integSaturation, b_speedPIDparam.integSaturation );
-        if( speed_ref == 0 ) speed_err      = 0;
+        b_cntr_intg       =  b_speed_intg;
+        b_cntr_intg       =  CLIP_VALUE( b_cntr_intg, -b_speedPIDparam.integSaturation, b_speedPIDparam.integSaturation );
+//        if( speed_ref == 0 ) speed_err      = 0;
         speed_cntrl_prc = b_speedPIDparam.kp * speed_err + b_speedPIDparam.kr * speed_ref + b_cntr_intg + b_speedPIDparam.kd * speed_dif;
     }
 
-
-//    if( speed_obj_mps == speed_ref ) speed_intg = 0;
 
 
 #if 0
@@ -329,8 +250,8 @@ static void pid_update_vt_cb( void *arg)
     speed_cntrl_prc = CLIP_VALUE( speed_cntrl_prc, CONTROL_MIN, CONTROL_MAX );
     lldControlSetDrMotorPower( speed_cntrl_prc );
 
-    chSysLockFromISR();
     // reset VT
+    chSysLockFromISR();
     chVTSetI(&pid_update_vt, MS2ST( VT_PID_CALC_MS ), pid_update_vt_cb, NULL);
     chSysUnlockFromISR();
 
@@ -361,12 +282,7 @@ void driverCSInit( void )
     lldControlInit( );
     lldSteerAngleFBInit( );
     lldOdometryInit( );
-#if 0
-    /*** Start working GPT driver in asynchronous mode ***/
-    gptStart( gptDriver, &gpt3cfg );
-    uint32_t gpt_period = gpt_cs_Freq * 0.01;   // 10 ms => 100 Hz
-    gptStartContinuous( gptDriver, gpt_period );
-#endif
+
     chVTObjectInit(&pid_update_vt);
     chVTSet( &pid_update_vt, MS2ST( VT_PID_CALC_MS ), pid_update_vt_cb, NULL );
 

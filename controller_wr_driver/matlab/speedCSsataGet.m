@@ -26,24 +26,24 @@ end
 start = 'a'; %forward
 fwrite(dat, start, 'uint8'); 
 
-t2 = 4;
+t2 = 6;
 for i = 1:t2
    A=fread(dat, [100,1], 'int16');
    B = [B; A];
 end
 
-start = 'd'; %backward
+start = 's'; %backward
 fwrite(dat, start, 'uint8'); 
 % fwrite(dat, start, 'uint8'); 
 
-% t3 = 6;
-% for i = 1:t3
-%    A=fread(dat, [100,1], 'int16');
-%    B = [B; A];
-% end
-% 
-% start = 'a'; %backward
-% fwrite(dat, start, 'uint8');
+t3 = 6;
+for i = 1:t3
+   A=fread(dat, [100,1], 'int16');
+   B = [B; A];
+end
+
+start = 'a'; %backward
+fwrite(dat, start, 'uint8');
 
 t4 =4;
 for i = 1:t4

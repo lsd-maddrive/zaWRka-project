@@ -129,7 +129,7 @@ void testSpeedCS ( void )
 #endif
 
     float                test_speed_ref     = 0;
-    float                test_speed_delta   = 0.2;
+    float                test_speed_delta   = 0.1;
     float                check_glob_ref_sp  = 0;
     float                check_float_cntr   = 0;
 

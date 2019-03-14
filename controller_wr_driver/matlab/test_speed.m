@@ -1,6 +1,6 @@
 % 
 % SP = []; 
-% wind = 10; 
+% wind = 10
 % for i = 1:1:length(B)-wind
 %   sp = B(i + wind, 1) - B(i, 1);
 %   SP = [SP; sp];
@@ -13,7 +13,6 @@ SPEED = [];
 T = []; 
 
 for t = 0:1:(length(B)/2)-1
-   
     T = [T; t*10];  
 end
 
