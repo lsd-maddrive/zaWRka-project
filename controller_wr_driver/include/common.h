@@ -32,8 +32,9 @@ extern "C" {
 #define     PROGRAM_ROUTINE_TEST_ROS_CONTROL            35
 #define     PROGRAM_ROUTINE_TEST_GUI_SERVER             40
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
+#define     PROGRAM_ROUTINE_TEST_SYSTEM_TIMER           61
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_SPEED_CS
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_SYSTEM_TIMER
 
 
 /**************/

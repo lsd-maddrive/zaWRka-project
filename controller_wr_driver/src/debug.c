@@ -2,7 +2,7 @@
 #include <chprintf.h>
 
 static const SerialConfig sd_st_cfg = {
-  .speed = 9600,
+  .speed = 115200,
   .cr1 = 0, .cr2 = 0, .cr3 = 0
 };
 
