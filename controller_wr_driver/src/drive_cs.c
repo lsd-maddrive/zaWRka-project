@@ -78,7 +78,7 @@ static odometrySpeedValue_t speed_ref               = 0;
 static controllerError_t prev_speed_err             = 0;
 static controllerError_t speed_err                  = 0;
 static controllerError_t speed_dif                  = 0;
-static controllerError_t speed_intg                 = 0;
+//static controllerError_t speed_intg                 = 0;
 static controllerError_t f_speed_intg               = 0;
 static controllerError_t f_cntr_intg                = 0;
 static controllerError_t b_speed_intg               = 0;
@@ -87,13 +87,6 @@ static controllerError_t b_cntr_intg                = 0;
 /***    Generated control value for lld***/
 controlValue_t          steer_cntl_prc              = 0;
 controlValue_t          speed_cntrl_prc             = 0;
-
-
-float                   check_cntrl_val             = 0;
-
-
-#define                 VT_PID_CALC_MS              10
-static virtual_timer_t  pid_update_vt;
 
 /**
  * @brief       Set parameters for Steering controller
@@ -166,110 +159,111 @@ controlValue_t driveSpeedGetControlVal ( void )
     return speed_cntrl_prc;
 }
 
-static void pid_update_vt_cb( void *arg)
+
+static THD_WORKING_AREA(waController, 128); // 128 - stack size
+static THD_FUNCTION(Controller, arg)
 {
     arg = arg; // to avoid warnings
-    palToggleLine( LINE_LED2 );
 
-    /***    I-controller for Steering CS    ***/
-    steer_angl_deg      =   lldGetSteerAngleDeg( );
-
-    steer_angl_deg_err  =   steer_angl_deg_ref - steer_angl_deg;
-    steer_angl_deg_dif  =   steer_angl_deg_err - prev_steer_angl_deg_err;
-    steer_angl_deg_intg +=  steer_angl_deg_err;
-
-    steer_angl_deg_intg = CLIP_VALUE( steer_angl_deg_intg, -steerPIDparam.integSaturation, steerPIDparam.integSaturation );
-    if( abs( steer_angl_deg_err ) <= steerPIDparam.proptDeadZone ) steer_angl_deg_intg = 0;
-
-    if( steer_angl_deg_ref >= 0 )   // left
-       steer_cntl_prc  = ( steer_angl_deg_ref * STEER_LEFT_BUST_K + STEER_LEFT_BUST_B) + steer_angl_deg_intg * steerPIDparam.ki;
-    else if( steer_angl_deg_ref < 0 )
-       steer_cntl_prc  = ( steer_angl_deg_ref * STEER_RIGHT_BUST_K + STEER_RIGHT_BUST_B) + steer_angl_deg_intg * steerPIDparam.ki;
-
-    prev_steer_angl_deg_err = steer_angl_deg_err;
-
-    steer_cntl_prc = CLIP_VALUE( steer_cntl_prc, CONTROL_MIN, CONTROL_MAX );
-
-    lldControlSetSteerMotorPower( steer_cntl_prc );
-
-    /*******************************************/
-
-    /***    Controller for Speed CS    ***/
-    speed_obj_mps   = lldOdometryGetLPFObjSpeedMPS( );
-
-    speed_err       =  speed_ref - speed_obj_mps;
-    speed_dif       =  speed_err - prev_speed_err;
-
-    if( speed_ref >= 0 )
+    while( 1 )
     {
-        if( speed_ref == 0 )
+        systime_t   th_time     = chVTGetSystemTimeX();
+//        palToggleLine( LINE_LED2 );
+
+        /***    I-controller for Steering CS    ***/
+        steer_angl_deg      =   lldGetSteerAngleDeg( );
+
+        steer_angl_deg_err  =   steer_angl_deg_ref - steer_angl_deg;
+        steer_angl_deg_dif  =   steer_angl_deg_err - prev_steer_angl_deg_err;
+        steer_angl_deg_intg +=  steer_angl_deg_err;
+
+        steer_angl_deg_intg = CLIP_VALUE( steer_angl_deg_intg, -steerPIDparam.integSaturation, steerPIDparam.integSaturation );
+        if( abs( steer_angl_deg_err ) <= steerPIDparam.proptDeadZone ) steer_angl_deg_intg = 0;
+
+        if( steer_angl_deg_ref >= 0 )   // left
+           steer_cntl_prc  = ( steer_angl_deg_ref * STEER_LEFT_BUST_K + STEER_LEFT_BUST_B) + steer_angl_deg_intg * steerPIDparam.ki;
+        else if( steer_angl_deg_ref < 0 )
+           steer_cntl_prc  = ( steer_angl_deg_ref * STEER_RIGHT_BUST_K + STEER_RIGHT_BUST_B) + steer_angl_deg_intg * steerPIDparam.ki;
+
+        prev_steer_angl_deg_err = steer_angl_deg_err;
+
+        steer_cntl_prc = CLIP_VALUE( steer_cntl_prc, CONTROL_MIN, CONTROL_MAX );
+
+        lldControlSetSteerMotorPower( steer_cntl_prc );
+
+        /*******************************************/
+
+        /***    Controller for Speed CS    ***/
+        speed_obj_mps   = lldOdometryGetLPFObjSpeedMPS( );
+
+        speed_err       =  speed_ref - speed_obj_mps;
+        speed_dif       =  speed_err - prev_speed_err;
+
+        if( speed_ref >= 0 )
         {
-            if( speed_err >= 0 )
+            if( speed_ref == 0 )
             {
-                if( speed_err <= f_speedPIDparam.proptDeadZone )
+                if( speed_err >= 0 )
                 {
-                    f_cntr_intg    = 0;
-                    speed_cntrl_prc = 0;
+                    if( speed_err <= f_speedPIDparam.proptDeadZone )
+                    {
+                        f_cntr_intg    = 0;
+                        speed_cntrl_prc = 0;
+                    }
+                    else speed_cntrl_prc = brake_cntr_value;
                 }
-                else speed_cntrl_prc = brake_cntr_value;
+                else if( speed_err < 0 )
+                {
+                    if( speed_err >= (-f_speedPIDparam.proptDeadZone) )
+                    {
+                        f_speed_intg    = 0;
+                        speed_cntrl_prc = 0;
+                    }
+                    else speed_cntrl_prc = -brake_cntr_value;
+                }
             }
-            else if( speed_err < 0 )
+            else if (speed_ref <= 0.1 && speed_ref > 0)
             {
-                if( speed_err >= (-f_speedPIDparam.proptDeadZone) )
-                {
-                    f_speed_intg    = 0;
-                    speed_cntrl_prc = 0;
-                }
-                else speed_cntrl_prc = -brake_cntr_value;
+                f_speedPIDparam.kp = 300;
+                f_speedPIDparam.ki = 0.9;
+                f_speedPIDparam.integSaturation = 50;
+
+                f_speed_intg     += f_speedPIDparam.ki * speed_err;
+                b_speed_intg     = 0;
+                f_cntr_intg      =  f_speed_intg;
+                f_cntr_intg      =  CLIP_VALUE( f_cntr_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
+
+                speed_cntrl_prc = f_speedPIDparam.kp * speed_err + f_speedPIDparam.kr * speed_ref + f_cntr_intg + f_speedPIDparam.kd * speed_dif;
+            }
+            else
+            {
+              f_speed_intg     += f_speedPIDparam.ki * speed_err;
+              b_speed_intg     = 0;
+              f_cntr_intg      =  f_speed_intg;
+              f_cntr_intg      =  CLIP_VALUE( f_cntr_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
+
+              speed_cntrl_prc = f_speedPIDparam.kp * speed_err + f_speedPIDparam.kr * speed_ref + f_cntr_intg + f_speedPIDparam.kd * speed_dif;
             }
         }
-        else if (speed_ref <= 0.1 && speed_ref > 0)
+        else if( speed_ref < 0 )
         {
-            f_speedPIDparam.kp = 300;
-            f_speedPIDparam.ki = 0.9;
-            f_speedPIDparam.integSaturation = 50;
-
-            f_speed_intg     += f_speedPIDparam.ki * speed_err;
-            b_speed_intg     = 0;
-            f_cntr_intg      =  f_speed_intg;
-            f_cntr_intg      =  CLIP_VALUE( f_cntr_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
-
-            speed_cntrl_prc = f_speedPIDparam.kp * speed_err + f_speedPIDparam.kr * speed_ref + f_cntr_intg + f_speedPIDparam.kd * speed_dif;
+            b_speed_intg      += b_speedPIDparam.ki * speed_err;
+            f_speed_intg      = 0;
+            b_cntr_intg       =  b_speed_intg;
+            b_cntr_intg       =  CLIP_VALUE( b_cntr_intg, -b_speedPIDparam.integSaturation, b_speedPIDparam.integSaturation );
+            speed_cntrl_prc = b_speedPIDparam.kp * speed_err + b_speedPIDparam.kr * speed_ref + b_cntr_intg + b_speedPIDparam.kd * speed_dif;
         }
-        else
-        {
-          f_speed_intg     += f_speedPIDparam.ki * speed_err;
-          b_speed_intg     = 0;
-          f_cntr_intg      =  f_speed_intg;
-          f_cntr_intg      =  CLIP_VALUE( f_cntr_intg, -f_speedPIDparam.integSaturation, f_speedPIDparam.integSaturation );
 
-          speed_cntrl_prc = f_speedPIDparam.kp * speed_err + f_speedPIDparam.kr * speed_ref + f_cntr_intg + f_speedPIDparam.kd * speed_dif;
-        }
+        prev_speed_err = speed_err;
+
+        speed_cntrl_prc = CLIP_VALUE( speed_cntrl_prc, CONTROL_MIN, CONTROL_MAX );
+        lldControlSetDrMotorPower( speed_cntrl_prc );
+
+        chThdSleepUntilWindowed( th_time, th_time + MS2ST(10) );
     }
-    else if( speed_ref < 0 )
-    {
-        b_speed_intg      += b_speedPIDparam.ki * speed_err;
-        f_speed_intg      = 0;
-        b_cntr_intg       =  b_speed_intg;
-        b_cntr_intg       =  CLIP_VALUE( b_cntr_intg, -b_speedPIDparam.integSaturation, b_speedPIDparam.integSaturation );
-        speed_cntrl_prc = b_speedPIDparam.kp * speed_err + b_speedPIDparam.kr * speed_ref + b_cntr_intg + b_speedPIDparam.kd * speed_dif;
-    }
-
-    prev_speed_err = speed_err;
-
-    speed_cntrl_prc = CLIP_VALUE( speed_cntrl_prc, CONTROL_MIN, CONTROL_MAX );
-    lldControlSetDrMotorPower( speed_cntrl_prc );
-
-    chSysLockFromISR();
-    chVTSetI(&pid_update_vt, MS2ST( VT_PID_CALC_MS ), pid_update_vt_cb, NULL);
-    chSysUnlockFromISR();
-
 }
 
-float driveSpeedGetGlobalFloatControl( void )
-{
-    return check_cntrl_val;
-}
+
 float driveSpeedGetGlobalRefSpeed( void )
 {
     return speed_ref;
@@ -281,7 +275,7 @@ static bool             isInitialized = false;
  * @brief       Initialization of units that are needed for steering CS
  * @note        lldControl and lldSteerAngleFB are used
  */
-void driverCSInit( void )
+void driverCSInit( tprio_t prio )
 {
     if( isInitialized )
       return;
@@ -290,8 +284,10 @@ void driverCSInit( void )
     lldSteerAngleFBInit( );
     lldOdometryInit( );
 
-    chVTObjectInit(&pid_update_vt);
-    chVTSet( &pid_update_vt, MS2ST( VT_PID_CALC_MS ), pid_update_vt_cb, NULL );
+    chThdCreateStatic( waController, sizeof(waController), prio , Controller, NULL );
+
+//    chVTObjectInit(&pid_update_vt);
+//    chVTSet( &pid_update_vt, MS2ST( VT_PID_CALC_MS ), pid_update_vt_cb, NULL );
 
     isInitialized = true;
 }

@@ -24,7 +24,7 @@ typedef struct{
  * @brief       Initialization of units that are needed for steering CS
  * @note        lldControl and lldSteerAngleFB are used
  */
-void driverCSInit( void );
+void driverCSInit( tprio_t prio );
 
 /**
  * @brief       Set parameters for Steering controller
@@ -63,7 +63,7 @@ void driveSpeedCSSetSpeed ( float input_speed );
 controlValue_t driveSpeedGetControlVal ( void );
 
 
-float driveSpeedGetGlobalFloatControl( void );
+//float driveSpeedGetGlobalFloatControl( void );
 
 float driveSpeedGetGlobalRefSpeed( void );
 

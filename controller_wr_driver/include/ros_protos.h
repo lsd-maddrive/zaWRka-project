@@ -43,8 +43,8 @@ void ros_driver_send_pose( float x, float y, float dir, float vx, float uz );
  * Send processing state of car
  * Args:
  *		state - index of state
- *			1 - IDLE state
- *			2 - RUN state
+ *			0 - IDLE state
+ *			1 - RUN state
  */
 void ros_driver_send_state( int8_t state );
 

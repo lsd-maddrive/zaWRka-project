@@ -13,7 +13,7 @@
 */
 void testSteeringCS ( void )
 {
-    driverCSInit( );
+    driverCSInit( NORMALPRIO );
 #ifdef STEER_CS_MATLAB
     sdStart( &SD7, &sdcfg );
     palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
@@ -107,7 +107,7 @@ static const SerialConfig sdcfg = {
 */
 void testSpeedCS ( void )
 {
-      driverCSInit( );
+      driverCSInit( NORMALPRIO );
 #ifdef SPEED_CS_MATLAB
     sdStart( &SD7, &sdcfg );
     palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
@@ -131,7 +131,6 @@ void testSpeedCS ( void )
     float                test_speed_ref     = 0;
     float                test_speed_delta   = 0.05;
     float                check_glob_ref_sp  = 0;
-    float                check_float_cntr   = 0;
 
     odometrySpeedValue_t test_speed_mps     = 0;
     odometrySpeedValue_t test_speed_lpf     = 0;
@@ -173,8 +172,6 @@ void testSpeedCS ( void )
       test_speed_mps    = lldGetOdometryObjSpeedMPS( );
       test_speed_lpf    = lldOdometryGetLPFObjSpeedMPS( );
 
-
-      check_float_cntr  = driveSpeedGetGlobalFloatControl( );
       test_speed_cntrl  = driveSpeedGetControlVal( );
 
       driveSpeedCSSetSpeed( test_speed_ref );
@@ -195,8 +192,8 @@ void testSpeedCS ( void )
       }
       chThdSleepMilliseconds( 10 );
 #else
-      dbgprintf( "C:(%d)]\tC_Fl:(%d)\tREF:(%d)\tReal_v:(%d)\n\r",
-                 test_speed_cntrl, (int)( check_float_cntr * 10 ),
+      dbgprintf( "C:(%d)]\tREF:(%d)\tReal_v:(%d)\n\r",
+                 test_speed_cntrl,
                  (int)(test_speed_ref * 100),
                  (int)(test_speed_lpf * 100) );
 
@@ -211,7 +208,7 @@ void testSpeedCS ( void )
 */
 void testSpeedFilter( void )
 {
-    driverCSInit( );
+    driverCSInit( NORMALPRIO );
 #ifdef SPEED_CS_MATLAB
     sdStart( &SD7, &sdcfg );
     palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX

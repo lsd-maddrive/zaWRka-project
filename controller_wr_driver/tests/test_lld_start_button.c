@@ -4,7 +4,7 @@
 void testButtonRoutine( void )
 {
     debug_stream_init( );
-    startButtonInit( 0 );
+    startButtonInit( NORMALPRIO );
 
 
     system_state            test_s_state    = IDLE;

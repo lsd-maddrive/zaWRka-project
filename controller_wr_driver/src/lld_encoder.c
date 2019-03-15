@@ -147,3 +147,12 @@ rawEncoderValue_t   lldGetAbsoluteEncoderRawRevs( void )
     return enc_null_revs_cntr;
 }
 
+void lldResetEncoder( void )
+{
+    enc_tick_cntr       = 0;
+    enc_revs_cntr       = 0;
+    enc_null_revs_cntr  = 0;
+    enc_dir_state       = 0;
+
+}
+

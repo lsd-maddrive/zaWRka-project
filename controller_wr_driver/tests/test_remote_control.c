@@ -18,8 +18,9 @@ void testRemoteControlRoutine( void )
 #else
     debug_stream_init( );
 #endif
+    debug_stream_init( );
     lldControlInit( );
-    remoteControlInit( 0 );
+    remoteControlInit( NORMALPRIO );
 
     pwmValue_t          rc_speed        =   0;
     pwmValue_t          rc_steer        =   0;
@@ -28,8 +29,6 @@ void testRemoteControlRoutine( void )
     bool                mode            =   false;
 
     uint32_t    show_counter = 0;
-
-
 
     systime_t time = chVTGetSystemTimeX();
 
@@ -53,17 +52,16 @@ void testRemoteControlRoutine( void )
         }
         else
         {
-            lldControlSetSteerMotorRawPower( 1620 );
-            lldControlSetDrMotorRawPower( 1500 );
+            lldControlSetSteerMotorRawPower( STEER_NULL );
+            lldControlSetDrMotorRawPower( 1510 );
         }
 
-        dbgprintf( " M:(%d)\n\r ", (int)rc_speed );
-//        if( show_counter == 2 )
-//        {
-//            dbgprintf( "ST:(%d)\tSP:(%d)\tST_PNT:(%d)\tSP_PNT:(%d)\n\r\t",
-//                      rc_steer, rc_speed, rc_steer_prt, rc_speed_prt );
-//            show_counter = 0;
-//        }
+        if( show_counter == 20 )
+        {
+            dbgprintf( "ST:(%d)\tSP:(%d)\tST_PNT:(%d)\tSP_PNT:(%d)\n\r\t",
+                      rc_steer, rc_speed, rc_steer_prt, rc_speed_prt );
+            show_counter = 0;
+        }
 
         chThdSleepUntil(time);
     }

@@ -12,15 +12,13 @@ virtual_timer_t         ros_checker_vt;
 
 static void ros_is_dead_cb( void *arg )
 {
+//    systime_t ros_time = 0; //chVTGetSystemTimeX();
     test_ros_speed_cntr = 0;
     test_ros_steer_cntr = 0;
-    dbgprintf( "CB triggered\n\r");
-//    chSysLockFromISR();
-//    chVTSetI( &ros_checker_vt, MS2ST( 500 ), ros_is_dead_cb, NULL );
-//    chSysUnlockFromISR();
+    dbgprintf( "ROS is dead\n\r" );
 }
 
-void ros_is_alive( void )
+void ros_alive( void )
 {
     palToggleLine( LINE_LED1 ); // just to check
     chVTSet( &ros_checker_vt, MS2ST( 500 ), ros_is_dead_cb, NULL );
@@ -28,22 +26,24 @@ void ros_is_alive( void )
 
 void cntrl_handler (float speed, float steer)
 {
+    systime_t ros_time = chVTGetSystemTimeX();
     test_ros_speed_cntr = speed;
     test_ros_steer_cntr = steer;
-    ros_is_alive( );
+    dbgprintf( "Time:%d\n\r", (int)(ros_time * 1000.0 / CH_CFG_ST_FREQUENCY) );
+    ros_alive( );
 }
 
 
 
-control_params_setup_t get_esc_control_params( void )
-{
-    control_params_setup_t params;
-
-    params.esc_min_dc_offset = SPEED_ZERO - SPEED_MIN;
-    params.esc_max_dc_offset = SPEED_MAX - SPEED_ZERO;
-
-    return params;
-}
+//control_params_setup_t get_esc_control_params( void )
+//{
+//    control_params_setup_t params;
+//
+//    params.esc_min_dc_offset = SPEED_ZERO - SPEED_MIN;
+//    params.esc_max_dc_offset = SPEED_MAX - SPEED_ZERO;
+//
+//    return params;
+//}
 
 
 /*
@@ -55,7 +55,7 @@ void testRosRoutineControl( void )
     ros_driver_cb_ctx_t cb_ctx      = ros_driver_get_new_cb_ctx();
     cb_ctx.cmd_cb                   = cntrl_handler;
     // cb_ctx.set_steer_params_cb      = changeSteerParams;
-    cb_ctx.reset_odometry_cb        = lldResetOdomety;
+    cb_ctx.reset_odometry_cb        = lldResetOdometry;
     // cb_ctx.get_control_params       = get_esc_control_params;
 
     ros_driver_init( NORMALPRIO, &cb_ctx );
@@ -63,11 +63,11 @@ void testRosRoutineControl( void )
 //    ros_driver_set_control_cb( cntrl_handler );
 
     lldOdometryInit( );
-    driverCSInit( );
+    driverCSInit( NORMALPRIO );
     debug_stream_init( );
 
     chVTObjectInit(&ros_checker_vt);
-    chVTSet( &ros_checker_vt, MS2ST( 500 ), ros_is_dead_cb, NULL );
+//    chVTSet( &ros_checker_vt, MS2ST( 500 ), ros_is_dead_cb, NULL );
 
 
     odometryValue_t         test_x_pos          = 0;
@@ -81,12 +81,10 @@ void testRosRoutineControl( void )
     float                   test_steer_angl_deg = 0;
     float                   test_speed_lpf_mps  = 0;
     uint32_t                print_cntr          = 0;
-
     systime_t time = chVTGetSystemTimeX();
+
     while( 1 )
     {
-        time += MS2ST(20);
-
         print_cntr += 1;
 
         driveSteerCSSetPosition( test_ros_steer_cntr );
@@ -106,16 +104,18 @@ void testRosRoutineControl( void )
         ros_driver_send_encoder_speed( test_enc_speed_rps );
         ros_driver_send_pose( test_x_pos, test_y_pos, test_tetta_deg, test_speed_mps, test_speed_radps );
 
-        if( print_cntr == 10 )
-        {
-          dbgprintf( "ST:(%d)\tANG:(%d)\tSP_R:(%d)\tSP:(%d)\tT:(%d)\n\r",
-                     (int)test_ros_steer_cntr, (int)test_steer_angl_deg,
-                     (int)( test_ros_speed_cntr * 100 ), (int)( test_speed_lpf_mps * 100 ),
-                     time);
+//        if( print_cntr == 10 )
+//        {
+//          dbgprintf( "ST:(%d)\tANG:(%d)\tSP_R:(%d)\tSP:(%d)\tT:(%d)\n\r",
+//                     (int)test_ros_steer_cntr, (int)test_steer_angl_deg,
+//                     (int)( test_ros_speed_cntr * 100 ), (int)( test_speed_lpf_mps * 100 ),
+//                     ST2MS( time ) );
+//
+//          print_cntr = 0;
+//        }
 
-          print_cntr = 0;
-        }
 
-        chThdSleepUntil(time);
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 20 ) );
+
     }
 }

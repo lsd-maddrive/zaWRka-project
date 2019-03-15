@@ -60,6 +60,9 @@ void testEncoderCommonRoutine( void );
 
 void testOdometryRoutine( void );
 
+
+void testResetOdometryRoutine( void );
+
 /****************************/
 /*** Remote Control tests ***/
 /****************************/
@@ -138,12 +141,16 @@ void testRoutineROSOdometry( void );
 */
 void testRosRoutineControl( void );
 
+void testSimulationRosControlRoutine( void );
+
 
 void testSpeedFilter( void );
 
 void testButtonRoutine( void );
 
 void testSpeedSinusRoutine( void );
+
+
 
 static inline void testsRoutines( void )
 {
@@ -179,6 +186,10 @@ static inline void testsRoutines( void )
 
     testOdometryRoutine( );
 
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RESET_ODOMETRY )
+
+    testResetOdometryRoutine( );
+
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEER_ANGL_CALC)
 
     testSteerAngleDetection( );
@@ -198,6 +209,10 @@ static inline void testsRoutines( void )
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS_CONTROL )
 
     testRosRoutineControl( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_FAKE_ROS_CONTROL )
+
+    testSimulationRosControlRoutine( );
 
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEERING_CS )
 
