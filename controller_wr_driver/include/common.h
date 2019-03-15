@@ -18,23 +18,25 @@ extern "C" {
 #define     PROGRAM_ROUTINE_TEST_ESC_CALIBRATION        3
 #define     PROGRAM_ROUTINE_TEST_ENCODER                4
 #define     PROGRAM_ROUTINE_TEST_ODOMETRY               5
-#define     PROGRAM_ROUTINE_TEST_RC                     6
-#define     PROGRAM_ROUTINE_TEST_STEERING_CS            7
-#define     PROGRAM_ROUTINE_TEST_STEER_ANGL_CALC        8
-#define     PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND        9
-#define     PROGRAM_ROUTINE_TEST_STEER_ANGLE_LLD_CONTRL 10
-#define     PROGRAM_ROUTINE_TEST_SPEED_CS               11
-#define     PROGRAM_ROUTINE_TEST_SPEED_LIMIT_CALIB      12
-#define     PROGRAM_ROUTINE_TEST_SPEED_FILTER           13
-#define     PROGRAM_ROUTINE_TEST_SPEED_SIN              14
+#define     PROGRAM_ROUTINE_TEST_RESET_ODOMETRY         6
+#define     PROGRAM_ROUTINE_TEST_RC                     7
+#define     PROGRAM_ROUTINE_TEST_STEERING_CS            8
+#define     PROGRAM_ROUTINE_TEST_STEER_ANGL_CALC        9
+#define     PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND        10
+#define     PROGRAM_ROUTINE_TEST_STEER_ANGLE_LLD_CONTRL 11
+#define     PROGRAM_ROUTINE_TEST_SPEED_CS               12
+#define     PROGRAM_ROUTINE_TEST_SPEED_LIMIT_CALIB      13
+#define     PROGRAM_ROUTINE_TEST_SPEED_FILTER           14
+#define     PROGRAM_ROUTINE_TEST_SPEED_SIN              15
 #define     PROGRAM_ROUTINE_TEST_BUTTON_STATE           20
 #define     PROGRAM_ROUTINE_TEST_ROS_ODOMETRY           30
 #define     PROGRAM_ROUTINE_TEST_ROS_CONTROL            35
+#define     PROGRAM_ROUTINE_TEST_FAKE_ROS_CONTROL       36
 #define     PROGRAM_ROUTINE_TEST_GUI_SERVER             40
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
 #define     PROGRAM_ROUTINE_TEST_SYSTEM_TIMER           61
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_SYSTEM_TIMER
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_MASTER
 
 
 /**************/
@@ -90,6 +92,15 @@ void dbgprintf( const char* format, ... );
  */
 void commonExtDriverInit ( void );
 
+/**
+ * @brief   Initialize all base units
+ */
+void mainUnitsInit( void );
+
+/**
+ * @brief   Base control system
+ */
+void mainControlTask( void );
 
 #ifdef __cplusplus
 }

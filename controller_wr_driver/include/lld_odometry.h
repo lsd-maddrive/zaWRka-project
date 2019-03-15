@@ -30,7 +30,7 @@ void lldOdometryInit( void );
  * @brief   Reset x, y, tetta
  * @note    x [m], y [m], tetta [rad]
  */
-void lldResetOdomety( void );
+void lldResetOdometry( void );
 
 
 /**

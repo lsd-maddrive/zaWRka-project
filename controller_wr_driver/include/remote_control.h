@@ -12,7 +12,7 @@ typedef int32_t     icuControlValue_t;
  * @param   prio defines priority of inside thread
  *          IMPORTANT! NORMALPRIO + prio
  */
-void remoteControlInit( int32_t prio );
+void remoteControlInit( tprio_t prio );
 
 /**
  * @brief   Return speed control signal (width) in ticks

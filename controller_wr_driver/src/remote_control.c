@@ -1,13 +1,13 @@
 #include <tests.h>
 #include <remote_control.h>
 
-#define RC_STEER_MAX    2080
-#define RC_STEER_NULL   1620
-#define RC_STEER_MIN    1160
+#define RC_STEER_MAX    2040
+#define RC_STEER_NULL   1630
+#define RC_STEER_MIN    1200
 
-#define RC_SPEED_MAX    2000
-#define RC_SPEED_NULL   1500
-#define RC_SPEED_MIN    1000
+#define RC_SPEED_MAX    1935
+#define RC_SPEED_NULL   1520
+#define RC_SPEED_MIN    1060
 
 
 
@@ -121,7 +121,7 @@ float               icu_speed_b         = 0;
  * @param   prio defines priority of inside thread
  *          IMPORTANT! NORMALPRIO + prio
  */
-void remoteControlInit( int32_t prio )
+void remoteControlInit( tprio_t prio )
 {
     if ( isInitialized )
             return;
@@ -142,7 +142,7 @@ void remoteControlInit( int32_t prio )
     icuStartCapture( icuSpeedDriver );
     icuEnableNotifications( icuSpeedDriver );
 
-    chThdCreateStatic( waRCModeDetect, sizeof(waRCModeDetect), NORMALPRIO + prio , RCModeDetect, NULL );
+    chThdCreateStatic( waRCModeDetect, sizeof(waRCModeDetect), prio , RCModeDetect, NULL );
 
     /* Set initialization flag */
 
