@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import rospkg
 import roslaunch
 import rospy
 

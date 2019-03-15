@@ -23,4 +23,8 @@
         </node>    
     </group>
 
+    <include file="$(find wr8_software)/launch/base/lidar.launch">
+        <!-- All defaults -->
+    </include>
+
 </launch>
