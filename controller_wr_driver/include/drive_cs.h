@@ -34,7 +34,7 @@ void driveSteerCSSetParam( pidControllerContext_t steer_param );
 /**
  * @brief       Set parameters for Speed controller
  */
-void driveSpeedCSSetParam( pidControllerContext_t speed_param );
+void driveSpeedCSSetParam( pidControllerContext_t speed_forward_param, pidControllerContext_t speed_backward_param );
 
 
 /**
