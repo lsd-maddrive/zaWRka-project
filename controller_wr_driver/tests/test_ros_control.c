@@ -14,10 +14,10 @@ static void ros_is_dead_cb( void *arg )
 {
     test_ros_speed_cntr = 0;
     test_ros_steer_cntr = 0;
-
-    chSysLockFromISR();
-    chVTSet( &ros_checker_vt, MS2ST( 500 ), ros_is_dead_cb, NULL );
-    chSysUnlockFromISR();
+    dbgprintf( "CB triggered\n\r");
+//    chSysLockFromISR();
+//    chVTSetI( &ros_checker_vt, MS2ST( 500 ), ros_is_dead_cb, NULL );
+//    chSysUnlockFromISR();
 }
 
 void ros_is_alive( void )
@@ -30,12 +30,10 @@ void cntrl_handler (float speed, float steer)
 {
     test_ros_speed_cntr = speed;
     test_ros_steer_cntr = steer;
+    ros_is_alive( );
 }
 
-void changeSteerParams( float min, float max )
-{
-    /* change limits */
-}
+
 
 control_params_setup_t get_esc_control_params( void )
 {
@@ -110,9 +108,10 @@ void testRosRoutineControl( void )
 
         if( print_cntr == 10 )
         {
-          dbgprintf( "ST:(%d)\tANG:(%d)\tSP_R:(%d)\tSP:(%d)\n\r",
+          dbgprintf( "ST:(%d)\tANG:(%d)\tSP_R:(%d)\tSP:(%d)\tT:(%d)\n\r",
                      (int)test_ros_steer_cntr, (int)test_steer_angl_deg,
-                     (int)( test_ros_speed_cntr * 100 ), (int)( test_speed_lpf_mps * 100 ) );
+                     (int)( test_ros_speed_cntr * 100 ), (int)( test_speed_lpf_mps * 100 ),
+                     time);
 
           print_cntr = 0;
         }
