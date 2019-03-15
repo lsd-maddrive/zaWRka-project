@@ -69,5 +69,5 @@ fi
 
 # Dont`forget /opt/movidius/intel-caffe/python
 
-pip install pygame pyserial catkin-pkg rospkg empy defusedxml netifaces
+pip install pygame pyserial catkin-pkg rospkg empy defusedxml netifaces numpy
 cd wr8_software/scripts/graph_path; pyrcc5 -o resources.py my.qrc

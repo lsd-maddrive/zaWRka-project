@@ -16,15 +16,15 @@ class ROSServer : public QThread
 	SVServer *m_server;
 	QTimer	 sendTmr;
 
-	DataPackage	m_dataPkg;
+	HighFreqDataPackage	m_dataPkg;
 
 public:
     ROSServer(SVServer *server)
     {
     	m_server = server;
-    	m_dataPkg = DataPackage( DataPackage::State::WAIT );
+    	m_dataPkg = HighFreqDataPackage();
 
-    	QObject::connect( this, SIGNAL(sendData(DataPackage const&)), server, SLOT(sendData(DataPackage const&)) );
+    	QObject::connect( this, SIGNAL(sendData(HighFreqDataPackage const&)), server, SLOT(slotSendHighFreqData(HighFreqDataPackage const&)) );
     	
     	QObject::connect( &sendTmr, SIGNAL(timeout()), this, SLOT(sendTmrHandler()) );
     	
@@ -65,5 +65,5 @@ private Q_SLOTS:
 
 Q_SIGNALS:
     void rosShutdown();
-    void sendData(DataPackage const& data);
+    void sendData(HighFreqDataPackage const& data);
 };
