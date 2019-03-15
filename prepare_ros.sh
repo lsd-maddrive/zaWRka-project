@@ -31,27 +31,43 @@ git -C wr8_ai/neural_networks pull 				|| git -C wr8_ai clone https://github.com
 sudo apt purge ros-$ROS_DISTRO-rosserial*
 sudo apt purge ros-$ROS_DISTRO-teb-local-planner*
 
-sudo apt install ros-$ROS_DISTRO-hector-mapping \
-					ros-$ROS_DISTRO-move-base \
-					ros-$ROS_DISTRO-gmapping \
-					ros-$ROS_DISTRO-global-planner \
-					ros-$ROS_DISTRO-costmap-converter \
-					ros-$ROS_DISTRO-map-server \
-					ros-$ROS_DISTRO-amcl \
-					ros-$ROS_DISTRO-laser-scan-matcher \
-					ros-$ROS_DISTRO-stereo-image-proc \
-					ros-$ROS_DISTRO-image-view \
-					ros-$ROS_DISTRO-teleop-twist-keyboard \
-					ros-$ROS_DISTRO-interactive-markers \
-					ros-$ROS_DISTRO-usb-cam \
-					ros-$ROS_DISTRO-libg2o \
-					ros-$ROS_DISTRO-qt-build \
-					ros-$ROS_DISTRO-qt-gui* \
-					pyqt5-dev-tools
+if [ "$ROS_DISTRO" = "kinetic" ]; then
+	sudo apt install ros-$ROS_DISTRO-hector-mapping \
+						ros-$ROS_DISTRO-move-base \
+						ros-$ROS_DISTRO-gmapping \
+						ros-$ROS_DISTRO-global-planner \
+						ros-$ROS_DISTRO-costmap-converter \
+						ros-$ROS_DISTRO-map-server \
+						ros-$ROS_DISTRO-amcl \
+						ros-$ROS_DISTRO-laser-scan-matcher \
+						ros-$ROS_DISTRO-stereo-image-proc \
+						ros-$ROS_DISTRO-image-view \
+						ros-$ROS_DISTRO-teleop-twist-keyboard \
+						ros-$ROS_DISTRO-interactive-markers \
+						ros-$ROS_DISTRO-usb-cam \
+						ros-$ROS_DISTRO-libg2o \
+						ros-$ROS_DISTRO-qt-build \
+						ros-$ROS_DISTRO-qt-gui* \
+						pyqt5-dev-tools
+else
+	sudo apt install ros-$ROS_DISTRO-move-base \
+						ros-$ROS_DISTRO-global-planner \
+						ros-$ROS_DISTRO-costmap-converter \
+						ros-$ROS_DISTRO-map-server \
+						ros-$ROS_DISTRO-amcl \
+						ros-$ROS_DISTRO-stereo-image-proc \
+						ros-$ROS_DISTRO-image-view \
+						ros-$ROS_DISTRO-teleop-twist-keyboard \
+						ros-$ROS_DISTRO-interactive-markers \
+						ros-$ROS_DISTRO-usb-cam \
+						ros-$ROS_DISTRO-libg2o \
+						ros-$ROS_DISTRO-qt-gui* \
+						pyqt5-dev-tools
+fi
 
 # ros-$ROS_DISTRO-gazebo9-plugins \
 
 # Dont`forget /opt/movidius/intel-caffe/python
 
-pip install pygame pyserial catkin-pkg rospkg empy defusedxml netifaces PySide2
+pip install pygame pyserial catkin-pkg rospkg empy defusedxml netifaces
 cd wr8_software/scripts/graph_path; pyrcc5 -o resources.py my.qrc
