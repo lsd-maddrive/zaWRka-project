@@ -93,7 +93,7 @@ void testSteeringCS ( void )
     }
 }
 
-#define SPEED_CS_MATLAB
+//#define SPEED_CS_MATLAB
 #ifdef SPEED_CS_MATLAB
 static const SerialConfig sdcfg = {
   .speed = 115200,
@@ -129,7 +129,7 @@ void testSpeedCS ( void )
 #endif
 
     float                test_speed_ref     = 0;
-    float                test_speed_delta   = 0.1;
+    float                test_speed_delta   = 0.05;
     float                check_glob_ref_sp  = 0;
     float                check_float_cntr   = 0;
 
@@ -152,7 +152,7 @@ void testSpeedCS ( void )
           test_speed_ref   += test_speed_delta;
           break;
         case 's':           // backward
-          test_speed_ref   -= (2 * test_speed_delta);
+          test_speed_ref   -= (1 * test_speed_delta);
           break;
         case 'd':           // backward
           test_speed_ref   -= test_speed_delta;

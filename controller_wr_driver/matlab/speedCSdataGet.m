@@ -26,7 +26,7 @@ end
 start = 'a'; %forward
 fwrite(dat, start, 'uint8'); 
 
-t2 = 6;
+t2 = 4;
 for i = 1:t2
    A=fread(dat, [100,1], 'int16');
    B = [B; A];
@@ -42,14 +42,14 @@ for i = 1:t3
    B = [B; A];
 end
 
-start = 'a'; %backward
-fwrite(dat, start, 'uint8');
-
-t4 =4;
-for i = 1:t4
-   A=fread(dat, [100,1], 'int16');
-   B = [B; A];
-end
+% start = 'a'; 
+% fwrite(dat, start, 'uint8');
+% 
+% t4 =4;
+% for i = 1:t4
+%    A=fread(dat, [100,1], 'int16');
+%    B = [B; A];
+% end
 
 % start = 'a'; %forward
 % fwrite(dat, start, 'uint8');

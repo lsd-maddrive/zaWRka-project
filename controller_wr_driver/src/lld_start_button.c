@@ -38,7 +38,8 @@ static THD_FUNCTION(Button, arg)
       if( palReadLine( START_BUTTON_LINE ) == 0)
       {
           b_count = (b_count == 3) ? 0 : ++b_count;
-          cur_system_state = ( b_count == 1 ) ? WAIT : IDLE;
+          if( b_count == 1 ) cur_system_state = WAIT;
+//          cur_system_state = ( b_count == 1 ) ? WAIT : IDLE;
       }
     }
   }
@@ -68,8 +69,12 @@ static THD_FUNCTION(StateChecker, arg)
             palSetLine( LINE_LED2);
             chThdSleepSeconds(5);
             palClearLine( LINE_LED2);
-            cur_system_state = IDLE; // need to fix!!!
+            cur_system_state = RUN; // need to fix!!!
             break;
+
+          case 2:   // RUN
+            lldResetOdomety( );
+
 
           default:
             ;
