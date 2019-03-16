@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+<launch>
+	<machine name="nuc" user="user-sau-nuc" address="192.168.31.99" />
+    
+    <arg name="lidar" default="true" />
+    <arg name="cameras" default="true" />
+    <arg name="uc" default="true" />
+
+    <include if="$(arg uc)" file="$(find wr8_software)/launch/base/serial_uc_link.launch">
+        <arg name="device" value="/dev/serial/by-id/usb-STMicroelectronics_ChibiOS_RT_Virtual_COM_Port_400-if00" />
+    </include>
+
+    <include if="$(arg lidar)" file="$(find wr8_software)/launch/base/lidar.launch">
+        <!-- All defaults -->
+    </include>
+
+    <node pkg="wr8_software" type="main_solver.py" name="main_solver" output="screen" respawn="true">
+
+    </node>
+
+    <include if="$(arg cameras)" file="$(find wr8_software)/launch/base/signs_camera.launch">
+        <arg name="device" value="/dev/v4l/by-id/usb-HD_USB_Camera_HD_USB_Camera_SN0001-video-index0" />
+        <arg name="frame_id" value="signs_camera" />
+    </include>
+
+    <include if="$(arg cameras)" file="$(find wr8_software)/launch/base/road_camera.launch">
+        <arg name="device" value="/dev/v4l/by-id/usb-046d_0825_CA00E440-video-index0" />
+        <arg name="frame_id" value="road_camera" />
+    </include>
+
+</launch>
