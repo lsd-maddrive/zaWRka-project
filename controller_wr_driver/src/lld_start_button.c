@@ -3,10 +3,9 @@
 
 #define START_BUTTON_LINE   PAL_LINE( GPIOC, 13 )
 
-//#define VT_STATE_MS 50
-
-
 system_state    cur_system_state = IDLE;
+
+virtual_timer_t stop_vt;
 
 static thread_reference_t trp_button = NULL;
 
@@ -17,6 +16,14 @@ static void ext_but_cb(EXTDriver *extp, expchannel_t channel)
     chSysLockFromISR();                   // ISR Critical Area
     chThdResumeI( &trp_button, MSG_OK );
     chSysUnlockFromISR();                 // Close ISR Critical Area
+}
+
+/*    Set system in IDLE state,
+ *    when timer counted 4 minutes
+ */
+static void stop_vt_cb( void *arg )
+{
+    cur_system_state  = IDLE;
 }
 
 static THD_WORKING_AREA(waButton, 128); // 128 - stack size
@@ -38,8 +45,21 @@ static THD_FUNCTION(Button, arg)
       chThdSleepMicroseconds( 50 );
       if( palReadLine( START_BUTTON_LINE ) == 0)
       {
-          if( cur_system_state == IDLE ) cur_system_state = RUN;
-          else if( cur_system_state == RUN ) cur_system_state = IDLE;
+          if( cur_system_state == IDLE )
+          {
+              cur_system_state = RUN;
+
+              chVTSet( &stop_vt, S2ST( 240 ), stop_vt_cb, NULL );
+
+
+
+          }
+          else if( cur_system_state == RUN )
+          {
+              cur_system_state = IDLE;
+              chVTReset( &stop_vt );
+
+          }
       }
     }
   }
@@ -55,6 +75,8 @@ system_state lldGetSystemState( void )
 {
     return cur_system_state;
 }
+
+
 
 static bool         isInitialized       = false;
 
@@ -75,7 +97,7 @@ void startButtonInit( tprio_t priority )
      commonExtDriverInit();
 
      extSetChannelMode( &EXTD1, 13, &trg_but_conf ); // PC13 = Button
-
+     chVTObjectInit(&stop_vt);
      chThdCreateStatic(waButton, sizeof(waButton), priority, Button, NULL);
 
      /* Set initialization flag */

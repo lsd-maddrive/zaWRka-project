@@ -67,5 +67,9 @@ controlValue_t driveSpeedGetControlVal ( void );
 
 float driveSpeedGetGlobalRefSpeed( void );
 
+void driverResetCS( void );
+
+void driverIsEnableCS( bool permition );
+
 
 #endif /* INCLUDE_DRIVE_CS_H_ */

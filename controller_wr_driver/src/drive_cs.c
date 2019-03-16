@@ -88,6 +88,9 @@ static controllerError_t b_cntr_intg                = 0;
 controlValue_t          steer_cntl_prc              = 0;
 controlValue_t          speed_cntrl_prc             = 0;
 
+
+bool                    permition_flag              = false;
+
 /**
  * @brief       Set parameters for Steering controller
  */
@@ -168,7 +171,12 @@ static THD_FUNCTION(Controller, arg)
     while( 1 )
     {
         systime_t   th_time     = chVTGetSystemTimeX();
-//        palToggleLine( LINE_LED2 );
+
+        if( !permition_flag )
+        {
+            chThdSleepUntilWindowed( th_time, th_time + MS2ST(10) );
+            continue;
+        }
 
         /***    I-controller for Steering CS    ***/
         steer_angl_deg      =   lldGetSteerAngleDeg( );
@@ -259,6 +267,7 @@ static THD_FUNCTION(Controller, arg)
         speed_cntrl_prc = CLIP_VALUE( speed_cntrl_prc, CONTROL_MIN, CONTROL_MAX );
         lldControlSetDrMotorPower( speed_cntrl_prc );
 
+
         chThdSleepUntilWindowed( th_time, th_time + MS2ST(10) );
     }
 }
@@ -286,8 +295,35 @@ void driverCSInit( tprio_t prio )
 
     chThdCreateStatic( waController, sizeof(waController), prio , Controller, NULL );
 
-//    chVTObjectInit(&pid_update_vt);
-//    chVTSet( &pid_update_vt, MS2ST( VT_PID_CALC_MS ), pid_update_vt_cb, NULL );
-
     isInitialized = true;
+}
+
+void driverIsEnableCS( bool permition )
+{
+  permition_flag = permition;
+
+}
+
+
+void driverResetCS( void )
+{
+
+    speed_ref = steer_angl_deg_ref =  0;
+
+    prev_steer_angl_deg_err = 0;
+    steer_angl_deg_err      = 0;
+
+    steer_angl_deg_intg     = 0;
+
+    steer_cntl_prc = 0;
+    lldControlSetSteerMotorPower( steer_cntl_prc );
+
+    prev_speed_err  = 0;
+    speed_err       = 0;
+
+    b_speed_intg    = 0;
+    f_speed_intg    = 0;
+
+    speed_cntrl_prc = 0;
+    lldControlSetDrMotorPower( speed_cntrl_prc );
 }

@@ -100,7 +100,7 @@ void setRosControl( void )
 
 void sendOdometryToRos( void )
 {
-    enc_speed_rps  = lldGetOdometryRawSpeedRPS( );
+//    enc_speed_rps  = lldGetOdometryRawSpeedRPS( );
     speed_mps      = lldGetOdometryObjSpeedMPS( );
     speed_radps    = lldGetOdometryObjTettaSpeedRadPS( );
 
@@ -111,10 +111,11 @@ void sendOdometryToRos( void )
     y_pos          = lldGetOdometryObjY( OBJ_DIST_M );
     tetta_deg      = lldGetOdometryObjTettaDeg( );
 
-    ros_driver_send_encoder_speed( enc_speed_rps );
+//    ros_driver_send_encoder_speed( enc_speed_rps );
     ros_driver_send_pose( x_pos, y_pos, tetta_deg, speed_mps, speed_radps );
 }
 
+#define SHOW_PERIOD 20
 
 /**
  * @brief   Base control system
@@ -129,9 +130,13 @@ void mainControlTask( void )
         print_cntr += 1;
         system_state state_now  = lldGetSystemState( );
 
+        sendOdometryToRos( );
+
         if( state_now == IDLE )
         {
-            if( print_cntr == 5 )
+
+
+            if( print_cntr == SHOW_PERIOD )
             {
               dbgprintf( "IDLE\n\r" );
               print_cntr = 0;
@@ -140,27 +145,35 @@ void mainControlTask( void )
 
             if( mode )
             {
+                driverIsEnableCS( false );
                 icuControlValue_t rc_steer_prt    = rcGetSteerControlValue( );
                 icuControlValue_t rc_speed_prt    = rcGetSpeedControlValue( );
+                if( print_cntr == SHOW_PERIOD-1 )
+                {
+                    dbgprintf( "RC_SP:(%d)\tRC_ST:(%d)\n\r",
+                               rc_speed_prt, rc_steer_prt  );
 
+                }
                 lldControlSetDrMotorPower( rc_speed_prt );
                 lldControlSetSteerMotorPower( rc_steer_prt );
             }
             else
             {
-                lldControlSetSteerMotorRawPower( STEER_NULL );
-                lldControlSetDrMotorRawPower( SPEED_ZERO );
+              driverIsEnableCS( true );
+              setRosControl( );
+//                driverResetCS( );
             }
         }
         else if( state_now == RUN )
         {
-            if( print_cntr == 5 )
+            driverIsEnableCS( true );
+            if( print_cntr == SHOW_PERIOD )
             {
               dbgprintf( "RUN\n\r" );
               print_cntr = 0;
             }
+
             setRosControl( );
-            sendOdometryToRos( );
         }
 
         time = chThdSleepUntilWindowed( time, time + MS2ST( 25 ) );

@@ -146,6 +146,6 @@ void lldControlSetSteerMotorPower( controlValue_t inputPrc )
     inputPrc = CLIP_VALUE(inputPrc, CONTROL_MIN, CONTROL_MAX);
     rawPwmValue_t drDuty = lld_steer_k * inputPrc + lld_steer_b;
 
-    dbgprintf( "Duty:(%d)\n\r", drDuty );
+//    dbgprintf( "Duty:(%d)\n\r", drDuty );
     pwmEnableChannel( pwmDriver, steerPWMch, drDuty);
 }
