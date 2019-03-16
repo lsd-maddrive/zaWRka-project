@@ -32,7 +32,6 @@ def handle_srv(self, req):
 
 def main():
 
-
     rospy.Service('detect_signs', ObjectDetection, handle_srv)
     rospy.loginfo("Ready to detect signs!")
 

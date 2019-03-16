@@ -23,9 +23,10 @@
 
 static const ros_driver_cb_ctx_t default_cb_ctx = {
     .cmd_cb                 = NULL,
+
+    .set_odom_params_cb     = NULL,
     .reset_odometry_cb      = NULL,
 
-    // .set_steer_params_cb    = NULL,
     // .get_control_params     = NULL,
     // .set_control_params_cb  = NULL
 };
@@ -57,10 +58,10 @@ void steer_params_cb( const wr8_msgs::SteerParamsRequest &req, wr8_msgs::SteerPa
 
     dbgprintf( "Called [%s]\n\r", __FUNCTION__ );
 
-    // if ( last_cb_ctx.set_steer_params_cb )
-    // {
-    //     last_cb_ctx.set_steer_params_cb( req.left_k, req.right_k );
-    // }
+    if ( last_cb_ctx.set_odom_params_cb )
+    {
+        last_cb_ctx.set_odom_params_cb( req.left_k, req.right_k );
+    }
 }
 
 void control_params_cb( const wr8_msgs::ControlParamsRequest &req, wr8_msgs::ControlParamsResponse &resp )
@@ -109,18 +110,23 @@ void reset_odometry_cb( const std_srvs::TriggerRequest &req, std_srvs::TriggerRe
 
 ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>             srvc_check("check", &trigger_task_cb);                             
 ros::ServiceServer<std_srvs::TriggerRequest, std_srvs::TriggerResponse>             srvc_rst_odom("reset_odometry", &reset_odometry_cb);                             
-ros::ServiceServer<wr8_msgs::SteerParamsRequest, wr8_msgs::SteerParamsResponse>     srvc_steer_params("set_steer_params", &steer_params_cb);
+ros::ServiceServer<wr8_msgs::SteerParamsRequest, wr8_msgs::SteerParamsResponse>     srvc_steer_params("set_odom_params", &steer_params_cb);
 ros::ServiceServer<wr8_msgs::ControlParamsRequest, wr8_msgs::ControlParamsResponse> srvc_cntrl_params("set_control_params", &control_params_cb);
 
 void cmd_vel_cb( const geometry_msgs::Twist &msg )
 {
+    if ( last_cb_ctx.cmd_cb == NULL )
+    {
+        return;
+    }
+
     float cmd_speed = msg.linear.x;
     float cmd_steer = msg.angular.z * 180 / M_PI;
 
-    if ( last_cb_ctx.cmd_cb )
-    {
-        last_cb_ctx.cmd_cb( cmd_speed, cmd_steer );
-    }
+    cmd_speed = CLIP_VALUE(cmd_speed, -ROS_INPUT_CMD_SPEED_LIMIT_MPS, ROS_INPUT_CMD_SPEED_LIMIT_MPS);
+    cmd_steer = CLIP_VALUE(cmd_steer, -ROS_INPUT_CMD_STEER_LIMIT_DEG, ROS_INPUT_CMD_STEER_LIMIT_DEG);
+
+    last_cb_ctx.cmd_cb( cmd_speed, cmd_steer );
 }
 
 ros::Subscriber<geometry_msgs::Twist>           topic_cmd("cmd_vel", &cmd_vel_cb);
@@ -266,7 +272,7 @@ void ros_driver_init( tprio_t prio, ros_driver_cb_ctx_t *ctx )
 
     /* ROS service servers */
     ros_node.advertiseService( srvc_check );
-    // ros_node.advertiseService( srvc_steer_params );
+    ros_node.advertiseService( srvc_steer_params );
     // ros_node.advertiseService( srvc_cntrl_params );
     ros_node.advertiseService( srvc_rst_odom );
 

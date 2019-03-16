@@ -53,6 +53,8 @@ void ros_driver_send_state( int8_t state );
  */
 typedef struct
 {
+	#define ROS_INPUT_CMD_SPEED_LIMIT_MPS	0.5
+	#define ROS_INPUT_CMD_STEER_LIMIT_DEG	25
 	/*
 	 * Cb returned arguments:
 	 * 		speed - Speed task (-0.5;0.5) [m/s]
@@ -63,7 +65,7 @@ typedef struct
 	/*
 	 * It is better to use structure with parameters
 	 */
-	// void (*set_steer_params_cb)( float k_left, float k_right );
+	void (*set_odom_params_cb)( float k_left, float k_right );
 
 	void (*reset_odometry_cb)( void );
 

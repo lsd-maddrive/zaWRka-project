@@ -80,6 +80,7 @@ void mainUnitsInit( void )
     ros_driver_cb_ctx_t cb_ctx      = ros_driver_get_new_cb_ctx();
     cb_ctx.cmd_cb                   = ros_control_handler;
     cb_ctx.reset_odometry_cb        = lldResetOdometry;
+    cb_ctx.set_odom_params_cb       = lldOdometrySetCorrectionRates;
 
     ros_driver_init( NORMALPRIO, &cb_ctx );
 

@@ -93,7 +93,17 @@ odometrySpeedValue_t lldOdometryGetObjCSSpeedMPS( void )
 }
 #endif
 
+static float correction_k_left  = 1.0;
+static float correction_k_right = 1.0;
 
+/*
+ * TODO - Comments
+ */
+void lldOdometrySetCorrectionRates( float k_left, float k_right )
+{
+    correction_k_left = k_left;
+    correction_k_right = k_right;
+}
 
 static void odom_update_vt_cb( void *arg )
 {
@@ -144,6 +154,13 @@ static void odom_update_vt_cb( void *arg )
     odometryValue_t         steer_angl_rad = lldGetSteerAngleRad( );
 
     tetta_speed_rad_s = ( speed_m_per_sec * tan( steer_angl_rad ) * tetta_k_rad );
+
+/* TODO - Added for test, check if required */
+if ( steer_angl_rad > 0 )
+    tetta_speed_rad_s *= correction_k_left;
+else
+    tetta_speed_rad_s *= correction_k_right;
+
 
     /*** It is tetta angle, not changing speed of tetta! ***/
     tetta_rad_angle +=  tetta_speed_rad_s;

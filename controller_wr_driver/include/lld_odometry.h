@@ -39,6 +39,10 @@ void lldResetOdometry( void );
  */
 odometryValue_t lldGetOdometryObjDistance( odometryDistanceUnit_t units );
 
+/*
+ * TODO - Comments
+ */
+void lldOdometrySetCorrectionRates( float k_left, float k_right );
 
 /**********************************/
 /***    Functions for speed     ***/
