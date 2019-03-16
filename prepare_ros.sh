@@ -30,8 +30,11 @@ git -C wr8_ai/neural_networks pull 				|| git -C wr8_ai clone https://github.com
 # ln -sf ../../../neural_networks/TSD/keras-yolo3/utils   	        wr8_ai/src/wr8_ai/yolo
 
 sudo apt purge ros-$ROS_DISTRO-rosserial*
-sudo apt purge ros-$ROS_DISTRO-teb-local-planner* 
+sudo apt purge ros-$ROS_DISTRO-teb-local-planner*
 # sudo apt purge ros-$ROS_DISTRO-usb-cam
+
+# -- Solution for roslaunch reconnection --
+sudo apt purge modemmanager 
 
 if [ "$ROS_DISTRO" = "kinetic" ]; then
 	sudo apt install ros-$ROS_DISTRO-hector-mapping \
