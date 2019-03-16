@@ -8,15 +8,15 @@
 #define STEER_FILTER_MEAN       0
 #define STEER_FILTER_LPF        1
 
-#define STEER_ACTIVE_FILTER     STEER_FILTER_MEAN
+#define STEER_ACTIVE_FILTER     STEER_FILTER_LPF
 
 /***********************************/
 /***    OBJECT CONFIGURATION     ***/
 /***********************************/
 
-#define     STEER_ADC_RIGHT         1075
-#define     STEER_ADC_LEFT          1980
-#define     STEER_ADC_CENTER        1510
+#define     STEER_ADC_RIGHT         1170 // 1075
+#define     STEER_ADC_LEFT          1830 // 1980
+#define     STEER_ADC_CENTER        1540 // 1510
 
 #define     STEER_RAD_RIGHT         (float)(-0.593) // -34
 #define     STEER_RAD_LEFT          (float)0.52     // 29
@@ -65,7 +65,7 @@ steerAngleRawValue_t    steer_mean_sum              = 0;
 
 /***    Low Pass Filter ( LPF ) ***/
 
-#define STEER_LPF_FACTOR         (float)0.9
+static float steer_lpf_factor = 0.9;
 
 steerAngleRawValue_t    prev_steer_lpf_adc_val      = 0;
 
@@ -88,9 +88,21 @@ static void adc_1_cb ( ADCDriver *adcp, adcsample_t *buffer, size_t n )
         steer_mean_sum      = 0;
     }
 #elif( STEER_ACTIVE_FILTER == STEER_FILTER_LPF )
-    steer_filtered_adc_val = steer_raw_ADC_val * (1 - STEER_LPF_FACTOR) + prev_steer_lpf_adc_val * STEER_LPF_FACTOR;
 
-    prev_steer_lpf_adc_val = steer_filtered_adc_val;
+    if( steer_raw_ADC_val >= 1550 )
+    {
+        float new_lpf_high  = 0.97;
+        steer_filtered_adc_val = steer_raw_ADC_val * (1 - new_lpf_high) + prev_steer_lpf_adc_val * new_lpf_high;
+
+        prev_steer_lpf_adc_val = steer_filtered_adc_val;
+    }
+    else
+    {
+        steer_filtered_adc_val = steer_raw_ADC_val * (1 - steer_lpf_factor) + prev_steer_lpf_adc_val * steer_lpf_factor;
+
+        prev_steer_lpf_adc_val = steer_filtered_adc_val;
+    }
+
 
 #else
     adc_cb_counter      = 0;
@@ -116,7 +128,7 @@ static const ADCConversionGroup steer_adc_1_cnfg = {
 static GPTDriver            *adcTrgDriver   = &GPTD4;
 
 static const GPTConfig gpt_trg_cnfg = {
-  .frequency =  100000,
+  .frequency =  1000000,
   .callback  =  NULL,
   .cr2       =  TIM_CR2_MMS_1,
   .dier      =  0U
@@ -195,7 +207,7 @@ steerAngleRawValue_t lldGetSteerAngleFiltrMeanRawADC ( void )
  *              NEED TO SET
  *              STEER_ACTIVE_FILTER = STEER_FILTER_LPF
 */
-steerAngleRawValue_t lldGetSteerAngleFiltrLPFRawADC ( void )
+steerAngleRawValue_t lldGetSteerAngleFiltrRawADC ( void )
 {
     return steer_filtered_adc_val;
 }
@@ -210,11 +222,11 @@ steerAngleRadValue_t lldGetSteerAngleRad ( void )
 {
     steerAngleRadValue_t    steer_rad_angl  = 0;
 
-    if( steer_filtered_adc_val < STEER_ADC_RIGHT && steer_filtered_adc_val > STEER_ADC_LEFT )
-        steer_rad_angl = 0;
-    else if( steer_filtered_adc_val < STEER_ADC_CENTER && steer_filtered_adc_val >= STEER_ADC_RIGHT ) // right
+    steer_filtered_adc_val  = CLIP_VALUE(steer_filtered_adc_val, STEER_ADC_RIGHT, STEER_ADC_LEFT);
+
+    if( steer_filtered_adc_val <= STEER_ADC_CENTER ) // right
         steer_rad_angl = steer_filtered_adc_val * steer_right_k + steer_right_b;
-    else if( steer_filtered_adc_val > STEER_ADC_CENTER && steer_filtered_adc_val <= STEER_ADC_LEFT )  // left
+    else if( steer_filtered_adc_val > STEER_ADC_CENTER ) // left
         steer_rad_angl = steer_filtered_adc_val * steer_left_k + steer_left_b;
 
     return steer_rad_angl;

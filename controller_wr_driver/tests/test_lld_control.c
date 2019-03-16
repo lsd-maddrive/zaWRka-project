@@ -2,8 +2,6 @@
 #include <lld_control.h>
 #include <lld_odometry.h>
 
-#include "chprintf.h"
-
 /***************************************************/
 
 static const SerialConfig sdcfg = {
@@ -12,67 +10,60 @@ static const SerialConfig sdcfg = {
 };
 
 
+
+
 void testRawWheelsControlRoutine( void )
 {
-    palSetLine( LINE_LED1 );
-//    sdStart( &SD7, &sdcfg );
-//    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
-//    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
     debug_stream_init( );
     lldControlInit();
 
     controlValue_t  speed_values_delta  = 10;
-    controlValue_t  speed_value         = 1500;
+    controlValue_t  speed_value         = SPEED_ZERO;
 
-    controlValue_t  steer_values_delta  = 20;
-    controlValue_t  steer_value         = 1620;
+    controlValue_t  steer_values_delta  = 10;
+    controlValue_t  steer_value         = STEER_NULL;
 
-
-//    chprintf( (BaseSequentialStream *)&SD7, "TEST RAW\n\r" );
-
+    systime_t   time = chVTGetSystemTimeX( );
     while ( 1 )
     {
         char rcv_data = sdGetTimeout( &SD3, TIME_IMMEDIATE );
         switch ( rcv_data )
         {
             case 'a':   // Positive speed
-            speed_value += speed_values_delta;
-            break;
+              speed_value += speed_values_delta;
+              break;
 
             case 's':   // Negative speed
-            speed_value -= speed_values_delta;
-            break;
+              speed_value -= speed_values_delta;
+              break;
 
             case ' ':
-              speed_value = 1500;
-              steer_value = 1620;
-
+              speed_value = SPEED_ZERO;
+              steer_value = STEER_NULL;
+              break;
 
             case 'q':   // On the left
-            steer_value += steer_values_delta;
-            break;
+              steer_value += steer_values_delta;
+              break;
 
             case 'w':   // On the right
-            steer_value -= steer_values_delta;
-            break;
-
+              steer_value -= steer_values_delta;
+              break;
 
             default:
                 ;
         }
 
-        speed_value = CLIP_VALUE( speed_value, 1000, 2000 );
+        speed_value = CLIP_VALUE( speed_value, SPEED_MIN, SPEED_MAX );
         lldControlSetDrMotorRawPower( speed_value );
 
-        steer_value = CLIP_VALUE( steer_value, 1200, 2040 );
+        steer_value = CLIP_VALUE( steer_value, STEER_MIN, STEER_MAX );
         lldControlSetSteerMotorRawPower( steer_value );
 
         dbgprintf( "SP:(%d)\tST:(%d)\n\r", speed_value, steer_value );
-//        chprintf( (BaseSequentialStream *)&SD7, "Powers:\n\r\tSteer:(%d)\tSpeed:(%d)\n\r\t", steer_value, speed_value );
 
-        chThdSleepMilliseconds( 100 );
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
     }
-
 }
 
 #define SERIAL_SD7

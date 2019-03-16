@@ -41,7 +41,7 @@ steerAngleRawValue_t lldGetSteerAngleFiltrMeanRawADC ( void );
  *              NEED TO SET
  *              STEER_ACTIVE_FILTER = STEER_FILTER_LPF
 */
-steerAngleRawValue_t lldGetSteerAngleFiltrLPFRawADC ( void );
+steerAngleRawValue_t lldGetSteerAngleFiltrRawADC ( void );
 
 /*============================================================================*/
 /* ANGLE FUNCS                                                                */

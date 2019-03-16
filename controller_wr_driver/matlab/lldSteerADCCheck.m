@@ -14,16 +14,40 @@ fwrite(dat, start, 'uint8');
 
 A = [];
 B = [];
-t = 20;
+
+start = 's';     % right
+fwrite(dat, start, 'uint8'); 
+
+t = 10;
 
 for i = 1:t
    A=fread(dat, [100,1], 'uint16');
    B = [B; A];
 end
- 
+
+start = ' ';     % center
+fwrite(dat, start, 'uint8'); 
+
+t = 10;
+
+for i = 1:t
+   A=fread(dat, [100,1], 'uint16');
+   B = [B; A];
+end
+
+start = 'a';     % left
+fwrite(dat, start, 'uint8'); 
+
+t = 10;
+
+for i = 1:t
+   A=fread(dat, [100,1], 'uint16');
+   B = [B; A];
+end
+
+start = ' ';     % center
+fwrite(dat, start, 'uint8'); 
+
 fclose(dat);
 disp 'Finish!'
 
-
-plot(B)
-grid on 

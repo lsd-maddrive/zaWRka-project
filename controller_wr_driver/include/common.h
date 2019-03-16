@@ -13,30 +13,38 @@ extern "C" {
 #endif
 
 #define     PROGRAM_ROUTINE_MASTER                      0
+/***    DRIVE CONTROL RELATED           ***/
 #define     PROGRAM_ROUTINE_TEST_LL_DRIVER              1
 #define     PROGRAM_ROUTINE_TEST_RAW_LL_DRIVE           2
 #define     PROGRAM_ROUTINE_TEST_ESC_CALIBRATION        3
+/***    ENCODER / ODOMETRY RELATED      ***/
 #define     PROGRAM_ROUTINE_TEST_ENCODER                4
 #define     PROGRAM_ROUTINE_TEST_ODOMETRY               5
 #define     PROGRAM_ROUTINE_TEST_RESET_ODOMETRY         6
+/***    REMOTE CONTROL RELATED          ***/
 #define     PROGRAM_ROUTINE_TEST_RC                     7
+/***    STEERING RELATED                ***/
 #define     PROGRAM_ROUTINE_TEST_STEERING_CS            8
 #define     PROGRAM_ROUTINE_TEST_STEER_ANGL_CALC        9
 #define     PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND        10
 #define     PROGRAM_ROUTINE_TEST_STEER_ANGLE_LLD_CONTRL 11
+/***    SPEED RELATED                   ***/
 #define     PROGRAM_ROUTINE_TEST_SPEED_CS               12
 #define     PROGRAM_ROUTINE_TEST_SPEED_LIMIT_CALIB      13
 #define     PROGRAM_ROUTINE_TEST_SPEED_FILTER           14
 #define     PROGRAM_ROUTINE_TEST_SPEED_SIN              15
+/***    BUTTON RELATED                  ***/
 #define     PROGRAM_ROUTINE_TEST_BUTTON_STATE           20
+/***    ROS RELATED                     ***/
 #define     PROGRAM_ROUTINE_TEST_ROS_ODOMETRY           30
 #define     PROGRAM_ROUTINE_TEST_ROS_CONTROL            35
 #define     PROGRAM_ROUTINE_TEST_FAKE_ROS_CONTROL       36
 #define     PROGRAM_ROUTINE_TEST_GUI_SERVER             40
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
+/***    TIMER RELATED                   ***/
 #define     PROGRAM_ROUTINE_TEST_SYSTEM_TIMER           61
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_MASTER
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND
 
 
 /**************/
@@ -58,9 +66,9 @@ extern "C" {
 #define SPEED_NULL_BACK     1450
 #define SPEED_MIN           1350    //1000
 
-#define STEER_MAX           2080
-#define STEER_NULL          1620
-#define STEER_MIN           1160
+#define STEER_MAX           2040 //1850 //2080
+#define STEER_NULL          1740
+#define STEER_MIN           1240 //1200//1160
 
 #define CONTROL_MAX         100
 #define CONTROL_NULL        0

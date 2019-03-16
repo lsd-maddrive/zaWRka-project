@@ -2,9 +2,12 @@
 #include <lld_steer_angle_fb.h>
 #include <lld_control.h>
 
-#define STEER_FB_TERMINAL
-#define ANGLE_CHECK
-#define TEST_STEER_MEAN_FILTER
+//#define STEER_FB_TERMINAL
+//#define ADC_CHECK
+//#define TEST_STEER_MEAN_FILTER
+
+#define STEER_FB_MATLAB
+#define TEST_STEER_LPF
 
 #ifdef STEER_FB_MATLAB
 static const SerialConfig sdcfg = {
@@ -31,44 +34,42 @@ void testSteerAngleSendData( void )
     lldControlInit( );
     debug_stream_init( );
 
-    steerAngleRawValue_t    test_raw_steer          = 0;
-    steerAngleRawValue_t    test_mean_raw_steer     = 0;
-    steerAngleRawValue_t    test_lpf_raw_steer      = 0;
+    uint16_t                test_raw_steer          = 0;
+    uint16_t                test_filtr_raw_steer    = 0;
 
     steerAngleRadValue_t    test_rad_angle          = 0;
     steerAngleDegValue_t    test_deg_angle          = 0;
-
 
     controlValue_t          test_steer_cntrl        = 0;
     controlValue_t          test_delta_steer_cntr   = 5;
 
 #ifdef STEER_FB_MATLAB
-    char                    steer_matlab_start  = 0;
+    uint8_t                    steer_matlab_start  = 0;
     uint8_t                 steer_start_flag    = 0;
+    uint16_t                matlab_time         = 0;
 #endif
 
+    systime_t   time = chVTGetSystemTimeX();
     while( true )
     {
-
         test_raw_steer      = lldGetSteerAngleRawADC( );
-        test_mean_raw_steer = lldGetSteerAngleFiltrMeanRawADC( );
-        test_lpf_raw_steer  = lldGetSteerAngleFiltrLPFRawADC( );
+        test_filtr_raw_steer  = lldGetSteerAngleFiltrRawADC( );
 
         test_rad_angle      = lldGetSteerAngleRad( );
         test_deg_angle      = lldGetSteerAngleDeg( );
 
-
-
-#ifdef STEER_FB_TERMINAL
+#ifdef STEER_FB_MATLAB
+        char rc_data = sdGetTimeout( &SD7, TIME_IMMEDIATE );
+#else
         char rc_data = sdGetTimeout( &SD3, TIME_IMMEDIATE );
-
+#endif
         switch( rc_data )
         {
           case 'a':     // turn max right
-            lldControlSetSteerMotorPower( -100 );
+            test_steer_cntrl    = -20;
             break;
           case 's':     // center
-            lldControlSetSteerMotorPower( 0 );
+            test_steer_cntrl    = 20;
             break;
           case 'd':     // turn max left
             lldControlSetSteerMotorPower( 100 );
@@ -78,6 +79,14 @@ void testSteerAngleSendData( void )
             break;
           case 'w':
             test_steer_cntrl -= test_delta_steer_cntr;
+            break;
+#ifdef STEER_FB_MATLAB
+          case 'p':
+            steer_start_flag = 1;
+            break;
+#endif
+          case ' ':
+            test_steer_cntrl  = 0;
             break;
 
           default:
@@ -90,41 +99,32 @@ void testSteerAngleSendData( void )
 #ifdef ADC_CHECK
 
         dbgprintf( "C:(%d)\tA_RAW:(%d)\tMEAN_RAW:(%d)\n\r",
-                  test_steer_cntrl, test_raw_steer, test_mean_raw_steer );
+                  test_steer_cntrl, test_raw_steer, test_filtr_raw_steer );
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
 #endif
 
 #ifdef ANGLE_CHECK
 
         dbgprintf( "CONTROL:(%d)\tRAD:(%d)\tDEG:(%d)\n\r",
                   test_steer_cntrl, (int)(test_rad_angle * 10), (int)test_deg_angle );
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
 #endif
-        chThdSleepMilliseconds( 300 );
-#endif
+
+
 
 #ifdef STEER_FB_MATLAB
-        steer_matlab_start = sdGetTimeout( &SD7, TIME_IMMEDIATE );
-
-        if( steer_matlab_start == 'p' ) steer_start_flag = 1;
-
         if( steer_start_flag == 1)
         {
-            palToggleLine( LINE_LED3 );
-            sdWrite(&SD7, (uint8_t*) &test_raw_steer, 2);
 
-#ifdef  TEST_STEER_MEAN_FILTER
-            sdWrite(&SD7, (uint8_t*) &test_mean_raw_steer, 2);
-#endif
-
-#ifdef  TEST_STEER_LPF
-            sdWrite(&SD7, (uint8_t*) &test_lpf_raw_steer, 2);
-#endif
+            sdWrite( &SD7, (uint8_t*) &matlab_time, 2);
+            sdWrite( &SD7, (uint8_t*) &test_raw_steer, 2);
+            sdWrite( &SD7, (uint8_t*) &test_filtr_raw_steer, 2);
+            matlab_time += 10;
         }
 
-        chThdSleepMilliseconds( 0.5 );
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 10 ) );
 #endif
-
     }
-
 }
 
 /*
@@ -155,28 +155,39 @@ void testSteerAngleDetection( void )
     }
 }
 
+
+
 void testSteerAngleGetControlAngleCoeffitient( void )
 {
     lldControlInit( );
     lldSteerAngleFBInit( );
+    debug_stream_init( );
 
     controlValue_t          steer_cntrl             = 0;
     controlValue_t          steer_cntrl_delta       = 1;
 
     steerAngleDegValue_t    steer_feedback_deg      = 0;
 
+    systime_t   time = chVTGetSystemTimeX( );
     while( 1 )
     {
 
-        char rc_data    = sdGetTimeout( &SD7, TIME_IMMEDIATE );
+        char rc_data    = sdGetTimeout( &SD3, TIME_IMMEDIATE );
+
         switch( rc_data )
         {
           case 'a': // left turn
             steer_cntrl   += steer_cntrl_delta;
             break;
+
           case 'd': // right turn
             steer_cntrl   -= steer_cntrl_delta;
             break;
+
+          case ' ':
+            steer_cntrl = 0;
+            break;
+
           default:
             ;
         }
@@ -187,12 +198,10 @@ void testSteerAngleGetControlAngleCoeffitient( void )
 
         lldControlSetSteerMotorPower( steer_cntrl );
 
-        chprintf( (BaseSequentialStream *)&SD7, "DEG:(%d)\tCONTROL:(%d)\n\r",
-                                  (int)(steer_feedback_deg * 100 ), steer_cntrl );
+        dbgprintf( "DEG:(%d)\tCONTROL:(%d)\n\r",
+                    (int)(steer_feedback_deg * 100 ), steer_cntrl );
 
-        chThdSleepMilliseconds( 200 );
-
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
     }
-
 }
 
