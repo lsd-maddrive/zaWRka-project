@@ -17,31 +17,42 @@ CATKIN_SRC_DIR="$CATKIN_WS/src"
 
 git -C $CATKIN_SRC_DIR/rosserial pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/ros-drivers/rosserial.git
 git -C $CATKIN_SRC_DIR/ydlidar pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/EAIBOT/ydlidar.git
-git -C $CATKIN_SRC_DIR/teb_local_planner pull 	|| git -C $CATKIN_SRC_DIR clone https://github.com/rst-tu-dortmund/teb_local_planner.git
-git -C $CATKIN_SRC_DIR/teleop_tools pull 		|| git -C $CATKIN_SRC_DIR clone https://github.com/KaiL4eK/teleop_tools.git
-# git -C $CATKIN_SRC_DIR/geometry pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/ros/geometry.git
-# git -C $CATKIN_SRC_DIR/geometry2 pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/ros/geometry2.git
-# git -C $CATKIN_SRC_DIR/usb_cam pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/ros-drivers/usb_cam.git
+git -C $CATKIN_SRC_DIR/hector_slam pull			|| git -C $CATKIN_SRC_DIR clone https://github.com/tu-darmstadt-ros-pkg/hector_slam.git
+git -C $CATKIN_SRC_DIR/scan_tools pull			|| git -C $CATKIN_SRC_DIR clone https://github.com/ccny-ros-pkg/scan_tools.git
+git -C $CATKIN_SRC_DIR/csm pull					|| git -C $CATKIN_SRC_DIR clone https://github.com/AndreaCensi/csm.git
 
 git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
 git -C wr8_ai/neural_networks pull 				|| git -C wr8_ai clone https://github.com/KaiL4eK/neural_networks.git
 
+if [ "$ROS_DISTRO" = "kinetic" ]; then
+	git -C $CATKIN_SRC_DIR/teb_local_planner pull 	|| git -C $CATKIN_SRC_DIR clone https://github.com/rst-tu-dortmund/teb_local_planner.git -b kinetic-devel
+	git -C $CATKIN_SRC_DIR/teleop_tools pull 		|| git -C $CATKIN_SRC_DIR clone https://github.com/KaiL4eK/teleop_tools.git -b kinetic-devel
+
+else
+	git -C $CATKIN_SRC_DIR/teb_local_planner pull 	|| git -C $CATKIN_SRC_DIR clone https://github.com/rst-tu-dortmund/teb_local_planner.git -b melodic-devel
+	git -C $CATKIN_SRC_DIR/teleop_tools pull 		|| git -C $CATKIN_SRC_DIR clone https://github.com/KaiL4eK/teleop_tools.git -b melodic-devel
+
+fi
+
 # ln -sf ../../neural_networks/_common/ncs.py                     	wr8_ai/src/wr8_ai/ncs.py
 # ln -sf ../../../neural_networks/TSD/keras-yolo3/utils   	        wr8_ai/src/wr8_ai/yolo
 
-sudo apt purge ros-$ROS_DISTRO-rosserial*
-sudo apt purge ros-$ROS_DISTRO-teb-local-planner*
-# sudo apt purge ros-$ROS_DISTRO-usb-cam
+sudo apt purge ros-$ROS_DISTRO-rosserial* \
+				ros-$ROS_DISTRO-teb-local-planner* \
+				ros-$ROS_DISTRO-usb-cam
 
 # -- Solution for roslaunch reconnection --
-sudo apt purge modemmanager 
+sudo apt purge modemmanager
 
 if [ "$ROS_DISTRO" = "kinetic" ]; then
-	sudo apt install ros-$ROS_DISTRO-hector-mapping \
-						ros-$ROS_DISTRO-gmapping \
+	sudo apt purge ros-$ROS_DISTRO-hector-mapping \
+						ros-$ROS_DISTRO-laser-scan-matcher
+
+	sudo apt install ros-$ROS_DISTRO-gmapping \
 						ros-$ROS_DISTRO-global-planner \
-						ros-$ROS_DISTRO-laser-scan-matcher \
-						ros-$ROS_DISTRO-qt-build
+						ros-$ROS_DISTRO-qt-build \
+						ros-$ROS_DISTRO-gazebo9-plugins
+
 fi
 
 sudo apt install ros-$ROS_DISTRO-move-base \
@@ -55,13 +66,16 @@ sudo apt install ros-$ROS_DISTRO-move-base \
 					ros-$ROS_DISTRO-interactive-markers \
 					ros-$ROS_DISTRO-libg2o \
 					ros-$ROS_DISTRO-qt-gui* \
-					ros-$ROS_DISTRO-uvc-camera
+					ros-$ROS_DISTRO-uvc-camera \
+					ros-$ROS_DISTRO-gazebo-ros-control
 
-sudo apt install libespeak-dev pyqt5-dev-tools
-
-# ros-$ROS_DISTRO-gazebo9-plugins \
+sudo apt install libespeak-dev \
+					pyqt5-dev-tools \
+					qt4-default libgsl-dev
 
 # Dont`forget /opt/movidius/intel-caffe/python
 
-pip install pygame pyserial catkin-pkg rospkg empy defusedxml netifaces numpy pyttsx3
+pip install pygame pyserial catkin-pkg rospkg empy defusedxml \
+			netifaces numpy pyttsx3 PySide2 pydot psutil pyopengl \
+			shiboken pyside
 cd wr8_software/scripts/graph_path; pyrcc5 -o resources.py my.qrc
