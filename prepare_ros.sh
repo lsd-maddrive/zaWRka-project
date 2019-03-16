@@ -21,6 +21,7 @@ git -C $CATKIN_SRC_DIR/teb_local_planner pull 	|| git -C $CATKIN_SRC_DIR clone h
 git -C $CATKIN_SRC_DIR/teleop_tools pull 		|| git -C $CATKIN_SRC_DIR clone https://github.com/KaiL4eK/teleop_tools.git
 # git -C $CATKIN_SRC_DIR/geometry pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/ros/geometry.git
 # git -C $CATKIN_SRC_DIR/geometry2 pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/ros/geometry2.git
+# git -C $CATKIN_SRC_DIR/usb_cam pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/ros-drivers/usb_cam.git
 
 git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
 git -C wr8_ai/neural_networks pull 				|| git -C wr8_ai clone https://github.com/KaiL4eK/neural_networks.git
@@ -29,7 +30,8 @@ git -C wr8_ai/neural_networks pull 				|| git -C wr8_ai clone https://github.com
 # ln -sf ../../../neural_networks/TSD/keras-yolo3/utils   	        wr8_ai/src/wr8_ai/yolo
 
 sudo apt purge ros-$ROS_DISTRO-rosserial*
-sudo apt purge ros-$ROS_DISTRO-teb-local-planner*
+sudo apt purge ros-$ROS_DISTRO-teb-local-planner* 
+# sudo apt purge ros-$ROS_DISTRO-usb-cam
 
 if [ "$ROS_DISTRO" = "kinetic" ]; then
 	sudo apt install ros-$ROS_DISTRO-hector-mapping \
@@ -40,6 +42,7 @@ if [ "$ROS_DISTRO" = "kinetic" ]; then
 fi
 
 sudo apt install ros-$ROS_DISTRO-move-base \
+					ros-$ROS_DISTRO-compressed-image-transport \
 					ros-$ROS_DISTRO-global-planner \
 					ros-$ROS_DISTRO-costmap-converter \
 					ros-$ROS_DISTRO-map-server \
@@ -47,9 +50,9 @@ sudo apt install ros-$ROS_DISTRO-move-base \
 					ros-$ROS_DISTRO-stereo-image-proc \
 					ros-$ROS_DISTRO-image-view \
 					ros-$ROS_DISTRO-interactive-markers \
-					ros-$ROS_DISTRO-usb-cam \
 					ros-$ROS_DISTRO-libg2o \
-					ros-$ROS_DISTRO-qt-gui*
+					ros-$ROS_DISTRO-qt-gui* \
+					ros-$ROS_DISTRO-uvc-camera
 
 sudo apt install libespeak-dev pyqt5-dev-tools
 

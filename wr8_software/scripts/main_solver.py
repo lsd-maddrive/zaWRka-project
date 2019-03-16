@@ -14,6 +14,7 @@ class StateProcessor:
 
 	IDLE = 0
 	RUN = 1
+	STOP = 2
 	
 	def __init__(self):
 
@@ -21,7 +22,8 @@ class StateProcessor:
 
 		# self.state_names = ['Idle', 'Run']
 		self.states = {self.IDLE: self.idle_init_state, 
-					   self.RUN: self.run_init_state}
+					   self.RUN: self.run_init_state,
+					   self.STOP: self.stop_init_state}
 
 		self.last_state = self.IDLE
 		self.state_changed = False
@@ -47,6 +49,9 @@ class StateProcessor:
 
 	def idle_init_state(self):
 		rospy.loginfo('New state - IDLE')
+
+	def stop_init_state(self):
+		rospy.loginfo('New state - STOP')
 
 	def run_init_state(self):
 		rospy.loginfo('New state - RUN')
@@ -75,14 +80,14 @@ class StateProcessor:
 class ControllerSLAM:
 	def __init__(self):
 		uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
-		roslaunch.configure_logging(uuid)
-
 		rospy.loginfo('UUID generated: {}'.format(uuid))
+
+		roslaunch.configure_logging(uuid)
 
 		lidar_cli_args = ['wr8_software', 'slam.launch']
 		roslaunch_lidar_file = roslaunch.rlutil.resolve_launch_arguments(lidar_cli_args)
 
-		self.launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_lidar_file)
+		self.launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_lidar_file, verbose=True, force_screen=True)
 
 		self.is_enabled = False
 		rospy.loginfo("ControllerSLAM initialized")
@@ -118,7 +123,9 @@ def main():
 
 			if state_pr.last_state == StateProcessor.RUN:
 				slam_ctr.start()
-			else:
+			elif state_pr.last_state == StateProcessor.STOP:
+				slam_ctr.stop()
+			elif state_pr.last_state == StateProcessor.IDLE:
 				slam_ctr.stop()
 
 		rate.sleep()
