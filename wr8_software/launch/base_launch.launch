@@ -6,6 +6,7 @@
     <arg name="lidar" default="true" />
     <arg name="cameras" default="true" />
     <arg name="uc" default="true" />
+    <arg name="solver" default="true" />
 
     <include if="$(arg uc)" file="$(find wr8_software)/launch/base/serial_uc_link.launch">
         <arg name="device" value="/dev/serial/by-id/usb-STMicroelectronics_ChibiOS_RT_Virtual_COM_Port_400-if00" />
@@ -15,7 +16,7 @@
         <!-- All defaults -->
     </include>
 
-    <node pkg="wr8_software" type="main_solver.py" name="main_solver" output="screen" respawn="true">
+    <node if="$(arg solver)" pkg="wr8_software" type="main_solver.py" name="main_solver" output="screen" respawn="true">
 
     </node>
 
