@@ -259,9 +259,9 @@
   <gazebo reference="hokuyo_link">
     <material>Gazebo/Black</material>
 
-    <sensor type="gpu_ray" name="head_hokuyo_sensor">
-      <visualize>false</visualize>
-      <update_rate>10</update_rate>
+    <sensor type="ray" name="head_hokuyo_sensor">
+      <visualize>true</visualize>
+      <update_rate>7.5</update_rate>
       <ray>
         <scan>
           <horizontal>
@@ -281,10 +281,10 @@
         <noise>
           <type>gaussian</type>
           <mean>0.0</mean>
-          <stddev>0.01</stddev>
+          <stddev>0.03</stddev>
         </noise>
       </ray>
-      <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_gpu_laser.so">
+      <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
         <topicName>scan</topicName>
         <frameName>hokuyo_link</frameName>
       </plugin>

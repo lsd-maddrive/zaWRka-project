@@ -9,4 +9,5 @@ DST="$HEAD_USER@$HEAD_ADDR:~/catkin_ws/src"
 
 rsync -avzPc ../AutoNetChallenge/ 	$DST/AutoNetChallenge/ --exclude='sync_target.sh' \
 															--exclude='controller_wr_driver' \
-															--exclude='neural_networks'
+															--exclude='neural_networks' \
+															--delete
