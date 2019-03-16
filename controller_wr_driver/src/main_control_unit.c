@@ -33,12 +33,18 @@ odometrySpeedValue_t    speed_radps    = 0;
 float                   steer_angl_deg = 0;
 float                   speed_lpf_mps  = 0;
 
+/*
+ * Check if ROS is spamming with control values,
+ * if not, stops the car
+ */
 static void is_ros_dead_cb( void *arg )
 {
-      ros_speed_control = 0;
-      ros_steer_control = 0;
+    arg = arg;  // to avoid warnings
 
-      dbgprintf( "ROS is dead!\n\r", time_checker_vt);
+    ros_speed_control = 0;
+    ros_steer_control = 0;
+
+    dbgprintf( "ROS is dead!\n\r", time_checker_vt);
 }
 
 void ros_is_alive( void )
@@ -57,6 +63,8 @@ void ros_control_handler( float speed, float steer )
 static THD_WORKING_AREA(waStateSender, 128); // 128 - stack size
 static THD_FUNCTION(StateSender, arg)
 {
+    arg = arg;            // to avoid warnings
+
     while(1)
     {
         system_state state_now  = lldGetSystemState( );

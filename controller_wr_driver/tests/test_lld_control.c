@@ -80,14 +80,13 @@ void testWheelsControlRoutines( void )
 
     uint8_t     matlab_start_flag   = 0;
     uint16_t    matlab_speed_cmps   = 0;
-#else
-    debug_stream_init( );
 #endif
+    debug_stream_init( );
 
     lldControlInit( );
     lldOdometryInit( );
 
-    controlValue_t          speed_values_delta  = 25;
+    controlValue_t          speed_values_delta  = 5;
     controlValue_t          speed_value         = 0;
 
     controlValue_t          steer_values_delta  = 1;
@@ -95,24 +94,23 @@ void testWheelsControlRoutines( void )
 
     odometrySpeedValue_t    test_speed_lpf      = 0;
 
+    systime_t   time = chVTGetSystemTimeX( );
 
     while ( 1 )
     {
 #ifdef SERIAL_SD7
-
         char rcv_data = sdGetTimeout( &SD7, TIME_IMMEDIATE );
-
 #else
         char rcv_data = sdGetTimeout( &SD3, TIME_IMMEDIATE );
 #endif
         switch ( rcv_data )
         {
             case 'a':   // Positive speed
-              speed_value += 15; //speed_values_delta;
+              speed_value += speed_values_delta;
               break;
 
             case 'd':   // Negative speed
-              speed_value = -1; //speed_values_delta;
+              speed_value = speed_values_delta;
               break;
 
             case 's':
@@ -144,7 +142,6 @@ void testWheelsControlRoutines( void )
         steer_value     = CLIP_VALUE( steer_value, CONTROL_MIN, CONTROL_MAX );
         test_speed_lpf  = lldOdometryGetLPFObjSpeedMPS( );
 
-
         lldControlSetDrMotorPower( speed_value );
         lldControlSetSteerMotorPower( steer_value );
 #ifdef SERIAL_SD7
@@ -154,13 +151,12 @@ void testWheelsControlRoutines( void )
           sdWrite(&SD7, (uint8_t*) &speed_value, 2);
           sdWrite(&SD7, (uint8_t*) &matlab_speed_cmps, 2);
         }
-//        chprintf( (BaseSequentialStream *)&SD7, "Speed(%d)\tSteer(%d)\n\r",
-//                         speed_value, steer_value );
+
 #else
         dbgprintf( "SP(%d)\tR_SP:(%d)\tST(%d)\t\n\r",
                          speed_value, (int)( test_speed_lpf * 100 ), steer_value );
 #endif
-        chThdSleepMilliseconds( 10 );
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 10 ) );
     }
 }
 

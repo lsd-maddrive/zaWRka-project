@@ -56,7 +56,6 @@ float               lld_speed_back_b    = 0;
 float               lld_steer_k         = 0;
 float               lld_steer_b         = 0;
 
-
 /**
  * @brief   Initialize periphery connected to driver control
  * @note    Stable for repeated calls
@@ -88,7 +87,6 @@ void lldControlInit( void )
     isInitialized = true;
 
 }
-
 
 /**
  * @brief   Set power for driving motor

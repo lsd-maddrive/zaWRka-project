@@ -43,4 +43,9 @@ rawRevEncoderValue_t   lldGetEncoderRawRevs( void );
  */
 rawEncoderValue_t   lldGetAbsoluteEncoderRawRevs( void );
 
+
+/*
+ * NEED COMMENTS
+ */
+void lldResetEncoder( void );
 #endif /* INCLUDE_LLD_ENCODER_H_ */

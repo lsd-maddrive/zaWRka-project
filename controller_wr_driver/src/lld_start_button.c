@@ -23,46 +23,43 @@ static void ext_but_cb(EXTDriver *extp, expchannel_t channel)
  */
 static void stop_vt_cb( void *arg )
 {
+    arg = arg;  // to avoid warnings
+
     cur_system_state  = IDLE;
 }
 
 static THD_WORKING_AREA(waButton, 128); // 128 - stack size
 static THD_FUNCTION(Button, arg)
 {
-  arg = arg; // just to avoid warnings
+    arg = arg;            // just to avoid warnings
 
-  msg_t msg_button;     // var for mode detection
+    msg_t msg_button;     // var for mode detection
 
-  while( true )
-  {
-    /* Waiting for the IRQ to happen */
-    chSysLock();
-    msg_button = chThdSuspendS( &trp_button );
-    chSysUnlock();
-
-    if( msg_button == MSG_OK )
+    while( true )
     {
-      chThdSleepMicroseconds( 50 );
-      if( palReadLine( START_BUTTON_LINE ) == 0)
-      {
-          if( cur_system_state == IDLE )
-          {
-              cur_system_state = RUN;
+        /* Waiting for the IRQ to happen */
+        chSysLock();
+        msg_button = chThdSuspendS( &trp_button );
+        chSysUnlock();
 
-              chVTSet( &stop_vt, S2ST( 240 ), stop_vt_cb, NULL );
-
-
-
-          }
-          else if( cur_system_state == RUN )
-          {
-              cur_system_state = IDLE;
-              chVTReset( &stop_vt );
-
-          }
-      }
+        if( msg_button == MSG_OK )
+        {
+            chThdSleepMicroseconds( 50 ); // to avoid button bounce
+            if( palReadLine( START_BUTTON_LINE ) == 0)
+            {
+                if( cur_system_state == IDLE )
+                {
+                    cur_system_state = RUN;
+                    chVTSet( &stop_vt, S2ST( 240 ), stop_vt_cb, NULL );
+                }
+                else if( cur_system_state == RUN )
+                {
+                    cur_system_state = IDLE;
+                    chVTReset( &stop_vt );
+                }
+            }
+        }
     }
-  }
 }
 
 /**

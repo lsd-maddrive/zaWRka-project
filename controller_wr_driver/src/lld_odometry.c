@@ -154,11 +154,11 @@ static void odom_update_vt_cb( void *arg )
 
     odometryValue_t         steer_angl_rad = lldGetSteerAngleRad( );
 
-/* TODO - Added for test, check if required */
-if ( steer_angl_rad > 0 )
-    steer_angl_rad *= correction_k_left;
-else
-    steer_angl_rad *= correction_k_right;
+    /* TODO - Added for test, check if required */
+    if ( steer_angl_rad > 0 )
+        steer_angl_rad *= correction_k_left;
+    else
+        steer_angl_rad *= correction_k_right;
 
     tetta_speed_rad_s = ( speed_m_per_sec * tan( steer_angl_rad ) * tetta_k_rad );
 

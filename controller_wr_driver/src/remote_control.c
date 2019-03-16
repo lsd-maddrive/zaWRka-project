@@ -170,9 +170,7 @@ bool rcModeIsEnabled( void )
  */
 pwmValue_t rcGetSpeedDutyCycleValue( void )
 {
-
     return speed_rc;
-
 }
 
 /**
@@ -183,9 +181,7 @@ pwmValue_t rcGetSpeedDutyCycleValue( void )
  */
 pwmValue_t rcGetSteerDutyCycleValue( void )
 {
-
     return steer_rc;
-
 }
 
 /**

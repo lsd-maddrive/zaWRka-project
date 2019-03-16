@@ -8,7 +8,7 @@ void testGUIRoutineServer( void )
 {
     ros_driver_init( NORMALPRIO, NULL );
     lldEncoderInit( );
-    lldSteeringControlInit( );
+//    lldSteeringControlInit( );
 
     steerAngleDegValue_t    deg_steer_angle = 0;
     rawEncoderValue_t       enc_revs = 0;

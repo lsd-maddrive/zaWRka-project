@@ -4,10 +4,9 @@
 
 //#define STEER_FB_TERMINAL
 //#define ADC_CHECK
-//#define TEST_STEER_MEAN_FILTER
+//#define ANGLE_CHECK
 
 #define STEER_FB_MATLAB
-#define TEST_STEER_LPF
 
 #ifdef STEER_FB_MATLAB
 static const SerialConfig sdcfg = {
@@ -19,8 +18,8 @@ static const SerialConfig sdcfg = {
 /*
  * @brief   Test for routine of getting steering angle
  * @note    There are 2 options:
- *          * send data to Matlab
- *          * send data to Terminal
+ *          * send data to Matlab (STEER_FB_MATLAB)
+ *          * send data to Terminal (STEER_FB_TERMINAL)
 */
 void testSteerAngleSendData( void )
 {
@@ -36,15 +35,14 @@ void testSteerAngleSendData( void )
 
     uint16_t                test_raw_steer          = 0;
     uint16_t                test_filtr_raw_steer    = 0;
-
+#ifdef ANGLE_CHECK
     steerAngleRadValue_t    test_rad_angle          = 0;
     steerAngleDegValue_t    test_deg_angle          = 0;
-
+#endif
     controlValue_t          test_steer_cntrl        = 0;
     controlValue_t          test_delta_steer_cntr   = 5;
 
 #ifdef STEER_FB_MATLAB
-    uint8_t                    steer_matlab_start  = 0;
     uint8_t                 steer_start_flag    = 0;
     uint16_t                matlab_time         = 0;
 #endif
@@ -54,10 +52,10 @@ void testSteerAngleSendData( void )
     {
         test_raw_steer      = lldGetSteerAngleRawADC( );
         test_filtr_raw_steer  = lldGetSteerAngleFiltrRawADC( );
-
+#ifdef ANGLE_CHECK
         test_rad_angle      = lldGetSteerAngleRad( );
         test_deg_angle      = lldGetSteerAngleDeg( );
-
+#endif
 #ifdef STEER_FB_MATLAB
         char rc_data = sdGetTimeout( &SD7, TIME_IMMEDIATE );
 #else
@@ -65,13 +63,13 @@ void testSteerAngleSendData( void )
 #endif
         switch( rc_data )
         {
-          case 'a':     // turn max right
+          case 'a':     // turn right
             test_steer_cntrl    = -20;
             break;
           case 's':     // center
             test_steer_cntrl    = 20;
             break;
-          case 'd':     // turn max left
+          case 'd':     // turn left
             lldControlSetSteerMotorPower( 100 );
             break;
           case 'q':
@@ -100,17 +98,18 @@ void testSteerAngleSendData( void )
 
         dbgprintf( "C:(%d)\tA_RAW:(%d)\tMEAN_RAW:(%d)\n\r",
                   test_steer_cntrl, test_raw_steer, test_filtr_raw_steer );
+
         time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
 #endif
 
 #ifdef ANGLE_CHECK
 
         dbgprintf( "CONTROL:(%d)\tRAD:(%d)\tDEG:(%d)\n\r",
-                  test_steer_cntrl, (int)(test_rad_angle * 10), (int)test_deg_angle );
+                  test_steer_cntrl, (int)(test_rad_angle * 10),
+                  (int)test_deg_angle );
+
         time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
 #endif
-
-
 
 #ifdef STEER_FB_MATLAB
         if( steer_start_flag == 1)
@@ -127,81 +126,4 @@ void testSteerAngleSendData( void )
     }
 }
 
-/*
- * @brief   Control steering wheels to get angle
- * @note    Control ONLY steering wheels
-*/
-void testSteerAngleDetection( void )
-{
-    lldControlInit( );
-
-    while(1)
-    {
-        char rc_data = sdGet( &SD7 );
-        switch( rc_data )
-        {
-             case 'a':      // turn right
-               lldControlSetSteerMotorPower( -100 );
-               break;
-             case 'q':      // center
-               lldControlSetSteerMotorPower( 0 );
-               break;
-             case 'z':      // turn left
-               lldControlSetSteerMotorPower( 100 );
-               break;
-        }
-
-        chThdSleepMilliseconds( 200 );
-    }
-}
-
-
-
-void testSteerAngleGetControlAngleCoeffitient( void )
-{
-    lldControlInit( );
-    lldSteerAngleFBInit( );
-    debug_stream_init( );
-
-    controlValue_t          steer_cntrl             = 0;
-    controlValue_t          steer_cntrl_delta       = 1;
-
-    steerAngleDegValue_t    steer_feedback_deg      = 0;
-
-    systime_t   time = chVTGetSystemTimeX( );
-    while( 1 )
-    {
-
-        char rc_data    = sdGetTimeout( &SD3, TIME_IMMEDIATE );
-
-        switch( rc_data )
-        {
-          case 'a': // left turn
-            steer_cntrl   += steer_cntrl_delta;
-            break;
-
-          case 'd': // right turn
-            steer_cntrl   -= steer_cntrl_delta;
-            break;
-
-          case ' ':
-            steer_cntrl = 0;
-            break;
-
-          default:
-            ;
-        }
-
-        steer_feedback_deg  = lldGetSteerAngleDeg( );
-
-        steer_cntrl = CLIP_VALUE( steer_cntrl, -100, 100 );
-
-        lldControlSetSteerMotorPower( steer_cntrl );
-
-        dbgprintf( "DEG:(%d)\tCONTROL:(%d)\n\r",
-                    (int)(steer_feedback_deg * 100 ), steer_cntrl );
-
-        time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
-    }
-}
 

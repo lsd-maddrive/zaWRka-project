@@ -58,9 +58,20 @@ void testEncoderCommonRoutine( void );
 /***    Odometry tests  ***/
 /**************************/
 
+/*
+ * @brief   Test Odometry Routine
+ * @note    There are 5 options:
+ *          * TOTAL_ODOMETRY (
+ *          * SPEED_ODOMETRY
+ *          * POS_ODOMETRY
+ *          * TETTA_ODOMETRY
+ *          * JUST_ODOMETRY
+*/
 void testOdometryRoutine( void );
 
-
+/*
+ * @brief   Test for odometry reset
+ */
 void testResetOdometryRoutine( void );
 
 /****************************/
@@ -80,21 +91,10 @@ void testRemoteControlRoutine( void );
 /*
  * @brief   Test for routine of getting steering angle
  * @note    There are 2 options:
- *          * send data to Matlab
- *          * send data to Terminal
+ *          * send data to Matlab (STEER_FB_MATLAB)
+ *          * send data to Terminal (STEER_FB_TERMINAL)
 */
 void testSteerAngleSendData( void );
-
-/*
- * @brief   Control steering wheels to get angle
- * @note    Control ONLY steering wheels
-*/
-void testSteerAngleDetection( void );
-
-/*
- * @brief
- */
-void testSteerAngleGetControlAngleCoeffitient( void );
 
 
 /*************************************/
@@ -190,10 +190,6 @@ static inline void testsRoutines( void )
 
     testResetOdometryRoutine( );
 
-#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEER_ANGL_CALC)
-
-    testSteerAngleDetection( );
-
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND )
 
     testSteerAngleSendData( );
@@ -217,10 +213,6 @@ static inline void testsRoutines( void )
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEERING_CS )
 
     testSteeringCS( );
-
-#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEER_ANGLE_LLD_CONTRL )
-
-    testSteerAngleGetControlAngleCoeffitient( );
 
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_CS )
 

@@ -3,43 +3,60 @@
 #include <lld_steer_angle_fb.h>
 #include <lld_control.h>
 
-
-static const SerialConfig sdcfg = {
-  .speed = 115200,
-  .cr1 = 0, .cr2 = 0, .cr3 = 0
-};
-
-
 #define JUST_ODOMETRY
 
-
+/*
+ * @brief   Test Odometry Routine
+ * @note    There are 5 options:
+ *          * TOTAL_ODOMETRY (
+ *          * SPEED_ODOMETRY
+ *          * POS_ODOMETRY
+ *          * TETTA_ODOMETRY
+ *          * JUST_ODOMETRY
+*/
 void testOdometryRoutine( void )
 {
-    sdStart( &SD7, &sdcfg );
-    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
-    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
-
-    lldOdometryInit( );
-
-    odometryValue_t         test_distance   = 0;
-    odometryRawSpeedValue_t test_speed_rps  = 0;
-    odometrySpeedValue_t    test_speed_cmps = 0;
-    odometrySpeedValue_t    test_speed_mps  = 0;
-
-    odometryValue_t         test_tetta_rad  = 0;
-    odometryValue_t         test_tetta_deg  = 0;
-    odometryValue_t         test_x_pos      = 0;
-    odometryValue_t         test_y_pos      = 0;
-
-    steerAngleRawValue_t    test_raw_fb     = 0;
-    steerAngleRadValue_t    test_rad_fb     = 0;
-    steerAngleDegValue_t    test_deg_fb     = 0;
-
-
-    chprintf( (BaseSequentialStream *)&SD7, "TEST ODOMETRY\n\r" );
-
+      lldOdometryInit( );
+      debug_stream_init( );
+#ifdef TOTAL_ODOMETRY
+      odometryValue_t         test_distance   = 0;
+      odometryRawSpeedValue_t test_speed_rps  = 0;
+      odometrySpeedValue_t    test_speed_cmps = 0;
+      odometrySpeedValue_t    test_speed_mps  = 0;
+      odometryValue_t         test_tetta_rad  = 0;
+      odometryValue_t         test_tetta_deg  = 0;
+      odometryValue_t         test_x_pos      = 0;
+      odometryValue_t         test_y_pos      = 0;
+#endif
+#ifdef SPEED_ODOMETRY
+      odometryRawSpeedValue_t test_speed_rps  = 0;
+      odometrySpeedValue_t    test_speed_cmps = 0;
+      odometrySpeedValue_t    test_speed_mps  = 0;
+#endif
+#ifdef POS_ODOMETRY
+      odometryValue_t         test_distance   = 0;
+      odometrySpeedValue_t    test_speed_mps  = 0;
+      odometryValue_t         test_tetta_rad  = 0;
+      odometryValue_t         test_x_pos      = 0;
+      odometryValue_t         test_y_pos      = 0;
+#endif
+#ifdef TETTA_ODOMETRY
+      odometryValue_t         test_tetta_rad  = 0;
+      odometryValue_t         test_tetta_deg  = 0;
+      steerAngleRadValue_t    test_rad_fb     = 0;
+      steerAngleDegValue_t    test_deg_fb     = 0;
+#endif
+#ifdef JUST_ODOMETRY
+      steerAngleDegValue_t    test_deg_fb     = 0;
+      odometryValue_t         test_tetta_rad  = 0;
+      odometryValue_t         test_tetta_deg  = 0;
+      odometryValue_t         test_x_pos      = 0;
+      odometryValue_t         test_y_pos      = 0;
+#endif
+    systime_t   time = chVTGetSystemTimeX( );
     while( 1 )
     {
+#ifdef TOTAL_ODOMETRY
         test_distance   = lldGetOdometryObjDistance( OBJ_DIST_CM );
         test_speed_rps  = lldGetOdometryRawSpeedRPS( );
         test_speed_cmps = lldGetOdometryObjSpeedCMPS( );
@@ -48,46 +65,73 @@ void testOdometryRoutine( void )
         test_tetta_deg  = lldGetOdometryObjTettaDeg( );
         test_x_pos      = lldGetOdometryObjX( OBJ_DIST_CM );
         test_y_pos      = lldGetOdometryObjY( OBJ_DIST_CM );
-
-        test_raw_fb     = lldGetSteerAngleFiltrMeanRawADC( );
+#endif
+#ifdef  SPEED_ODOMETRY
+        test_speed_rps  = lldGetOdometryRawSpeedRPS( );
+        test_speed_cmps = lldGetOdometryObjSpeedCMPS( );
+        test_speed_mps  = lldGetOdometryObjSpeedMPS( );
+#endif
+#ifdef  POS_ODOMETRY
+        test_distance   = lldGetOdometryObjDistance( OBJ_DIST_CM );
+        test_speed_mps  = lldGetOdometryObjSpeedMPS( );
+        test_tetta_rad  = lldGetOdometryObjTettaRad( );
+        test_x_pos      = lldGetOdometryObjX( OBJ_DIST_CM );
+        test_y_pos      = lldGetOdometryObjY( OBJ_DIST_CM );
+#endif
+#ifdef  TETTA_ODOMETRY
+        test_tetta_rad  = lldGetOdometryObjTettaRad( );
+        test_tetta_deg  = lldGetOdometryObjTettaDeg( );
         test_rad_fb     = lldGetSteerAngleRad( );
         test_deg_fb     = lldGetSteerAngleDeg( );
-
+#endif
+#ifdef JUST_ODOMETRY
+        test_deg_fb     = lldGetSteerAngleDeg( );
+        test_tetta_rad  = lldGetOdometryObjTettaRad( );
+        test_tetta_deg  = lldGetOdometryObjTettaDeg( );
+        test_x_pos      = lldGetOdometryObjX( OBJ_DIST_CM );
+        test_y_pos      = lldGetOdometryObjY( OBJ_DIST_CM );
+#endif
 
 #ifdef TOTAL_ODOMETRY
-        chprintf( (BaseSequentialStream *)&SD7, "DIST:(%d)\tRPS:(%d)\tCMPS:(%d)\tMPS:(%d)\tT_R:(%d)\tT_D:(%d)\tX:(%d)\tY:(%d)\n\r",
-                  (int)test_distance, (int)test_speed_rps, (int)test_speed_cmps, (int)test_speed_mps,
+        dbgprintf( "DIST:(%d)\tRPS:(%d)\tCMPS:(%d)\tMPS:(%d)\tT_R:(%d)\tT_D:(%d)\tX:(%d)\tY:(%d)\n\r",
+                  (int)test_distance, (int)test_speed_rps, (int)test_speed_cmps,
+                  (int)test_speed_mps,
                   (int)test_tetta_rad, (int)test_tetta_deg,
                   (int)test_x_pos, (int)test_y_pos );
 #endif
 
 #ifdef SPEED_ODOMETRY
-        chprintf( (BaseSequentialStream *)&SD7, "RPS:(%d)\tCMPS:(%d)\tMPS:(%d)\n\r",
-                          (int)test_speed_rps, (int)test_speed_cmps, (int)(test_speed_mps * 10) );
+        dbgprintf( "RPS:(%d)\tCMPS:(%d)\tMPS:(%d)\n\r",
+                      (int)test_speed_rps, (int)test_speed_cmps,
+                      (int)(test_speed_mps * 10) );
 #endif
 
 #ifdef POS_ODOMETRY
-        chprintf( (BaseSequentialStream *)&SD7, "DIST:(%d)\tMPS:(%d)\tT_R:(%d)\tX:(%d)\tY:(%d)\n\r",
-                          (int)test_distance, (int)test_speed_mps*10, (int)(test_tetta_rad * 10),
-                          (int)test_x_pos, (int)test_y_pos );
+        dbgprintf( "DIST:(%d)\tMPS:(%d)\tT_R:(%d)\tX:(%d)\tY:(%d)\n\r",
+                      (int)test_distance, (int)test_speed_mps*10, (int)(test_tetta_rad * 10),
+                      (int)test_x_pos, (int)test_y_pos );
 #endif
 
 #ifdef TETTA_ODOMETRY
-       chprintf( (BaseSequentialStream *)&SD7, "Tetta RAD:(%d)\tTetta DEG:(%d)\tSteer_RAD:(%d)\tSteer_DEG:(%d)\n\r",
-                                  (int)(test_tetta_rad * 10), (int)(test_tetta_deg ), (int)(test_rad_fb * 10), (int)test_deg_fb);
+        dbgprintf( "Tetta RAD:(%d)\tTetta DEG:(%d)\tSteer_RAD:(%d)\tSteer_DEG:(%d)\n\r",
+                      (int)(test_tetta_rad * 10), (int)(test_tetta_deg ),
+                      (int)(test_rad_fb * 10), (int)test_deg_fb );
 #endif
 
 #ifdef JUST_ODOMETRY
-       chprintf( (BaseSequentialStream *)&SD7, "STEER_DEG:(%d)\tT_R:(%d)\tT_D:(%d)\tX:(%d)\tY:(%d)\n\r",
-                         (int)test_deg_fb,
-                         (int)test_tetta_rad, (int)test_tetta_deg,
-                         (int)test_x_pos, (int)test_y_pos );
+       dbgprintf( "STEER_DEG:(%d)\tT_R:(%d)\tT_D:(%d)\tX:(%d)\tY:(%d)\n\r",
+                     (int)test_deg_fb,
+                     (int)test_tetta_rad, (int)test_tetta_deg,
+                     (int)test_x_pos, (int)test_y_pos );
 #endif
 
-        chThdSleepMilliseconds( 100 );
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
     }
 }
 
+/*
+ * @brief   Test for odometry reset
+*/
 void testResetOdometryRoutine( void )
 {
     lldOdometryInit( );
@@ -103,10 +147,6 @@ void testResetOdometryRoutine( void )
     odometryValue_t         test_tetta_deg  = 0;
     odometryValue_t         test_x_pos      = 0;
     odometryValue_t         test_y_pos      = 0;
-
-    steerAngleRawValue_t    test_raw_fb     = 0;
-    steerAngleRadValue_t    test_rad_fb     = 0;
-    steerAngleDegValue_t    test_deg_fb     = 0;
 
     float                   test_speed      = 0;
     float                   d_speed         = 2; // %
@@ -148,7 +188,6 @@ void testResetOdometryRoutine( void )
       lldControlSetSteerMotorPower( test_steer );
       lldControlSetDrMotorPower( test_speed );
 
-
       test_distance   = lldGetOdometryObjDistance( OBJ_DIST_CM );
       test_speed_rps  = lldGetOdometryRawSpeedRPS( );
       test_speed_cmps = lldGetOdometryObjSpeedCMPS( );
@@ -158,19 +197,11 @@ void testResetOdometryRoutine( void )
       test_x_pos      = lldGetOdometryObjX( OBJ_DIST_CM );
       test_y_pos      = lldGetOdometryObjY( OBJ_DIST_CM );
 
-      test_raw_fb     = lldGetSteerAngleFiltrMeanRawADC( );
-      test_rad_fb     = lldGetSteerAngleRad( );
-      test_deg_fb     = lldGetSteerAngleDeg( );
-
       dbgprintf( "DIST:(%d)\tRPS:(%d)\tCMPS:(%d)\tMPS:(%d)\tT_R:(%d)\tT_D:(%d)\tX:(%d)\tY:(%d)\n\r",
               (int)test_distance, (int)test_speed_rps, (int)test_speed_cmps, (int)test_speed_mps,
               (int)test_tetta_rad, (int)test_tetta_deg,
               (int)test_x_pos, (int)test_y_pos );
 
-
-
-        time = chThdSleepUntilWindowed( time, time + MS2ST( 200 ) );
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
     }
-
-
 }

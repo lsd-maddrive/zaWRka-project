@@ -25,14 +25,12 @@ extern "C" {
 #define     PROGRAM_ROUTINE_TEST_RC                     7
 /***    STEERING RELATED                ***/
 #define     PROGRAM_ROUTINE_TEST_STEERING_CS            8
-#define     PROGRAM_ROUTINE_TEST_STEER_ANGL_CALC        9
-#define     PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND        10
-#define     PROGRAM_ROUTINE_TEST_STEER_ANGLE_LLD_CONTRL 11
+#define     PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND        9
 /***    SPEED RELATED                   ***/
-#define     PROGRAM_ROUTINE_TEST_SPEED_CS               12
-#define     PROGRAM_ROUTINE_TEST_SPEED_LIMIT_CALIB      13
-#define     PROGRAM_ROUTINE_TEST_SPEED_FILTER           14
-#define     PROGRAM_ROUTINE_TEST_SPEED_SIN              15
+#define     PROGRAM_ROUTINE_TEST_SPEED_CS               11
+#define     PROGRAM_ROUTINE_TEST_SPEED_LIMIT_CALIB      12
+#define     PROGRAM_ROUTINE_TEST_SPEED_FILTER           13
+#define     PROGRAM_ROUTINE_TEST_SPEED_SIN              14
 /***    BUTTON RELATED                  ***/
 #define     PROGRAM_ROUTINE_TEST_BUTTON_STATE           20
 /***    ROS RELATED                     ***/
