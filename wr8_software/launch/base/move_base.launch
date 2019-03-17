@@ -25,7 +25,8 @@
     <!-- reset frame_id parameters using user input data -->
     <param name="global_costmap/global_frame" value="$(arg global_frame)"/>
     <param name="global_costmap/robot_base_frame" value="$(arg base_frame)"/>
-    <param name="local_costmap/global_frame" value="$(arg odom_frame)"/>
+    <!-- <param name="local_costmap/global_frame" value="$(arg odom_frame)"/> -->
+    <param name="local_costmap/global_frame" value="$(arg global_frame)"/>
     <param name="local_costmap/robot_base_frame" value="$(arg base_frame)"/>
     <!-- <param name="TebLocalPlannerROS/global_frame" value="$(arg odom_frame)"/> -->
 
