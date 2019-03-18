@@ -21,11 +21,10 @@ TebLocalPlannerROS:
     max_vel_x: 0.4
     max_vel_x_backwards: 0.3
     max_vel_theta: 0.43
-    acc_lim_x: 0.05
+    acc_lim_x: 0.03
     acc_lim_theta: 0.05
     # Just to avoid too high turn
     min_turning_radius: 0.65
-    # min_turning_radius: 1.5
     footprint_model: # types: "point", "circular", "two_circles", "line", "polygon"
         type: "polygon"
         # radius: 0.3 # for type "circular"
@@ -53,7 +52,7 @@ TebLocalPlannerROS:
     # costmap_converter_spin_thread: True
     # costmap_converter_rate: 5
 
-    global_plan_viapoint_sep: 1
+    global_plan_viapoint_sep: 0.1
     # Optimization
 
     no_inner_iterations: 5
@@ -70,6 +69,8 @@ TebLocalPlannerROS:
     weight_kinematics_turning_radius: 10
     weight_optimaltime: 50
     weight_obstacle: 50
+    weight_viapoint: 20
+
     weight_dynamic_obstacle: 10 # not in use yet
     # selection_alternative_time_cost: False # not in use yet
 

@@ -9,6 +9,7 @@
 #include <QCoreApplication>
 #include <QObject>
 #include <QTimer>
+#include <QVector>
 
 class ROSServer : public QThread
 {
@@ -24,6 +25,8 @@ class ROSServer : public QThread
     MapPackage m_map;
 
     ros::Publisher m_ctrl_pub;
+
+    QVector<qintptr> connections;
 
 public:
     ROSServer(SVServer *server) :
@@ -41,8 +44,30 @@ public:
 
         QObject::connect( server, SIGNAL(signalControl(ControlPackage const&)), this, SLOT(cmdCb(ControlPackage const&)) );
         
-        QObject::connect( server, &SVServer::signalNewConnection, this, [this] {
+        QObject::connect( server, &SVServer::signalNewConnection, this, [this](qintptr desc) {
             m_server->slotSendMap( m_map );
+
+            if ( connections.empty() )
+            {
+                ROS_INFO( "Start timers" );
+
+                highSendTmr.start( 100 );
+                lowSendTmr.start( 1000 );
+            }
+
+            connections.append( desc );
+        });
+
+        QObject::connect( server, &SVServer::signalDisconnected, this, [this](qintptr desc) {
+            connections.removeAll( desc );
+
+            if ( connections.empty() )
+            {
+                ROS_INFO( "Stop timers" );
+                
+                highSendTmr.stop();
+                lowSendTmr.stop();
+            }
         });
 
         QObject::connect( &highSendTmr, &QTimer::timeout, this, [this] {
