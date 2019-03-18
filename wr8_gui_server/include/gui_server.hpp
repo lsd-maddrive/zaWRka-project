@@ -102,7 +102,7 @@ private Q_SLOTS:
         geometry_msgs::Twist msg;
 
         msg.linear.x = data.yAxis * 0.5;
-        msg.angular.y = data.xAxis * 25.0 * M_PI / 180;
+        msg.angular.z = data.xAxis * 25.0 * M_PI / 180;
 
         m_ctrl_pub.publish( msg );
     }

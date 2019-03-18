@@ -80,4 +80,5 @@ sudo apt install libespeak-dev \
 
 pip install pygame pyserial catkin-pkg rospkg empy defusedxml \
 			netifaces numpy pyttsx3 PySide2 pydot psutil pyopengl
+			
 cd wr8_software/scripts/graph_path; pyrcc5 -o resources.py my.qrc

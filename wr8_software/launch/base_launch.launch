@@ -7,6 +7,7 @@
     <arg name="cameras" default="true" />
     <arg name="uc" default="true" />
     <arg name="solver" default="true" />
+    <arg name="gui_server" default="true" />
 
     <include if="$(arg uc)" file="$(find wr8_software)/launch/base/serial_uc_link.launch">
         <arg name="device" value="/dev/serial/by-id/usb-STMicroelectronics_ChibiOS_RT_Virtual_COM_Port_400-if00" />
@@ -28,6 +29,9 @@
     <include if="$(arg cameras)" file="$(find wr8_software)/launch/base/road_camera.launch">
         <arg name="device" value="/dev/v4l/by-id/usb-046d_0825_CA00E440-video-index0" />
         <arg name="frame_id" value="road_camera" />
+    </include>
+
+    <include if="$(arg gui_server)" file="$(find wr8_gui_server)/launch/gui_server.launch">
     </include>
 
 </launch>
