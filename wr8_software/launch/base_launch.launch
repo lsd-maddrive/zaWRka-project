@@ -4,7 +4,8 @@
 	<machine name="nuc" user="user-sau-nuc" address="192.168.31.99" />
     
     <arg name="lidar" default="true" />
-    <arg name="cameras" default="true" />
+    <arg name="camera_s" default="true" />
+    <arg name="camera_r" default="true" />
     <arg name="uc" default="true" />
     <arg name="solver" default="true" />
     <arg name="gui_server" default="true" />
@@ -21,12 +22,12 @@
 
     </node>
 
-    <include if="$(arg cameras)" file="$(find wr8_software)/launch/base/signs_camera.launch">
+    <include if="$(arg camera_s)" file="$(find wr8_software)/launch/base/signs_camera.launch">
         <arg name="device" value="/dev/v4l/by-id/usb-HD_USB_Camera_HD_USB_Camera_SN0001-video-index0" />
         <arg name="frame_id" value="signs_camera" />
     </include>
 
-    <include if="$(arg cameras)" file="$(find wr8_software)/launch/base/road_camera.launch">
+    <include if="$(arg camera_r)" file="$(find wr8_software)/launch/base/road_camera.launch">
         <arg name="device" value="/dev/v4l/by-id/usb-046d_0825_CA00E440-video-index0" />
         <arg name="frame_id" value="road_camera" />
     </include>
