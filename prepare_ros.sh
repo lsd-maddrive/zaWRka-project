@@ -17,11 +17,8 @@ CATKIN_SRC_DIR="$CATKIN_WS/src"
 
 git -C $CATKIN_SRC_DIR/rosserial pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/ros-drivers/rosserial.git
 git -C $CATKIN_SRC_DIR/ydlidar pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/EAIBOT/ydlidar.git
-# git -C $CATKIN_SRC_DIR/scan_tools pull			|| git -C $CATKIN_SRC_DIR clone https://github.com/ccny-ros-pkg/scan_tools.git
-# git -C $CATKIN_SRC_DIR/csm pull					|| git -C $CATKIN_SRC_DIR clone https://github.com/AndreaCensi/csm.git
 git -C $CATKIN_SRC_DIR/range_libc pull			|| git -C $CATKIN_SRC_DIR clone http://github.com/kctess5/range_libc.git
 git -C $CATKIN_SRC_DIR/particle_filter pull		|| git -C $CATKIN_SRC_DIR clone https://github.com/mit-racecar/particle_filter.git
-
 
 git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
 git -C wr8_ai/neural_networks pull 				|| git -C wr8_ai clone https://github.com/KaiL4eK/neural_networks.git
@@ -30,10 +27,24 @@ if [ "$ROS_DISTRO" = "kinetic" ]; then
 	git -C $CATKIN_SRC_DIR/teb_local_planner pull 	|| git -C $CATKIN_SRC_DIR clone https://github.com/rst-tu-dortmund/teb_local_planner.git -b kinetic-devel
 	git -C $CATKIN_SRC_DIR/teleop_tools pull 		|| git -C $CATKIN_SRC_DIR clone https://github.com/KaiL4eK/teleop_tools.git -b kinetic-devel
 
+	sudo apt install ros-$ROS_DISTRO-gmapping \
+						ros-$ROS_DISTRO-qt-build \
+						ros-$ROS_DISTRO-hector-mapping \
+						ros-$ROS_DISTRO-hector-trajectory-server \
+						ros-$ROS_DISTRO-laser-scan-matcher
+
+	# For special cases
+	sudo apt install ros-$ROS_DISTRO-gazebo9-plugins
+
 else
 	git -C $CATKIN_SRC_DIR/hector_slam pull			|| git -C $CATKIN_SRC_DIR clone https://github.com/tu-darmstadt-ros-pkg/hector_slam.git
 	git -C $CATKIN_SRC_DIR/teb_local_planner pull 	|| git -C $CATKIN_SRC_DIR clone https://github.com/rst-tu-dortmund/teb_local_planner.git -b melodic-devel
 	git -C $CATKIN_SRC_DIR/teleop_tools pull 		|| git -C $CATKIN_SRC_DIR clone https://github.com/KaiL4eK/teleop_tools.git -b melodic-devel
+	# git -C $CATKIN_SRC_DIR/scan_tools pull			|| git -C $CATKIN_SRC_DIR clone https://github.com/ccny-ros-pkg/scan_tools.git
+	# git -C $CATKIN_SRC_DIR/csm pull					|| git -C $CATKIN_SRC_DIR clone https://github.com/AndreaCensi/csm.git
+
+	sudo apt install ros-$ROS_DISTRO-gazebo-ros-control \
+						ros-$ROS_DISTRO-tf2-sensor-msgs
 
 fi
 
@@ -49,24 +60,6 @@ sudo apt purge ros-$ROS_DISTRO-rosserial* \
 # -- Solution for roslaunch reconnection --
 sudo apt purge modemmanager
 
-
-if [ "$ROS_DISTRO" = "kinetic" ]; then
-	sudo apt install ros-$ROS_DISTRO-gmapping \
-						ros-$ROS_DISTRO-qt-build \
-						ros-$ROS_DISTRO-hector-mapping \
-						ros-$ROS_DISTRO-hector-trajectory-server \
-						ros-$ROS_DISTRO-laser-scan-matcher
-
-	# For special cases
-	sudo apt install ros-$ROS_DISTRO-gazebo9-plugins \
-
-fi
-
-if [ "$ROS_DISTRO" = "melodic" ]; then
-	sudo apt install ros-$ROS_DISTRO-gazebo-ros-control \
-						ros-$ROS_DISTRO-tf2-sensor-msgs
-fi
-
 sudo apt install ros-$ROS_DISTRO-compressed-image-transport \
 					ros-$ROS_DISTRO-costmap-converter \
 					ros-$ROS_DISTRO-map-server \
@@ -80,9 +73,7 @@ sudo apt install ros-$ROS_DISTRO-compressed-image-transport \
 					ros-$ROS_DISTRO-move-base \
 					ros-$ROS_DISTRO-amcl
 
-sudo apt install libespeak-dev \
-					pyqt5-dev-tools \
-					libgsl-dev
+sudo apt install libespeak-dev pyqt5-dev-tools libgsl-dev libjson-c-dev
 
 # Dont`forget /opt/movidius/intel-caffe/python
 

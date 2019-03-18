@@ -15,7 +15,7 @@
     <param name="transform_tolerance" value="0.2" />
     <param name="gui_publish_rate" value="10.0"/>
 
-    <param name="laser_max_beams" value="60"/>
+    <param name="laser_max_beams" value="360"/>
     <param name="min_particles" value="1000"/>
     <param name="max_particles" value="5000"/>
     
@@ -25,8 +25,8 @@
     <param name="odom_alpha1" value="10"/>
     <param name="odom_alpha2" value="10"/>
     <!-- translation std dev, m -->
-    <param name="odom_alpha3" value="1"/>
-    <param name="odom_alpha4" value="1"/>
+    <param name="odom_alpha3" value="0.2"/>
+    <param name="odom_alpha4" value="0.2"/>
 
     <param name="laser_z_hit" value="0.5"/>
     <param name="laser_z_short" value="0.05"/>

@@ -9,27 +9,35 @@
   <!-- <node pkg="rosservice" type="rosservice" name="reset_odom" args="call car/reset_odom"/> -->
   <!-- <node pkg="rosservice" type="rosservice" name="reset_gz" args="call gazebo/reset_simulation"/> -->
 
-  <include file="$(find wr8_description)/launch/gazebo.launch">
-    <!-- <arg name="rviz_gui" value="true" /> -->
-    <!-- <arg name="gz_gui" value="true" /> -->
-    <arg name="native_odom" value="true" />
-  </include>
+
 
   <node name="map_server" pkg="map_server" type="map_server" args="$(find wr8_software)/maps/map2_h.yaml" />
 
   <arg name="amcl" default="true" />
-
-  <include if="$(arg amcl)" file="$(find wr8_software)/launch/base/amcl.launch">
-    <arg name="base_frame" value="base_footprint" />
-    <arg name="odom_frame" value="odom" />
-  </include>
+  
+  <group if="$(arg amcl)">
+    <include file="$(find wr8_description)/launch/gazebo.launch">
+      <!-- <arg name="rviz_gui" value="true" /> -->
+      <!-- <arg name="gz_gui" value="true" /> -->
+      <arg name="native_odom" value="true" />
+    </include>
+    <include if="$(arg amcl)" file="$(find wr8_software)/launch/base/amcl.launch">
+      <arg name="base_frame" value="base_footprint" />
+      <arg name="odom_frame" value="odom" />
+    </include>
+  </group>
 
   <group unless="$(arg amcl)">
+    <include file="$(find wr8_description)/launch/gazebo.launch">
+      <!-- <arg name="rviz_gui" value="true" /> -->
+      <!-- <arg name="gz_gui" value="true" /> -->
+      <arg name="native_odom" value="false" />
+    </include>
     <include file="$(find wr8_software)/launch/base/particle_filter.launch">
       <arg name="odometry_topic" value="ackermann_drive_controller/odom" />
     </include>
-    <!-- <node pkg="tf" type="static_transform_publisher" name="hokuyo_link_to_laser"  -->
-            <!-- args="0 0 0 0 0 0 laser hokuyo_link 40" /> -->
+    <node pkg="tf" type="static_transform_publisher" name="hokuyo_link_to_laser" 
+            args="0 0 0 0 0 0 laser base_footprint 40" />
   </group>
 
   <include file="$(find wr8_software)/launch/base/move_base.launch">
