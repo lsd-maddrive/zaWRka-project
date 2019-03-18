@@ -2,6 +2,7 @@
 #include <std_msgs/String.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Int32.h>
+#include <geometry_msgs/Twist.h>
 
 #include <svserver.h>
 
@@ -11,59 +12,103 @@
 
 class ROSServer : public QThread
 {
-	Q_OBJECT
+    Q_OBJECT
 
-	SVServer *m_server;
-	QTimer	 sendTmr;
+    SVServer *m_server;
+    QTimer   highSendTmr;
+    QTimer   lowSendTmr;
 
-	HighFreqDataPackage	m_dataPkg;
+    int32_t m_encoderRotations;
+    int32_t m_steeringAngleDeg;
+
+    MapPackage m_map;
+
+    ros::Publisher m_ctrl_pub;
 
 public:
-    ROSServer(SVServer *server)
+    ROSServer(SVServer *server) :
+        m_encoderRotations( 0 ), m_steeringAngleDeg( 0 )
     {
-    	m_server = server;
-    	m_dataPkg = HighFreqDataPackage();
+        m_server = server;
 
-    	QObject::connect( this, SIGNAL(sendData(HighFreqDataPackage const&)), server, SLOT(slotSendHighFreqData(HighFreqDataPackage const&)) );
-    	
-    	QObject::connect( &sendTmr, SIGNAL(timeout()), this, SLOT(sendTmrHandler()) );
-    	
-    	sendTmr.start(200);
+        m_map = MapPackage({{0, 0, 0, 0, 0, 0, 0},
+                            {0, 1, 0, 1, 0, 1, 0},
+                            {0, 1, 0, 1, 0, 0, 0},
+                            {0, 0, 0, 0, 0, 1, 1},
+                            {0, 1, 0, 1, 0, 1, 1},
+                            {0, 1, 0, 1, 0, 0, 0},
+                            {0, 1, 0, 0, 0, 1, 1}});
+
+        QObject::connect( server, SIGNAL(signalControl(ControlPackage const&)), this, SLOT(cmdCb(ControlPackage const&)) );
+        
+        QObject::connect( server, &SVServer::signalNewConnection, this, [this] {
+            m_server->slotSendMap( m_map );
+        });
+
+        QObject::connect( &highSendTmr, &QTimer::timeout, this, [this] {
+            HighFreqDataPackage send_pkg = HighFreqDataPackage();
+            send_pkg.m_encoderValue = m_encoderRotations;
+            send_pkg.m_steeringAngle = m_steeringAngleDeg;
+
+            m_server->slotSendHighFreqData( send_pkg );
+        });
+
+        QObject::connect( &lowSendTmr, &QTimer::timeout, this, [this] {
+            LowFreqDataPackage send_pkg = LowFreqDataPackage( LowFreqDataPackage::State::WAIT );
+
+            m_server->slotSendLowFreqData( send_pkg );
+        });
+        
+        highSendTmr.start(100);
+        lowSendTmr.start(1000);
     }
 
-	void encoderRawCb(const std_msgs::Int32& msg)
-	{
-		ROS_INFO("Received encoder data: %d", msg.data);
-		m_dataPkg.m_encoderValue = msg.data;
-	}
+    void encoderRawCb(const std_msgs::Int32& msg)
+    {
+        ROS_INFO("Received encoder data: %d", msg.data);
+        m_encoderRotations = msg.data;
+    }
 
-	void steerCb(const std_msgs::Float32& msg)
-	{
-		ROS_INFO("Received steer data: %g", msg.data);
-		m_dataPkg.m_steeringAngle = msg.data;
-	}
+    void steerCb(const std_msgs::Float32& msg)
+    {
+        ROS_INFO("Received steer data: %g", msg.data);
+        m_steeringAngleDeg = msg.data;
+    }
 
-	void run()
-	{
-		ros::NodeHandle n;
-		ros::Subscriber sub = n.subscribe("steering", 1000, &ROSServer::steerCb, this);
-		ros::Subscriber sub1 = n.subscribe("encoder_raw", 1000, &ROSServer::encoderRawCb, this);
-		
-		while ( ros::ok() )
-		{
-			ros::spinOnce();
-		}
+    void getCarPosition()
+    {
 
-		Q_EMIT rosShutdown();
-	}
+    }
+
+    void run()
+    {
+        ros::NodeHandle n;
+        ros::Subscriber sub = n.subscribe("steering", 10, &ROSServer::steerCb, this);
+        ros::Subscriber sub1 = n.subscribe("encoder_raw", 10, &ROSServer::encoderRawCb, this);
+        
+        m_ctrl_pub = n.advertise<geometry_msgs::Twist>("cmd", 10);
+
+        while ( ros::ok() )
+        {
+            ros::spinOnce();
+        }
+
+        Q_EMIT rosShutdown();
+    }
 
 private Q_SLOTS:
-	void sendTmrHandler()
+    void cmdCb(const ControlPackage& data)
     {
-		Q_EMIT sendData( m_dataPkg );
+        geometry_msgs::Twist msg;
+
+        msg.linear.x = data.yAxis * 0.5;
+        msg.angular.y = data.xAxis * 25.0 * M_PI / 180;
+
+        m_ctrl_pub.publish( msg );
     }
 
 Q_SIGNALS:
     void rosShutdown();
-    void sendData(HighFreqDataPackage const& data);
+    void sendDataHigh(HighFreqDataPackage const& data);
+    void sendDataLow(LowFreqDataPackage const& data);
 };

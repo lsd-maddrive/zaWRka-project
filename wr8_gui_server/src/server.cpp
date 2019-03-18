@@ -8,7 +8,6 @@ int main(int argc, char **argv)
 
 	/* Qt server routine */	
 	QCoreApplication app(argc, argv);
-	qRegisterMetaType<HighFreqDataPackage>();
 
 	SVServer server;
 	server.start( QHostAddress("0.0.0.0"), 5556 );
