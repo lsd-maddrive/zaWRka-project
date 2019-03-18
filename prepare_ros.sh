@@ -49,9 +49,13 @@ sudo apt purge modemmanager
 if [ "$ROS_DISTRO" = "kinetic" ]; then
 	sudo apt install ros-$ROS_DISTRO-gmapping \
 						ros-$ROS_DISTRO-qt-build \
-						ros-$ROS_DISTRO-gazebo9-plugins \
 						ros-$ROS_DISTRO-hector-mapping \
+						ros-$ROS_DISTRO-hector-trajectory-server \
 						ros-$ROS_DISTRO-laser-scan-matcher
+
+	# For special cases
+	sudo apt install ros-$ROS_DISTRO-gazebo9-plugins \
+
 fi
 
 if [ "$ROS_DISTRO" = "melodic" ]; then
@@ -80,5 +84,5 @@ sudo apt install libespeak-dev \
 
 pip install pygame pyserial catkin-pkg rospkg empy defusedxml \
 			netifaces numpy pyttsx3 PySide2 pydot psutil pyopengl
-			
+
 cd wr8_software/scripts/graph_path; pyrcc5 -o resources.py my.qrc

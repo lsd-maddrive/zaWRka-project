@@ -27,6 +27,7 @@
 
   <include file="$(find wr8_software)/launch/base/$(arg mapping_algorithm).launch">
     <arg name="base_frame" value="base_link" />
+    <arg name="map_resol"  default="0.05"/>
   </include>
 
 </launch>
