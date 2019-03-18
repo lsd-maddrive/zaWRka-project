@@ -24,6 +24,7 @@
     <!-- translation std dev, m -->
     <param name="odom_alpha3" value="0.8"/>
     <param name="odom_alpha4" value="0.2"/>
+    <param name="laser_max_beams" value="90"/>
     <param name="laser_z_hit" value="0.5"/>
     <param name="laser_z_short" value="0.05"/>
     <param name="laser_z_max" value="0.05"/>
@@ -34,7 +35,7 @@
     <!-- <param name="laser_model_type" value="beam"/> -->
     <param name="laser_likelihood_max_dist" value="2.0"/>
     <param name="update_min_d" value="0.2"/>
-    <param name="update_min_a" value="0.1"/>
+    <param name="update_min_a" value="0.06"/>
     <param name="odom_frame_id" value="odom"/>
     <param name="resample_interval" value="1"/>
     <param name="transform_tolerance" value="0.1"/>
