@@ -1,13 +1,13 @@
 Panels:
   - Class: rviz/Displays
-    Help Height: 78
+    Help Height: 84
     Name: Displays
     Property Tree Widget:
       Expanded:
         - /TF1/Frames1
         - /Marker1
       Splitter Ratio: 0.5
-    Tree Height: 750
+    Tree Height: 747
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -16,7 +16,7 @@ Panels:
       - /2D Nav Goal1
       - /Publish Point1
     Name: Tool Properties
-    Splitter Ratio: 0.588679016
+    Splitter Ratio: 0.5886790156364441
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -27,6 +27,8 @@ Panels:
     Name: Time
     SyncMode: 0
     SyncSource: LaserScan
+Preferences:
+  PromptSaveOnExit: true
 Visualization Manager:
   Class: ""
   Displays:
@@ -36,7 +38,7 @@ Visualization Manager:
       Color: 160; 160; 164
       Enabled: true
       Line Style:
-        Line Width: 0.0299999993
+        Line Width: 0.029999999329447746
         Value: Lines
       Name: Grid
       Normal Cell Count: 0
@@ -93,7 +95,7 @@ Visualization Manager:
                   {}
       Update Interval: 0
       Value: true
-    - Angle Tolerance: 0.100000001
+    - Angle Tolerance: 0.10000000149011612
       Class: rviz/Odometry
       Covariance:
         Orientation:
@@ -105,7 +107,7 @@ Visualization Manager:
           Scale: 1
           Value: true
         Position:
-          Alpha: 0.300000012
+          Alpha: 0.30000001192092896
           Color: 204; 51; 204
           Scale: 1
           Value: true
@@ -113,16 +115,16 @@ Visualization Manager:
       Enabled: false
       Keep: 10
       Name: Odometry
-      Position Tolerance: 0.100000001
+      Position Tolerance: 0.10000000149011612
       Shape:
         Alpha: 1
         Axes Length: 1
-        Axes Radius: 0.100000001
+        Axes Radius: 0.10000000149011612
         Color: 255; 25; 0
-        Head Length: 0.300000012
-        Head Radius: 0.100000001
+        Head Length: 0.30000001192092896
+        Head Radius: 0.10000000149011612
         Shaft Length: 1
-        Shaft Radius: 0.0500000007
+        Shaft Radius: 0.05000000074505806
         Value: Arrow
       Topic: /ackermann_drive_controller/odom
       Unreliable: false
@@ -150,7 +152,7 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.0500000007
+      Size (m): 0.05000000074505806
       Style: Flat Squares
       Topic: /scan
       Unreliable: false
@@ -162,11 +164,11 @@ Visualization Manager:
       Class: rviz/Path
       Color: 25; 255; 0
       Enabled: true
-      Head Diameter: 0.300000012
-      Head Length: 0.200000003
-      Length: 0.300000012
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
       Line Style: Lines
-      Line Width: 0.0299999993
+      Line Width: 0.029999999329447746
       Name: Path
       Offset:
         X: 0
@@ -174,9 +176,9 @@ Visualization Manager:
         Z: 0
       Pose Color: 255; 85; 255
       Pose Style: None
-      Radius: 0.0299999993
-      Shaft Diameter: 0.100000001
-      Shaft Length: 0.100000001
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
       Topic: /move_base/GlobalPlanner/plan
       Unreliable: false
       Value: true
@@ -185,11 +187,11 @@ Visualization Manager:
       Class: rviz/Path
       Color: 25; 255; 0
       Enabled: true
-      Head Diameter: 0.300000012
-      Head Length: 0.200000003
-      Length: 0.300000012
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
       Line Style: Lines
-      Line Width: 0.0299999993
+      Line Width: 0.029999999329447746
       Name: Path
       Offset:
         X: 0
@@ -197,13 +199,13 @@ Visualization Manager:
         Z: 0
       Pose Color: 255; 85; 255
       Pose Style: None
-      Radius: 0.0299999993
-      Shaft Diameter: 0.100000001
-      Shaft Length: 0.100000001
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
       Topic: /move_base/TebLocalPlannerROS/local_plan
       Unreliable: false
       Value: true
-    - Alpha: 0.699999988
+    - Alpha: 0.699999988079071
       Class: rviz/Map
       Color Scheme: map
       Draw Behind: false
@@ -213,7 +215,7 @@ Visualization Manager:
       Unreliable: false
       Use Timestamp: false
       Value: true
-    - Alpha: 0.699999988
+    - Alpha: 0.699999988079071
       Class: rviz/Map
       Color Scheme: costmap
       Draw Behind: false
@@ -225,31 +227,31 @@ Visualization Manager:
       Value: true
     - Alpha: 1
       Axes Length: 1
-      Axes Radius: 0.100000001
+      Axes Radius: 0.10000000149011612
       Class: rviz/Pose
       Color: 255; 25; 0
       Enabled: true
-      Head Length: 0.300000012
-      Head Radius: 0.100000001
+      Head Length: 0.30000001192092896
+      Head Radius: 0.10000000149011612
       Name: Pose
       Shaft Length: 1
-      Shaft Radius: 0.0500000007
+      Shaft Radius: 0.05000000074505806
       Shape: Arrow
       Topic: /move_base/current_goal
       Unreliable: false
       Value: true
     - Alpha: 1
-      Arrow Length: 0.300000012
-      Axes Length: 0.300000012
-      Axes Radius: 0.00999999978
+      Arrow Length: 0.30000001192092896
+      Axes Length: 0.30000001192092896
+      Axes Radius: 0.009999999776482582
       Class: rviz/PoseArray
       Color: 255; 25; 0
       Enabled: true
-      Head Length: 0.0700000003
-      Head Radius: 0.0299999993
+      Head Length: 0.07000000029802322
+      Head Radius: 0.029999999329447746
       Name: PoseArray
-      Shaft Length: 0.230000004
-      Shaft Radius: 0.00999999978
+      Shaft Length: 0.23000000417232513
+      Shaft Radius: 0.009999999776482582
       Shape: Arrow (Flat)
       Topic: /move_base/TebLocalPlannerROS/teb_poses
       Unreliable: false
@@ -263,17 +265,17 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Alpha: 1
-      Arrow Length: 0.300000012
-      Axes Length: 0.300000012
-      Axes Radius: 0.00999999978
+      Arrow Length: 0.30000001192092896
+      Axes Length: 0.30000001192092896
+      Axes Radius: 0.009999999776482582
       Class: rviz/PoseArray
       Color: 255; 25; 0
       Enabled: true
-      Head Length: 0.0700000003
-      Head Radius: 0.0299999993
+      Head Length: 0.07000000029802322
+      Head Radius: 0.029999999329447746
       Name: PoseArray
-      Shaft Length: 0.230000004
-      Shaft Radius: 0.00999999978
+      Shaft Length: 0.23000000417232513
+      Shaft Radius: 0.009999999776482582
       Shape: Arrow (Flat)
       Topic: /particlecloud
       Unreliable: false
@@ -283,8 +285,7 @@ Visualization Manager:
       Marker Topic: /move_base/TebLocalPlannerROS/teb_markers
       Name: Marker
       Namespaces:
-        PointObstacles: true
-        RobotFootprintModel: true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
@@ -312,25 +313,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 16.5972595
+      Distance: 12.912247657775879
       Enable Stereo Rendering:
-        Stereo Eye Separation: 0.0599999987
+        Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 5.69749308
-        Y: -6.40834713
-        Z: 2.00187588
+        X: 1.6720625162124634
+        Y: -1.2937771081924438
+        Z: 0.001575469970703125
       Focal Shape Fixed Size: true
-      Focal Shape Size: 0.0500000007
+      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
-      Near Clip Distance: 0.00999999978
-      Pitch: 1.54979634
+      Near Clip Distance: 0.009999999776482582
+      Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.13040638
+      Yaw: 3.1151411533355713
     Saved: ~
 Window Geometry:
   "&Displays":
@@ -338,7 +339,7 @@ Window Geometry:
   Height: 1015
   Hide Left Dock: false
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd0000000400000000000001740000038afc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000006c01000003fb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c00610079007301000000450000038a000000e401000003fb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000011000000207fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000004400000207000000c801000003fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000044a0000004ffc0100000002fb0000000800540069006d006500000000000000044a0000028301000003fb0000000800540069006d006501000000000000045000000000000000000000060b0000038a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001740000038cfc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000007601000003fb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c00610079007301000000440000038c000000f701000003fb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000011000000207fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000004400000207000000d001000003fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000044a0000004ffc0100000002fb0000000800540069006d006500000000000000044a000002ad01000003fb0000000800540069006d006501000000000000045000000000000000000000060b0000038c00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:

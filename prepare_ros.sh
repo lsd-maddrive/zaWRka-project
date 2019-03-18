@@ -19,6 +19,9 @@ git -C $CATKIN_SRC_DIR/rosserial pull 			|| git -C $CATKIN_SRC_DIR clone https:/
 git -C $CATKIN_SRC_DIR/ydlidar pull 			|| git -C $CATKIN_SRC_DIR clone https://github.com/EAIBOT/ydlidar.git
 # git -C $CATKIN_SRC_DIR/scan_tools pull			|| git -C $CATKIN_SRC_DIR clone https://github.com/ccny-ros-pkg/scan_tools.git
 # git -C $CATKIN_SRC_DIR/csm pull					|| git -C $CATKIN_SRC_DIR clone https://github.com/AndreaCensi/csm.git
+git -C $CATKIN_SRC_DIR/range_libc pull			|| git -C $CATKIN_SRC_DIR clone http://github.com/kctess5/range_libc.git
+git -C $CATKIN_SRC_DIR/particle_filter pull		|| git -C $CATKIN_SRC_DIR clone https://github.com/mit-racecar/particle_filter.git
+
 
 git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
 git -C wr8_ai/neural_networks pull 				|| git -C wr8_ai clone https://github.com/KaiL4eK/neural_networks.git
@@ -45,6 +48,7 @@ sudo apt purge ros-$ROS_DISTRO-rosserial* \
 				
 # -- Solution for roslaunch reconnection --
 sudo apt purge modemmanager
+
 
 if [ "$ROS_DISTRO" = "kinetic" ]; then
 	sudo apt install ros-$ROS_DISTRO-gmapping \
@@ -83,6 +87,10 @@ sudo apt install libespeak-dev \
 # Dont`forget /opt/movidius/intel-caffe/python
 
 pip install pygame pyserial catkin-pkg rospkg empy defusedxml \
-			netifaces numpy pyttsx3 PySide2 pydot psutil pyopengl
+			netifaces numpy pyttsx3 PySide2 pydot psutil pyopengl cython matplotlib
 
-cd wr8_software/scripts/graph_path; pyrcc5 -o resources.py my.qrc
+# For particle filter
+pip list | grep range-libc
+[ $? -eq 0 ] || bash -c "cd $CATKIN_SRC_DIR/range_libc/pywrapper; TRACE=ON python setup.py install"
+
+bash -c "cd wr8_software/scripts/graph_path; pyrcc5 -o resources.py my.qrc"
