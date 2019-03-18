@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="input_path" />
+
+  <node name="test_direct_NCS"  pkg="wr8_ai"  type="detector_ncs.py" output="screen" respawn="false"
+    args="-c $(find wr8_ai)/best/TSR/config.json -g $(find wr8_ai)/best/TSR/CustomMobileNetv2.ncsg -i $(arg input_path)" >
+  </node>
+
+</launch>

@@ -90,7 +90,7 @@ def main():
 
         start = time.time()
 
-        ros_boxes, box_img = detector.get_signs(cv_img=image, render_img=render_img)
+        boxes, box_img = detector.get_signs(cv_img=image, render_img=render_img)
 
         if fps_msr:
             fps_meter.update(time.time() - start)
@@ -100,8 +100,6 @@ def main():
                 fps_meter.reset()
 
         img_pub.publish(box_img)
-
-        
 
     #     cv2.imshow('2', image)
     #     key = cv2.waitKey(10)
