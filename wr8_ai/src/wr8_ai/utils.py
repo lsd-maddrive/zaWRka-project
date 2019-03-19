@@ -32,6 +32,8 @@ class ImageReceiverROS:
 def yolo_bbox_2_ros_bbox(yolo_bbox, labels):
     from wr8_ai.msg import BoundingBox
 
+    # print("Input: {}",format(yolo_bbox.get_str()))
+
     ros_box = BoundingBox()
     ros_box.Class = labels[yolo_bbox.get_label()]
     ros_box.probability = yolo_bbox.c
@@ -39,5 +41,7 @@ def yolo_bbox_2_ros_bbox(yolo_bbox, labels):
     ros_box.ymin = yolo_bbox.ymin
     ros_box.xmax = yolo_bbox.xmax
     ros_box.ymax = yolo_bbox.ymax
+
+    # print("Output: {}",format(ros_box))
 
     return ros_box
