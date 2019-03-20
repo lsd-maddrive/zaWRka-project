@@ -18,7 +18,7 @@ TebLocalPlannerROS:
     wheelbase: 0.3
     cmd_angle_instead_rotvel: True
 
-    max_vel_x: 0.4
+    max_vel_x: 0.6
     max_vel_x_backwards: 0.3
     max_vel_theta: 0.43
     acc_lim_x: 0.03
@@ -38,7 +38,7 @@ TebLocalPlannerROS:
 
     # GoalTolerance
 
-    xy_goal_tolerance: 0.1
+    xy_goal_tolerance: 0.2
     yaw_goal_tolerance: 0.05
     free_goal_vel: False
 

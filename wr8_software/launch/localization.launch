@@ -9,7 +9,8 @@
   <!-- <node pkg="rosservice" type="rosservice" name="reset_odom" args="call car/reset_odom"/> -->
   <!-- <node pkg="rosservice" type="rosservice" name="reset_gz" args="call gazebo/reset_simulation"/> -->
 
-  <node name="map_server" pkg="map_server" type="map_server" args="$(find wr8_software)/maps/depart.yaml" />
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find wr8_software)/maps/map2_h.yaml" />
+  <!-- <node name="map_server" pkg="map_server" type="map_server" args="$(find wr8_software)/maps/depart.yaml" /> -->
 
   <include file="$(find wr8_software)/launch/base/amcl.launch">
     <arg name="base_frame" value="base_link" />

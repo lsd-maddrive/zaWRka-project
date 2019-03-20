@@ -4,7 +4,6 @@ import math as m
 
 import numpy as np
 from Queue import PriorityQueue
-import pygame
 
 # from . import gui
 
@@ -16,6 +15,15 @@ SIGNS_LEFT          = 4
 SIGNS_FORWARD_RIGHT = 5
 SIGNS_FORWARD_LEFT  = 6
 
+sign_names = {
+                SIGNS_NO_PATH       : "Brick",
+                SIGNS_FORWARD       : "Forward",
+                SIGNS_RIGHT         : "Right",
+                SIGNS_LEFT          : "Left",
+                SIGNS_FORWARD_RIGHT : "ForwardRight",
+                SIGNS_FORWARD_LEFT  : "ForwardLeft",
+                SIGNS_NONE          : "NoSign"
+                }
 
 sign_idx_2_meaning = [None] * 7
 sign_idx_2_meaning[SIGNS_NONE]          = SIGNS_NONE
@@ -49,7 +57,7 @@ class CarState:
 
     def solveMazeAStar(self):
         
-        print('Attempt to find path from node: {}'.format(self.cNode))
+        # print('Attempt to find path from node: {}'.format(self.cNode))
 
         frontier = PriorityQueue()
         frontier.put((0, self.cNode))
@@ -62,7 +70,7 @@ class CarState:
 
         while not frontier.empty():
             _, cNode = frontier.get()
-            print('Next node: {}'.format(cNode))
+            # print('Next node: {}'.format(cNode))
 
             currentWays = cNode.dirNeighbours
             for way in currentWays:
@@ -70,20 +78,20 @@ class CarState:
                     continue
 
                 if way == self.targetNode:
-                    print('Got it!')
+                    # print('Got it!')
                     cameFrom[self.targetNode] = cNode
                     self.cameFrom = cameFrom
                     return True
 
                 new_cost = getManhattanDistance(cNode, way) + cost_so_far[cNode]
-                print('Neighbour found: {} / g = {}'.format(way, new_cost))
+                # print('Neighbour found: {} / g = {}'.format(way, new_cost))
 
                 if way not in cost_so_far or new_cost < cost_so_far[way]:
                     
                     cost_so_far[way] = new_cost
 
                     prio_f = new_cost + self.maze.calcHeuristic(way)
-                    print('    goes in frontier f = {}'.format(prio_f))
+                    # print('    goes in frontier f = {}'.format(prio_f))
                     frontier.put((prio_f, way))
 
                     cameFrom[way] = cNode
@@ -110,27 +118,30 @@ class CarState:
 
     def move2Target(self, tNode):
         self.cNode = tNode
-        print('Moved to node {}'.format(self.cNode))
-        self.cNode.show_info()
+        # print('Moved to node {}'.format(self.cNode))
+        # self.cNode.show_info()
 
-    def updateSignsInfo(self):
+    def isSignRequired(self):
         if self.cNode.signChecked:
-            return 0
+            return False
 
-        # Test if node is just turn
         waysCnt = len([i for i, j in enumerate(self.cNode.dirNeighbours) if j is not None])
+        if waysCnt == 1:
+            return False
 
-        if waysCnt == 1 and not self.cNode.signChecked:
-            self.cNode.signChecked = True
-            return 0
+        return True
 
-        signChoice = SIGNS_NONE #gui.requestSign()
-        print('User chose {}'.format(signChoice))
-        if signChoice < 0:
-            return -1
+
+    def updateSignInfo(self, car_sign):
+        # print('User chose {}'.format(car_sign))
+
+        if self.cNode.orig_dirNeighb is None:
+            self.cNode.orig_dirNeighb = self.cNode.dirNeighbours
+
+        self.cNode.dirNeighbours = self.cNode.orig_dirNeighb
 
         # Clean prohibites directions
-        nodeRemoval = signRemoveDirs[signChoice]
+        nodeRemoval = signRemoveDirs[car_sign]
         for remIdx in nodeRemoval:
             self.cNode.dirNeighbours[remIdx] = None
 

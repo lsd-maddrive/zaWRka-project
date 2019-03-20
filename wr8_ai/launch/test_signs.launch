@@ -1,22 +1,27 @@
 <?xml version="1.0"?>
 <launch>
-<!--   
-  <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" respawn="false" output="screen" >
-    <param name="video_device" value="/dev/video0" />
-    <param name="image_width" value="640" />
-    <param name="image_height" value="480" />
-    <param name="pixel_format" value="yuyv" />
-    <param name="camera_frame_id" value="camera" />
-    <param name="io_method" value="mmap"/>
-  </node> -->
+  
+  <include file="$(find wr8_software)/launch/base/signs_camera.launch">
+      <arg name="device" value="/dev/v4l/by-id/usb-USB_Developer_Android_20080411-video-index0" />
+      <arg name="frame_id" value="signs_camera" />
+  </include>
+
+  <include file="$(find wr8_software)/launch/base/road_camera.launch">
+      <arg name="device" value="/dev/v4l/by-id/usb-046d_0825_CA00E440-video-index0" />
+      <arg name="frame_id" value="road_camera" />
+  </include>    
 
   <node name="test_signs"  pkg="wr8_ai"  type="test_signs.py" output="screen" respawn="false" >
-    <param name="graph_path" value="$(find wr8_ai)/neural_networks/TSD/keras-yolo3/best/MobileNetv2_35.ncsg"/>  
-    <param name="config_path" value="$(find wr8_ai)/neural_networks/TSD/keras-yolo3/best/rf_signs_mobilev2.json"/>  
     <param name="fps_msr" value="true"/>  
 
-    <remap from="camera_compr" to="signs_camera/image_raw/compressed" />
-    <!-- <remap from="camera" to="signs_camera/image_raw" /> -->
+    <param name="rec_weights_path" value="$(find wr8_ai)/best/TSR/weight"/>  
+    <param name="rec_graph_path" value="$(find wr8_ai)/best/TSR/graph"/>  
+    <param name="rec_config_path" value="$(find wr8_ai)/best/TSR/config"/>  
+    <param name="det_graph_path" value="$(find wr8_ai)/best/TSD/graph"/>  
+    <param name="det_config_path" value="$(find wr8_ai)/best/TSD/config"/>  
+
+    <remap from="nn_input" to="signs_camera/image_raw" />
+
   </node>
 
 </launch>

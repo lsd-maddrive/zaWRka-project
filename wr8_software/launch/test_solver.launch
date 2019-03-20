@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<launch>
+    <node pkg="wr8_software" type="main_solver.py" name="main_solver" output="screen" respawn="false">
+        <remap from="nn_input" to="signs_camera/image_raw" />
+
+        <param name="rec_weights_path" value="$(find wr8_ai)/best/TSR/weight"/>  
+        <param name="rec_config_path" value="$(find wr8_ai)/best/TSR/config"/>  
+        <param name="det_graph_path" value="$(find wr8_ai)/best/TSD/graph"/>  
+        <param name="det_config_path" value="$(find wr8_ai)/best/TSD/config"/>  
+    </node>
+
+</launch>
