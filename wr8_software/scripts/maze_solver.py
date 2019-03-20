@@ -8,26 +8,18 @@ import time
 from graph_path.maze import *
 from graph_path.car_state import *
 
-import graph_path.gui
+# import graph_path.gui
 
 import rospy
 import actionlib
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 import tf
 
-# local TF -> ROS: (x1, y1) = (2*y, -2*x)
-# ROS -> local TF: (x, y) = (-y1/2, x1/2)
 
-def move_sim(tNode, mvClient):
-    # print(tNode.dirLetr)
-    # print(tNode.coord.get_array())
 
-    tPoint = tNode.coord - from_directions[tNode.dirLetr]
-    tPoint_angle = direction_angle[tNode.dirLetr]
+def move_sim(tPointDir, mvClient):
 
-    tPoint_ros_x =  2 * tPoint.y
-    tPoint_ros_y = -2 * tPoint.x
-
+    tPoint_ros_x, tPoint_ros_y, tPoint_angle = tPointDir.get_ros_point()
 
     goal = MoveBaseGoal()
     goal.target_pose.header.frame_id = "map"
@@ -81,18 +73,25 @@ def main(args=None):
         maze.render_maze()
 
         if not car.solveMazeAStar():
-            gui.notifyUser('Failed to find path =(')
+            # gui.notifyUser('Failed to find path =(')
             print('Failed to find path...')
             break
 
         tNode = car.getNextTarget()
         # print('Next node: {}'.format(tNode))
 
-        move_sim(tNode, client)
+        if car.isTargetEnding(tNode):
+            tPoint = tNode.coord + from_directions[tNode.dirLetr]
+        else:
+            tPoint = tNode.coord - from_directions[tNode.dirLetr]
+
+        tPointDir = PointDir(tPoint.x, tPoint.y, tNode.dirLetr)
+
+        move_sim(tPointDir, client)
         car.move2Target(tNode)
 
         if car.isEndReached():
-            gui.notifyUser('Woohoo, we did it!')
+            # gui.notifyUser('Woohoo, we did it!')
             print('Woohoo, we did it!')
             break
 
@@ -113,6 +112,9 @@ def main(args=None):
                     exit()
 
     pygame.quit()
+
+
+
 
 
 if __name__ == '__main__':
