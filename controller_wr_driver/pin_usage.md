@@ -2,10 +2,6 @@
 
 ## Tickless mode => GPT5 
 
-## Драйвер управления приводом руля 
-Driver | Pins | Input / Output
--------|------|-------
-  PWM1 | PE_11 |output (channel 1)
 
 ## Драйвер управления приводом движения 
 Driver | Pins | Input / Output
@@ -38,12 +34,15 @@ Driver | Pins | Input / Output
 ICU9 | E5 | input (Timer 9)
 ICU8 | C6 | input (Timer 8)
 
-## Драйвер для СУ приводами
-Driver | Pins | Input / Output
--------|------|-------
-   VT  |      | steering/speed control (100 Hz)
 
 ## Драйвер отслеживания заряда батарей
 Driver | Pins | Input / Output
 -------|------|-------
   ADC3 | 
+
+
+## Драйвер работы с лампочками (освещением)
+ Driver | Pins | Input / Output
+ -------|------|-------
+    PAL |  G2  | Output/Right turn
+    PAL |  G3  | Output/Left turn 

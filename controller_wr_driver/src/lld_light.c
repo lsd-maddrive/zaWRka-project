@@ -2,8 +2,8 @@
 #include <lld_light.h>
 #include <lld_start_button.h>
 
-#define                 RIGHT_TURN_LINE         PAL_LINE( GPIOG, 2 )
-#define                 LEFT_TURN_LINE          PAL_LINE( GPIOG, 3 )
+#define             RIGHT_TURN_LINE         PAL_LINE( GPIOG, 2 )
+#define             LEFT_TURN_LINE          PAL_LINE( GPIOG, 3 )
 
 bool                turn_right_flag = 0;
 bool                turn_left_flag  = 0;
@@ -65,6 +65,9 @@ static THD_FUNCTION(TurnRoutine, arg)
 
 }
 
+#define SPI_MOSI_LINE   PAL_LINE( GPIOC, 3)
+#define SPI_SCLK_LINE   PAL_LINE( GPIOB, 10)
+#define SPI_MISO_LINE   PAL_LINE( GPIOC, 2)
 
 static bool             isInitialized = false;
 
@@ -72,13 +75,22 @@ static bool             isInitialized = false;
  * @brief   Initialize periphery connected LEDs
  * @note    Stable for repeated calls
  */
-void lldLightInit( tprio_t priority )
+void lldLightInit( tprio_t priority )+
 {
     if( isInitialized )
           return;
 
     palSetLineMode( RIGHT_TURN_LINE, PAL_MODE_OUTPUT_PUSHPULL );
     palSetLineMode( LEFT_TURN_LINE,  PAL_MODE_OUTPUT_PUSHPULL );
+
+    /***    LED Matrix   ***/
+    palSetLineMode( SPI_SCLK_LINE, PAL_MODE_ALTERNATE(5) );
+    palSetLineMode( SPI_MOSI_LINE, PAL_MODE_ALTERNATE(5) );
+    palSetLineMode( SPI_MISO_LINE, PAL_MODE_ALTERNATE(5) );
+
+
+
+
 
     chThdCreateStatic(waTurnRoutine, sizeof(waTurnRoutine), priority, TurnRoutine, NULL);
 

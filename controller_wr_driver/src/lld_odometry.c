@@ -187,7 +187,6 @@ static void odom_update_vt_cb( void *arg )
 
 
     chSysLockFromISR();
-    // reset VT
     chVTSetI(&odom_update_vt, MS2ST( VT_ODOM_MS ), odom_update_vt_cb, NULL);
     chSysUnlockFromISR();
 }
