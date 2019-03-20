@@ -174,7 +174,6 @@ void mainControlTask( void )
                       dbgprintf( "ROS_SP:(%d)\tROS_ST:(%d)\n\r",
                                ros_steer_control, ros_speed_control );
                   }
-//                driverResetCS( );
             }
         }
         else if( state_now == RUN )
@@ -190,7 +189,7 @@ void mainControlTask( void )
             }
 
             setRosControl( );
-            // lldLightDetectTurnState( ros_steer_control, ros_speed_control, state_now );
+            lldLightDetectTurnState( ros_steer_control, ros_speed_control, state_now );
         }
 
         time = chThdSleepUntilWindowed( time, time + MS2ST( 25 ) );

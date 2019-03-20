@@ -32,6 +32,14 @@ void testLightRoutine( void )
 				test_steer += test_delta_steer;
 				break;
 
+			case 'q':
+				test_steer -= test_delta_steer;
+				break;
+
+			case 'w':
+				test_speed -= test_delta_speed;
+				break; 
+
 			case 's':
 				test_speed += test_delta_speed;
 				break; 
@@ -53,14 +61,15 @@ void testLightRoutine( void )
 				; 
 		}
 
-
+		
 		lldLightDetectTurnState( test_steer, test_speed, test_global_state );
 		test_light_state = lldGetLightState( ); 
 
 		dbgprintf( "Steer:(%d)\tSpeed:(%d)\tS_state:(%d)\tL_state:(%d)\n\r",
 			(int)test_steer, (int)(test_speed * 100), test_global_state, test_light_state );
 
-		time = chThdSleepUntilWindowed( time, time + 100 );
+
+		time = chThdSleepUntilWindowed( time, time + MS2ST(100) );
 	}
 }
 
@@ -69,19 +78,17 @@ void testLightRoutine( void )
  */
 void testLedMatrixRoutine( void )
 {
-	palSetLine( LINE_LED1 );
 	lldLightInit( NORMALPRIO );
-	// palSetLine( LINE_LED2 );
+
 
 	debug_stream_init( );
 
 	systime_t time = chVTGetSystemTimeX( );
-	// palSetLine( LINE_LED3 );
 	while( 1 )
 	{
 		palToggleLine( LINE_LED3 );
 
-		time = chThdSleepUntilWindowed( time, time + 100 );
+		time = chThdSleepUntilWindowed( time, time + MS2ST(100) );
 	}
 
 }
