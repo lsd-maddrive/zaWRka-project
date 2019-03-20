@@ -3,6 +3,7 @@
 #include <lld_odometry.h>
 #include <drive_cs.h>
 #include <remote_control.h>
+#include <lld_light.h>
 
 #include <ros_protos.h>
 
@@ -84,6 +85,7 @@ void mainUnitsInit( void )
     debug_stream_init( );
     startButtonInit( NORMALPRIO + 1 );
     remoteControlInit( NORMALPRIO );
+    lldLightInit( NORMALPRIO - 1 );
 
     ros_driver_cb_ctx_t cb_ctx      = ros_driver_get_new_cb_ctx();
     cb_ctx.cmd_cb                   = ros_control_handler;

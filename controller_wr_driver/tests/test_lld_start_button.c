@@ -8,7 +8,6 @@ void testButtonRoutine( void )
 
 
     system_state            test_s_state    = IDLE;
-    uint32_t                test_button_cnt = 0;
 
     systime_t time = chVTGetSystemTimeX();
 
@@ -16,10 +15,9 @@ void testButtonRoutine( void )
     {
         time += MS2ST(100);
         test_s_state    = lldGetSystemState( );
-        test_button_cnt = lldGetStartButtonPressedNumber( );
 
-        dbgprintf( "SS:(%d)\tBC:(%d)\n\r",
-                   (int)test_s_state, test_button_cnt );
+        dbgprintf( "SS:(%d)\n\r",
+                   (int)test_s_state );
 
         chThdSleepUntil(time);
     }

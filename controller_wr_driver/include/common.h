@@ -31,12 +31,13 @@ extern "C" {
 #define     PROGRAM_ROUTINE_TEST_SPEED_LIMIT_CALIB      12
 #define     PROGRAM_ROUTINE_TEST_SPEED_FILTER           13
 #define     PROGRAM_ROUTINE_TEST_SPEED_SIN              14
+/*** 	LIGHT RELATED					***/
+#define		PROGRAM_ROUTINTE_TEST_LIGHT					15 
 /***    BUTTON RELATED                  ***/
 #define     PROGRAM_ROUTINE_TEST_BUTTON_STATE           20
 /***    ROS RELATED                     ***/
 #define     PROGRAM_ROUTINE_TEST_ROS_ODOMETRY           30
 #define     PROGRAM_ROUTINE_TEST_ROS_CONTROL            35
-#define     PROGRAM_ROUTINE_TEST_FAKE_ROS_CONTROL       36
 #define     PROGRAM_ROUTINE_TEST_GUI_SERVER             40
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
 /***    TIMER RELATED                   ***/

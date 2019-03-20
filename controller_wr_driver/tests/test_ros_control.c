@@ -12,7 +12,7 @@ virtual_timer_t         ros_checker_vt;
 
 static void ros_is_dead_cb( void *arg )
 {
-//    systime_t ros_time = 0; //chVTGetSystemTimeX();
+    arg = arg; 
     test_ros_speed_cntr = 0;
     test_ros_steer_cntr = 0;
     dbgprintf( "ROS is dead\n\r" );
@@ -32,19 +32,6 @@ void cntrl_handler (float speed, float steer)
     dbgprintf( "Time:%d\n\r", (int)(ros_time * 1000.0 / CH_CFG_ST_FREQUENCY) );
     ros_alive( );
 }
-
-
-
-//control_params_setup_t get_esc_control_params( void )
-//{
-//    control_params_setup_t params;
-//
-//    params.esc_min_dc_offset = SPEED_ZERO - SPEED_MIN;
-//    params.esc_max_dc_offset = SPEED_MAX - SPEED_ZERO;
-//
-//    return params;
-//}
-
 
 /*
  * @brief   Test odometry, speed and steering control via ROS
@@ -67,20 +54,17 @@ void testRosRoutineControl( void )
     debug_stream_init( );
 
     chVTObjectInit(&ros_checker_vt);
-//    chVTSet( &ros_checker_vt, MS2ST( 500 ), ros_is_dead_cb, NULL );
-
 
     odometryValue_t         test_x_pos          = 0;
     odometryValue_t         test_y_pos          = 0;
     odometryValue_t         test_tetta_deg      = 0;
 
-    odometrySpeedValue_t    test_speed_mps      = 0;
     odometryRawSpeedValue_t test_enc_speed_rps  = 0;
     odometrySpeedValue_t    test_speed_radps    = 0;
 
-    float                   test_steer_angl_deg = 0;
     float                   test_speed_lpf_mps  = 0;
     uint32_t                print_cntr          = 0;
+
     systime_t time = chVTGetSystemTimeX();
 
     while( 1 )
@@ -91,10 +75,8 @@ void testRosRoutineControl( void )
         driveSpeedCSSetSpeed( test_ros_speed_cntr );
 
         test_enc_speed_rps  = lldGetOdometryRawSpeedRPS( );
-        test_speed_mps      = lldGetOdometryObjSpeedMPS( );
         test_speed_radps    = lldGetOdometryObjTettaSpeedRadPS( );
 
-        test_steer_angl_deg = lldGetSteerAngleDeg( );
         test_speed_lpf_mps  = lldOdometryGetLPFObjSpeedMPS( );
 
         test_x_pos          = lldGetOdometryObjX( OBJ_DIST_M );
@@ -102,18 +84,7 @@ void testRosRoutineControl( void )
         test_tetta_deg      = lldGetOdometryObjTettaDeg( );
 
         ros_driver_send_encoder_speed( test_enc_speed_rps );
-        ros_driver_send_pose( test_x_pos, test_y_pos, test_tetta_deg, test_speed_mps, test_speed_radps );
-
-//        if( print_cntr == 10 )
-//        {
-//          dbgprintf( "ST:(%d)\tANG:(%d)\tSP_R:(%d)\tSP:(%d)\tT:(%d)\n\r",
-//                     (int)test_ros_steer_cntr, (int)test_steer_angl_deg,
-//                     (int)( test_ros_speed_cntr * 100 ), (int)( test_speed_lpf_mps * 100 ),
-//                     ST2MS( time ) );
-//
-//          print_cntr = 0;
-//        }
-
+        ros_driver_send_pose( test_x_pos, test_y_pos, test_tetta_deg, test_speed_lpf_mps, test_speed_radps );
 
         time = chThdSleepUntilWindowed( time, time + MS2ST( 20 ) );
 

@@ -1,54 +1,78 @@
+#include <tests.h>
 #include <lld_light.h>
-
-#define                 VT_TURN_MS              300
-static virtual_timer_t  turn_update_vt;
+#include <lld_start_button.h>
 
 #define                 RIGHT_TURN_LINE         PAL_LINE( GPIOG, 2 )
 #define                 LEFT_TURN_LINE          PAL_LINE( GPIOG, 3 )
 
-bool    turn_right_flag = 0;
-bool    turn_left_flag  = 0;
+bool                turn_right_flag = 0;
+bool                turn_left_flag  = 0;
+turn_light_state    turn_state = STOP; 
 
-
-void lightDetectTurnState( float  )
+/*
+ * @brief   Automatically set the state of turn lights
+ *          depends on input conditions 
+ */
+void lldLightDetectTurnState( float steer_cntrl, float speed_cntrl, system_state s_state )
 {
-
+    if( steer_cntrl > 0 ) turn_state = LEFT; 
+    else if( steer_cntrl < 0 ) turn_state = RIGHT;
+    else if ( steer_cntrl == 0 && speed_cntrl == 0 && s_state == RUN )
+    {
+        turn_state = STOP; 
+    }
+    else if( s_state == IDLE )
+    {
+        turn_state = REMOTE;
+    }
 }
 
-static void turn_update_vt_cb( void *arg)
+/*
+ * @brief   Get current state of turn lights  
+ */
+turn_light_state lldGetLightState( void )
 {
-    if( turn_right_flag == 1 )
+    return turn_state; 
+}
+
+static THD_WORKING_AREA(waTurnRoutine, 128); // 128 - stack size
+static THD_FUNCTION(TurnRoutine, arg)
+{
+    arg = arg; 
+
+    if( turn_state == RIGHT )
     {
         palToggleLine( RIGHT_TURN_LINE );
         palClearLine( LEFT_TURN_LINE );
     }
-    else
-    {
-        palClearLine( RIGHT_TURN_LINE );
-    }
-
-    if( turn_left_flag == 1 )
+    else if( turn_state == LEFT )
     {
         palToggleLine( LEFT_TURN_LINE );
         palClearLine( RIGHT_TURN_LINE );
     }
-    else
+    else if( turn_state == STOP )
+    {
+        palToggleLine( LEFT_TURN_LINE );
+        palToggleLine( RIGHT_TURN_LINE );
+    }
+    else if( turn_state == REMOTE )
     {
         palClearLine( LEFT_TURN_LINE );
+        palClearLine( RIGHT_TURN_LINE );
     }
 
-    chSysLockFromISR();
-    // reset VT
-    chVTSetI(&turn_update_vt, MS2ST( VT_TURN_MS ), turn_update_vt_cb, NULL);
-    chSysUnlockFromISR();
-
+    chThdSleepMilliseconds( 300 );    
 
 }
 
 
 static bool             isInitialized = false;
 
-void lldLightInit( void )
+/**
+ * @brief   Initialize periphery connected LEDs
+ * @note    Stable for repeated calls
+ */
+void lldLightInit( tprio_t priority )
 {
     if( isInitialized )
           return;
@@ -56,8 +80,7 @@ void lldLightInit( void )
     palSetLineMode( RIGHT_TURN_LINE, PAL_MODE_OUTPUT_PUSHPULL );
     palSetLineMode( LEFT_TURN_LINE,  PAL_MODE_OUTPUT_PUSHPULL );
 
-    chVTObjectInit(&turn_update_vt);
-    chVTSet( &turn_update_vt, MS2ST( VT_TURN_MS ), turn_update_vt_cb, NULL );
+    chThdCreateStatic(waTurnRoutine, sizeof(waTurnRoutine), priority, TurnRoutine, NULL);
 
     isInitialized = true;
 }

@@ -115,6 +115,16 @@ void testSteeringCS ( void );
 void testSpeedCS ( void );
 
 
+
+/***********************/
+/***   Light tests   ***/
+/***********************/
+
+/**
+ * @brief   Test lights (LEDs) with different input conditions 
+ */
+void testLightRoutine( void ); 
+
 /***********************/
 /***    GUI tests    ***/
 /***********************/
@@ -140,9 +150,6 @@ void testRoutineROSOdometry( void );
  * @note    Frequency = 50 Hz
 */
 void testRosRoutineControl( void );
-
-void testSimulationRosControlRoutine( void );
-
 
 void testSpeedFilter( void );
 
@@ -206,10 +213,6 @@ static inline void testsRoutines( void )
 
     testRosRoutineControl( );
 
-#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_FAKE_ROS_CONTROL )
-
-    testSimulationRosControlRoutine( );
-
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEERING_CS )
 
     testSteeringCS( );
@@ -234,6 +237,10 @@ static inline void testsRoutines( void )
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_SIN )
 
     testSpeedSinusRoutine( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINTE_TEST_LIGHT )
+
+    testLightRoutine( );
 
 #endif
 }
