@@ -32,7 +32,8 @@ extern "C" {
 #define     PROGRAM_ROUTINE_TEST_SPEED_FILTER           13
 #define     PROGRAM_ROUTINE_TEST_SPEED_SIN              14
 /*** 	LIGHT RELATED					***/
-#define		PROGRAM_ROUTINTE_TEST_LIGHT					15 
+#define		PROGRAM_ROUTINE_TEST_LIGHT					15 
+#define		PROGRAM_ROUTINE_TEST_LED_MATRIX				16
 /***    BUTTON RELATED                  ***/
 #define     PROGRAM_ROUTINE_TEST_BUTTON_STATE           20
 /***    ROS RELATED                     ***/

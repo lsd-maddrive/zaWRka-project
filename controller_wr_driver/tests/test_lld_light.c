@@ -63,3 +63,25 @@ void testLightRoutine( void )
 		time = chThdSleepUntilWindowed( time, time + 100 );
 	}
 }
+
+/*
+ * NEED COMMENT
+ */
+void testLedMatrixRoutine( void )
+{
+	palSetLine( LINE_LED1 );
+	lldLightInit( NORMALPRIO );
+	// palSetLine( LINE_LED2 );
+
+	debug_stream_init( );
+
+	systime_t time = chVTGetSystemTimeX( );
+	// palSetLine( LINE_LED3 );
+	while( 1 )
+	{
+		palToggleLine( LINE_LED3 );
+
+		time = chThdSleepUntilWindowed( time, time + 100 );
+	}
+
+}

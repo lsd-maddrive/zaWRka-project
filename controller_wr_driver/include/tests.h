@@ -125,6 +125,11 @@ void testSpeedCS ( void );
  */
 void testLightRoutine( void ); 
 
+/*
+ * NEED COMMENT
+ */
+void testLedMatrixRoutine( void );
+
 /***********************/
 /***    GUI tests    ***/
 /***********************/
@@ -238,9 +243,13 @@ static inline void testsRoutines( void )
 
     testSpeedSinusRoutine( );
 
-#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINTE_TEST_LIGHT )
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LIGHT )
 
     testLightRoutine( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LED_MATRIX )
+
+    testLedMatrixRoutine( );
 
 #endif
 }

@@ -179,6 +179,7 @@ void mainControlTask( void )
         }
         else if( state_now == RUN )
         {
+            palToggleLine( LINE_LED3 );
             driverIsEnableCS( true );
 
 
