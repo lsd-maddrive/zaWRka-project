@@ -78,7 +78,7 @@ sudo apt install libespeak-dev pyqt5-dev-tools libgsl-dev libjson-c-dev
 # Dont`forget /opt/movidius/intel-caffe/python
 
 pip install pygame pyserial catkin-pkg rospkg empy defusedxml pycrypto gnupg pillow pycairo \
-			netifaces numpy pyttsx3 PySide2 pydot psutil pyopengl cython matplotlib
+			netifaces numpy pyttsx3 PySide2 pydot psutil pyopengl cython matplotlib 
 
 # For particle filter
 pip list | grep range-libc

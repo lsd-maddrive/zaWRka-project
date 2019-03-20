@@ -15,6 +15,13 @@ class Point:
     def get_array(self):
         return np.array([self.x, self.y])
 
+    # local TF -> ROS: (x1, y1) = (2*y, -2*x)
+    # ROS -> local TF: (x, y) = (-y1/2, x1/2)
+    def get_ros_point(self):
+        ros_x =  2 * self.y
+        ros_y = -2 * self.x
+        return np.array([ros_x, ros_y])
+
     def __str__(self):
         return '[{}; {}]'.format(self.x, self.y)
 
@@ -76,6 +83,19 @@ class PointDir:
 
     def get_tuple(self):
         return (self.x, self.y, self.d)
+
+    # local TF -> ROS: (x1, y1) = (2*y, -2*x)
+    # ROS -> local TF: (x, y) = (-y1/2, x1/2)
+    def get_ros_point(self):
+        ros_x =  2 * self.y
+        ros_y = -2 * self.x
+
+        if self.d == from_direction_letters[-1]:
+            print('Invalid direction in get_ros_point()!')
+
+        ros_angle_deg = direction_angle[self.d]
+
+        return np.array([ros_x, ros_y, ros_angle_deg])
 
     def __str__(self):
         return '[{}; {}; {}]'.format(self.x, self.y, self.d)

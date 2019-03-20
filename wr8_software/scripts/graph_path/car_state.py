@@ -3,10 +3,39 @@ from .maze import *
 import math as m
 
 import numpy as np
-from queue import PriorityQueue
+from Queue import PriorityQueue
 import pygame
 
-from . import gui
+# from . import gui
+
+SIGNS_NONE          = 0
+SIGNS_NO_PATH       = 1
+SIGNS_FORWARD       = 2
+SIGNS_RIGHT         = 3
+SIGNS_LEFT          = 4
+SIGNS_FORWARD_RIGHT = 5
+SIGNS_FORWARD_LEFT  = 6
+
+
+sign_idx_2_meaning = [None] * 7
+sign_idx_2_meaning[SIGNS_NONE]          = SIGNS_NONE
+sign_idx_2_meaning[SIGNS_NO_PATH]       = SIGNS_NO_PATH
+sign_idx_2_meaning[SIGNS_FORWARD]       = SIGNS_FORWARD
+sign_idx_2_meaning[SIGNS_RIGHT]         = SIGNS_RIGHT
+sign_idx_2_meaning[SIGNS_LEFT]          = SIGNS_LEFT
+sign_idx_2_meaning[SIGNS_FORWARD_RIGHT] = SIGNS_FORWARD_RIGHT
+sign_idx_2_meaning[SIGNS_FORWARD_LEFT]  = SIGNS_FORWARD_LEFT
+
+signRemoveDirs = {
+                    SIGNS_NO_PATH       : [Node.NEXT_IDX_FRWD],
+                    SIGNS_FORWARD       : [Node.NEXT_IDX_RGHT, Node.NEXT_IDX_LEFT],
+                    SIGNS_RIGHT         : [Node.NEXT_IDX_FRWD, Node.NEXT_IDX_LEFT],
+                    SIGNS_LEFT          : [Node.NEXT_IDX_RGHT, Node.NEXT_IDX_FRWD],
+                    SIGNS_FORWARD_RIGHT : [Node.NEXT_IDX_LEFT],
+                    SIGNS_FORWARD_LEFT  : [Node.NEXT_IDX_RGHT],
+                    SIGNS_NONE          : []
+                    }
+
 
 class CarState:
     def __init__(self, maze):
@@ -73,6 +102,9 @@ class CarState:
 
             cNode = pNode
 
+    def isTargetEnding(self, tNode):
+        return tNode == self.targetNode
+
     def isEndReached(self):
         return self.cNode == self.targetNode
 
@@ -92,13 +124,13 @@ class CarState:
             self.cNode.signChecked = True
             return 0
 
-        signChoice = gui.requestSign()
+        signChoice = SIGNS_NONE #gui.requestSign()
         print('User chose {}'.format(signChoice))
         if signChoice < 0:
             return -1
 
         # Clean prohibites directions
-        nodeRemoval = gui.signRemoveDirs[signChoice]
+        nodeRemoval = signRemoveDirs[signChoice]
         for remIdx in nodeRemoval:
             self.cNode.dirNeighbours[remIdx] = None
 

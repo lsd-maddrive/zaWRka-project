@@ -126,7 +126,7 @@ def notifyUser(msg):
 
    req = NotificationWindow(msg)
 
-   app.exec()
+   app.exec_()
 
 
 def requestSign():
@@ -134,15 +134,16 @@ def requestSign():
 
    req = SignsRequestWindow()
 
-   app.exec()
+   app.exec_()
 
    return req.choice
+
+
 
 def test():
     res = requestSign()
     print(res)
-    notifyUser('Test')
-    
+    notifyUser('Test')  
 
 if __name__ == '__main__':
     test()
