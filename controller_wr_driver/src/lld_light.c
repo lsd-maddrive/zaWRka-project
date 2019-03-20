@@ -113,16 +113,16 @@ static const SPIConfig led_spicfg = {
     /**
      * @brief SPI CR1 register initialization data.
      */
-    .cr1 = SPI_CR1_BR //SPI_CR1_BR_0,
+    .cr1 = SPI_CR1_BR,
     /**
      * @brief SPI CR2 register initialization data.
      */
-    // .cr2 = SPI_CR2_DS_2 | SPI_CR2_DS_1 | SPI_CR2_DS_0 //SPI_CR2_DS_2 | SPI_CR2_DS_1 | SPI_CR2_DS_0
+    .cr2 = 0 //SPI_CR2_DS_2 | SPI_CR2_DS_1 | SPI_CR2_DS_0 //SPI_CR2_DS_2 | SPI_CR2_DS_1 | SPI_CR2_DS_0
 };
 
 #define SPI_BUFFERS_SIZE    128U
 static uint8_t txbuf[SPI_BUFFERS_SIZE];
-static uint16_t test_tx_spi = 0x3C; 
+static uint16_t test_tx_spi = 0x0F00; 
 
 
 static THD_WORKING_AREA(waLedMatrix, 256); // 128 - stack size
@@ -134,9 +134,9 @@ static THD_FUNCTION(LedMatrix, arg)
     {
         spiAcquireBus(&SPID2);
         spiStart(&SPID2, &led_spicfg);
-        // palClearLine( SPI_CS_LINE );
-        // palToggleLine( LINE_LED2 );
         spiSelect( &SPID2 );
+        palClearLine( SPI_CS_LINE );
+
         spiStartSend( &SPID2, 1, &test_tx_spi );
         spiUnselect( &SPID2 );
         // max7219WriteRegister( &SPID2, MAX7219_AD_DISPLAY_TEST, 0xF0 );
@@ -148,13 +148,9 @@ static THD_FUNCTION(LedMatrix, arg)
         //     max7219WriteRegister( &SPID2, MAX7219_AD_DIGIT_0 + (i << 8), 
         //         brick_sign[i] );
         // }
-        chThdSleepMilliseconds( 10 );    
+        chThdSleepMilliseconds( 0.1 );    
     }
-
-    
 }
-
-
 
 static bool             isInitialized = false;
 
@@ -170,19 +166,15 @@ void lldLightInit( tprio_t priority )
     palSetLineMode( RIGHT_TURN_LINE, PAL_MODE_OUTPUT_PUSHPULL );
     palSetLineMode( LEFT_TURN_LINE,  PAL_MODE_OUTPUT_PUSHPULL );
 
-    // /***    LED Matrix   ***/
-    // palSetLineMode( SPI_SCLK_LINE, PAL_MODE_ALTERNATE(5) | PAL_STM32_OSPEED_HIGHEST );
-    // palSetLineMode( SPI_MOSI_LINE, PAL_MODE_ALTERNATE(5) | PAL_STM32_OSPEED_HIGHEST );
-    // // palSetLineMode( SPI_MISO_LINE, PAL_MODE_ALTERNATE(5) | PAL_STM32_OSPEED_HIGHEST );
+    /***    LED Matrix   ***/
+    palSetLineMode( SPI_SCLK_LINE, PAL_MODE_ALTERNATE(5) | PAL_STM32_OSPEED_HIGHEST );
+    palSetLineMode( SPI_MOSI_LINE, PAL_MODE_ALTERNATE(5) | PAL_STM32_OSPEED_HIGHEST );
 
-    // palSetLineMode( SPI_CS_LINE, PAL_MODE_OUTPUT_PUSHPULL | PAL_STM32_OSPEED_HIGHEST ); 
+    palSetLineMode( SPI_CS_LINE, PAL_MODE_OUTPUT_PUSHPULL | PAL_STM32_OSPEED_HIGHEST ); 
 
     // chThdCreateStatic( waLedMatrix, sizeof(waLedMatrix), priority, LedMatrix, NULL);
-    // spiStart( &SPID2, &led_spicfg ); 
-
-    // MAX7219_OM_t spi_mode = MAX7219_OM_Normal;
-
-    // max7219WriteRegister(&SPID2, MAX7219_AD_DISPLAY_TEST, FALSE);
+    spiStart( &SPID2, &led_spicfg ); 
+    max7219WriteRegister(&SPID2, MAX7219_AD_DISPLAY_TEST, FALSE);
 
     chThdCreateStatic( waTurnRoutine, sizeof(waTurnRoutine), priority, TurnRoutine, NULL);
 

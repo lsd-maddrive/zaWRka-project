@@ -86,7 +86,7 @@ void testLedMatrixRoutine( void )
 	systime_t time = chVTGetSystemTimeX( );
 	while( 1 )
 	{
-		palToggleLine( LINE_LED3 );
+		// palToggleLine( LINE_LED3 );
 
 		time = chThdSleepUntilWindowed( time, time + MS2ST(100) );
 	}
