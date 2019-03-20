@@ -50,7 +50,6 @@ static void is_ros_dead_cb( void *arg )
 
 void ros_is_alive( void )
 {
-//    palToggleLine( LINE_LED1 ); // just to check
     chVTSet( &ros_check_vt, MS2ST( VT_ROS_CHECK_PERIOD_MS ), is_ros_dead_cb, NULL );
 }
 
@@ -105,12 +104,12 @@ void setRosControl( void )
 {
     driveSteerCSSetPosition( ros_steer_control );
     driveSpeedCSSetSpeed( ros_speed_control );
+
 }
 
 
 void sendOdometryToRos( void )
 {
-//    enc_speed_rps  = lldGetOdometryRawSpeedRPS( );
     speed_mps      = lldGetOdometryObjSpeedMPS( );
     speed_radps    = lldGetOdometryObjTettaSpeedRadPS( );
 
@@ -121,7 +120,6 @@ void sendOdometryToRos( void )
     y_pos          = lldGetOdometryObjY( OBJ_DIST_M );
     tetta_deg      = lldGetOdometryObjTettaDeg( );
 
-//    ros_driver_send_encoder_speed( enc_speed_rps );
     ros_driver_send_pose( x_pos, y_pos, tetta_deg, speed_mps, speed_radps );
 }
 
@@ -169,14 +167,21 @@ void mainControlTask( void )
             }
             else
             {
-              driverIsEnableCS( true );
-              setRosControl( );
+                  driverIsEnableCS( true );
+                  setRosControl( );
+                  if( print_cntr == SHOW_PERIOD-1 )
+                  {
+                      dbgprintf( "ROS_SP:(%d)\tROS_ST:(%d)\n\r",
+                               ros_steer_control, ros_speed_control );
+                  }
 //                driverResetCS( );
             }
         }
         else if( state_now == RUN )
         {
             driverIsEnableCS( true );
+
+
             if( print_cntr == SHOW_PERIOD )
             {
               dbgprintf( "RUN\n\r" );
@@ -184,6 +189,7 @@ void mainControlTask( void )
             }
 
             setRosControl( );
+            // lldLightDetectTurnState( ros_steer_control, ros_speed_control, state_now );
         }
 
         time = chThdSleepUntilWindowed( time, time + MS2ST( 25 ) );
