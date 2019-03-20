@@ -44,5 +44,5 @@ Driver | Pins | Input / Output
 ## Драйвер работы с лампочками (освещением)
  Driver | Pins | Input / Output
  -------|------|-------
-    PAL |  G2  | Output/Right turn
-    PAL |  G3  | Output/Left turn 
+  PAL   |  G2  | Output/Right turn
+  PAL   |  G3  | Output/Left turn 

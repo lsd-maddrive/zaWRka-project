@@ -65,9 +65,10 @@ static THD_FUNCTION(TurnRoutine, arg)
 
 }
 
-#define SPI_MOSI_LINE   PAL_LINE( GPIOC, 3)
-#define SPI_SCLK_LINE   PAL_LINE( GPIOB, 10)
-#define SPI_MISO_LINE   PAL_LINE( GPIOC, 2)
+#define SPI_MOSI_LINE   PAL_LINE( GPIOC, 3 )
+#define SPI_SCLK_LINE   PAL_LINE( GPIOB, 10 )
+#define SPI_MISO_LINE   PAL_LINE( GPIOC, 2 )
+#define SPI_CS_LINE     PAL_LINE( GPIOF, 2 )
 
 static bool             isInitialized = false;
 
