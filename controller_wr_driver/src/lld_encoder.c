@@ -153,6 +153,5 @@ void lldResetEncoder( void )
     enc_revs_cntr       = 0;
     enc_null_revs_cntr  = 0;
     enc_dir_state       = 0;
-
 }
 

@@ -143,7 +143,7 @@ void mainControlTask( void )
         if( state_now == IDLE )
         {
 
-
+            lldLightResetTurnState( );
             if( print_cntr == SHOW_PERIOD )
             {
               dbgprintf( "IDLE\n\r" );
@@ -172,7 +172,7 @@ void mainControlTask( void )
                   if( print_cntr == SHOW_PERIOD-1 )
                   {
                       dbgprintf( "ROS_SP:(%d)\tROS_ST:(%d)\n\r",
-                               ros_steer_control, ros_speed_control );
+                               (int)(ros_speed_control*100), (int)ros_steer_control );
                   }
             }
         }

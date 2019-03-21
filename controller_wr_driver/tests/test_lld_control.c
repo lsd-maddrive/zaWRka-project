@@ -11,7 +11,11 @@ static const SerialConfig sdcfg = {
 
 
 
-
+/*
+ * @brief   Routine of low level driver control testing
+ * @note    The routine has internal infinite loop
+ * @note    Changing raw values of pwm dutycycle
+ */
 void testRawWheelsControlRoutine( void )
 {
     debug_stream_init( );
@@ -211,88 +215,6 @@ void testSpeedLimitsCalibrationRoutine( void )
 
        chThdSleepUntil(time);
    }
-}
-
-/*** NOT REALLY GOOD TEST ***/
-void testSpeedSinusRoutine( void )
-{
-    sdStart( &SD7, &sdcfg );
-    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
-    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
-
-    lldControlInit( );
-    lldOdometryInit( );
-
-    int16_t                 speed_value   = 0;
-    odometrySpeedValue_t    speed_mps     = 0;
-    int32_t                 show_cntr     = 0;
-    int16_t                 matlab_speed  = 0;
-    int32_t                 matlab_cnt    = 0;
-    int8_t                  matlab_start_flag = 0;
-
-    int16_t                 test_sin[16] = {0, 5, 10, 15, 20, 15, 10, 5, 0,
-                                            -5, -10, -15, -20, -15, -10, -5};
-
-    int32_t                 index         = 0;
-    char                    rc_data       = 'g';
-
-    while( 1 )
-    {
-
-        rc_data    = sdGetTimeout( &SD7, TIME_IMMEDIATE );
-
-        switch( rc_data )
-        {
-            case 'p':
-              matlab_start_flag = 1;
-              break;
-
-            case 'f':
-              matlab_start_flag = 2;
-              break;
-
-            default:
-              ;
-        }
-
-        if( matlab_start_flag == 1 )
-        {
-           palSetLine( LINE_LED1 );
-           if( show_cntr % 10 == 0 )
-           {
-                if( index == 16)
-                {
-                    index = 0;
-//                    rc_data = 'f';
-//                    break;
-                }
-                speed_value = test_sin[index];
-                matlab_cnt  = test_sin[index];
-                index += 1;
-            }
-
-
-            lldControlSetDrMotorPower( speed_value );
-            speed_mps       = lldOdometryGetLPFObjSpeedMPS( );
-
-            matlab_speed    = (int)( speed_mps * 100 * 10 );
-            sdWrite( &SD7, (uint8_t*) &matlab_cnt, 2);
-            sdWrite( &SD7, (uint8_t*) &matlab_speed, 2);
-
-            show_cntr += 1;
-        }
-        else if( matlab_start_flag == 2 )
-        {
-          show_cntr = 0;
-          index = 0;
-          speed_value = 0;
-          palClearLine( LINE_LED1 );
-          lldControlSetDrMotorPower( speed_value );
-
-        }
-
-        chThdSleepMilliseconds( 5 );
-    }
 }
 
 

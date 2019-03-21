@@ -27,5 +27,7 @@ void lldLightDetectTurnState( float steer_cntrl, float speed_cntrl, system_state
  */
 turn_light_state lldGetLightState( void );
 
+void lldLightResetTurnState( void );
+
 
 #endif /* INCLUDE_LLD_LIGHT_H_ */

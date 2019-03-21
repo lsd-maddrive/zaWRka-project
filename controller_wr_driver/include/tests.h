@@ -114,6 +114,11 @@ void testSteeringCS ( void );
 */
 void testSpeedCS ( void );
 
+/*
+ * @brief   NEED COMMENT
+*/
+void testSpeedFilter( void );
+
 
 
 /***********************/
@@ -156,11 +161,9 @@ void testRoutineROSOdometry( void );
 */
 void testRosRoutineControl( void );
 
-void testSpeedFilter( void );
+
 
 void testButtonRoutine( void );
-
-void testSpeedSinusRoutine( void );
 
 
 
@@ -238,10 +241,6 @@ static inline void testsRoutines( void )
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_BUTTON_STATE)
 
     testButtonRoutine( );
-
-#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_SIN )
-
-    testSpeedSinusRoutine( );
 
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LIGHT )
 

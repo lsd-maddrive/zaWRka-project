@@ -78,6 +78,7 @@ void testLightRoutine( void )
  */
 void testLedMatrixRoutine( void )
 {
+#if 0
 	lldLightInit( NORMALPRIO );
 
 
@@ -90,5 +91,5 @@ void testLedMatrixRoutine( void )
 
 		time = chThdSleepUntilWindowed( time, time + MS2ST(100) );
 	}
-
+#endif
 }

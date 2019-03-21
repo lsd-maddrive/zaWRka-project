@@ -29,6 +29,12 @@ void lldLightDetectTurnState( float steer_cntrl, float speed_cntrl, system_state
     }
 }
 
+void lldLightResetTurnState( void )
+{
+    turn_state = REMOTE;
+}
+
+
 /*
  * @brief   Get current state of turn lights  
  */
@@ -71,6 +77,7 @@ while( 1 )
 
 }
 
+#if 0
 #define SIGN_NUMBER     1
 #define MAX_DIGITS      8
  
@@ -151,6 +158,7 @@ static THD_FUNCTION(LedMatrix, arg)
         chThdSleepMilliseconds( 0.1 );    
     }
 }
+#endif
 
 static bool             isInitialized = false;
 
@@ -166,6 +174,7 @@ void lldLightInit( tprio_t priority )
     palSetLineMode( RIGHT_TURN_LINE, PAL_MODE_OUTPUT_PUSHPULL );
     palSetLineMode( LEFT_TURN_LINE,  PAL_MODE_OUTPUT_PUSHPULL );
 
+#if 0 
     /***    LED Matrix   ***/
     palSetLineMode( SPI_SCLK_LINE, PAL_MODE_ALTERNATE(5) | PAL_STM32_OSPEED_HIGHEST );
     palSetLineMode( SPI_MOSI_LINE, PAL_MODE_ALTERNATE(5) | PAL_STM32_OSPEED_HIGHEST );
@@ -175,7 +184,8 @@ void lldLightInit( tprio_t priority )
     // chThdCreateStatic( waLedMatrix, sizeof(waLedMatrix), priority, LedMatrix, NULL);
     spiStart( &SPID2, &led_spicfg ); 
     max7219WriteRegister(&SPID2, MAX7219_AD_DISPLAY_TEST, FALSE);
-
+#endif 
+    
     chThdCreateStatic( waTurnRoutine, sizeof(waTurnRoutine), priority, TurnRoutine, NULL);
 
     isInitialized = true;
