@@ -79,7 +79,7 @@ static const ICUConfig icucfg_speed = {
 };
 
 
-static THD_WORKING_AREA(waRCModeDetect, 128); // 128 - stack size
+static THD_WORKING_AREA(waRCModeDetect, 256); // 128 - stack size
 static THD_FUNCTION(RCModeDetect, arg)
 {
     arg = arg;

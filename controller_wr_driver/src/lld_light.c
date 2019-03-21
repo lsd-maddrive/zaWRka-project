@@ -43,7 +43,7 @@ turn_light_state lldGetLightState( void )
     return turn_state; 
 }
 
-static THD_WORKING_AREA(waTurnRoutine, 128); // 128 - stack size
+static THD_WORKING_AREA(waTurnRoutine, 256); // 128 - stack size
 static THD_FUNCTION(TurnRoutine, arg)
 {
     arg = arg; 

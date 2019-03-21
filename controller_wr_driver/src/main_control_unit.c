@@ -55,6 +55,7 @@ void ros_is_alive( void )
 
 void ros_control_handler( float speed, float steer )
 {
+    // dbgprintf("Smth is coming\n\r");
     ros_speed_control = speed;
     ros_steer_control = steer;
     ros_is_alive( );
@@ -131,11 +132,18 @@ void sendOdometryToRos( void )
 void mainControlTask( void )
 {
     uint32_t                print_cntr          = 0;
+    system_state            state_prev          = 3; 
+
+    icuControlValue_t prev_rc_steer_prt     = 0; 
+    icuControlValue_t prev_rc_speed_prt          = 0; 
+
+
 
     systime_t time = chVTGetSystemTimeX();
+
     while( 1 )
     {
-        print_cntr += 1;
+        print_cntr += 1;    // for debug print 
         system_state state_now  = lldGetSystemState( );
 
         sendOdometryToRos( );
@@ -143,55 +151,67 @@ void mainControlTask( void )
         if( state_now == IDLE )
         {
 
-            lldLightResetTurnState( );
-            if( print_cntr == SHOW_PERIOD )
+            lldLightResetTurnState( );  // turn off leds
+
+            if( state_prev != state_now )
             {
-              dbgprintf( "IDLE\n\r" );
-              print_cntr = 0;
+                dbgprintf( "IDLE\n\r", print_cntr );
+                print_cntr = 0;
             }
+
             bool mode = rcModeIsEnabled();
 
             if( mode )
             {
+
                 driverIsEnableCS( false );
                 icuControlValue_t rc_steer_prt    = rcGetSteerControlValue( );
                 icuControlValue_t rc_speed_prt    = rcGetSpeedControlValue( );
-                if( print_cntr == SHOW_PERIOD-1 )
-                {
-                    dbgprintf( "RC_SP:(%d)\tRC_ST:(%d)\n\r",
-                               rc_speed_prt, rc_steer_prt  );
+                
+                // if( prev_rc_steer_prt != rc_steer_prt || prev_rc_speed_prt != rc_speed_prt )
+                // {
+                //     dbgprintf( "RC_SP:(%d)\tRC_ST:(%d)\n\r",
+                //                rc_speed_prt, rc_steer_prt );
+                // }
 
-                }
+
+                // if( print_cntr == SHOW_PERIOD-1 )
+                // {
+                //     dbgprintf( "RC_SP:(%d)\tRC_ST:(%d)\n\r",
+                //                rc_speed_prt, rc_steer_prt );
+                //     print_cntr = 0;
+
+                // }
                 lldControlSetDrMotorPower( rc_speed_prt );
                 lldControlSetSteerMotorPower( rc_steer_prt );
+
             }
             else
             {
                   driverIsEnableCS( true );
                   setRosControl( );
-                  if( print_cntr == SHOW_PERIOD-1 )
-                  {
-                      dbgprintf( "ROS_SP:(%d)\tROS_ST:(%d)\n\r",
-                               (int)(ros_speed_control*100), (int)ros_steer_control );
-                  }
+                  // if( print_cntr == SHOW_PERIOD-1 )
+                  // {
+                  //     dbgprintf( "ROS_SP:(%d)\tROS_ST:(%d)\n\r",
+                  //              (int)(ros_speed_control*100), (int)ros_steer_control );
+                  //     print_cntr = 0; 
+                  // }
             }
         }
         else if( state_now == RUN )
         {
-            palToggleLine( LINE_LED3 );
             driverIsEnableCS( true );
-
-
-            if( print_cntr == SHOW_PERIOD )
+            
+            if( state_prev != state_now )
             {
-              dbgprintf( "RUN\n\r" );
-              print_cntr = 0;
+                dbgprintf( "RUN\n\r" );
             }
 
             setRosControl( );
             lldLightDetectTurnState( ros_steer_control, ros_speed_control, state_now );
         }
 
+        state_prev = state_now; 
         time = chThdSleepUntilWindowed( time, time + MS2ST( 25 ) );
     }
 }

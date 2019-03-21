@@ -53,7 +53,7 @@ void ros_driver_send_state( int8_t state );
  */
 typedef struct
 {
-	#define ROS_INPUT_CMD_SPEED_LIMIT_MPS	0.5
+	#define ROS_INPUT_CMD_SPEED_LIMIT_MPS	1
 	#define ROS_INPUT_CMD_STEER_LIMIT_DEG	25
 	/*
 	 * Cb returned arguments:

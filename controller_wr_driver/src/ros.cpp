@@ -115,6 +115,8 @@ ros::ServiceServer<wr8_msgs::ControlParamsRequest, wr8_msgs::ControlParamsRespon
 
 void cmd_vel_cb( const geometry_msgs::Twist &msg )
 {
+
+
     if ( last_cb_ctx.cmd_cb == NULL )
     {
         return;
@@ -150,7 +152,7 @@ ros::Publisher              topic_state("state", &i8_state_msg);
  * ROS spin thread - used to receive messages
  */
 
-static THD_WORKING_AREA(waSpinner, 128);
+static THD_WORKING_AREA(waSpinner, 256);
 static THD_FUNCTION(Spinner, arg)
 {
     (void)arg;

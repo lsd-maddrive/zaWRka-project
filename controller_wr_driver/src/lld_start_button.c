@@ -28,7 +28,7 @@ static void stop_vt_cb( void *arg )
     cur_system_state  = IDLE;
 }
 
-static THD_WORKING_AREA(waButton, 128); // 128 - stack size
+static THD_WORKING_AREA(waButton, 256); // 128 - stack size
 static THD_FUNCTION(Button, arg)
 {
     arg = arg;            // just to avoid warnings
@@ -44,7 +44,7 @@ static THD_FUNCTION(Button, arg)
 
         if( msg_button == MSG_OK )
         {
-            chThdSleepMicroseconds( 50 ); // to avoid button bounce
+            chThdSleepMilliseconds( 500 ); // to avoid button bounce
             if( palReadLine( START_BUTTON_LINE ) == 0)
             {
                 if( cur_system_state == IDLE )

@@ -163,7 +163,7 @@ controlValue_t driveSpeedGetControlVal ( void )
 }
 
 
-static THD_WORKING_AREA(waController, 128); // 128 - stack size
+static THD_WORKING_AREA(waController, 256); // 128 - stack size
 static THD_FUNCTION(Controller, arg)
 {
     arg = arg; // to avoid warnings
