@@ -133,6 +133,7 @@ class Node:
         self.next_nodes     = [None, None, None, None]
 
         self.dirNeighbours = [None, None, None]
+        self.orig_dirNeighb = None
         self.dirLetr = '-'
 
         self.idx = -1

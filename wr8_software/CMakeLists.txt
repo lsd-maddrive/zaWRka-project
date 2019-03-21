@@ -148,6 +148,11 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
+set(CAMERA_SENSER_NODE_NAME action_cam)
+set(CAMERA_SENSER_NODE_SRC src/action_cam.cpp)
+
+
+
 #############
 ## Install ##
 #############

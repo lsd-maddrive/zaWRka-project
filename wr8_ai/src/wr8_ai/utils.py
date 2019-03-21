@@ -45,3 +45,31 @@ def yolo_bbox_2_ros_bbox(yolo_bbox, labels):
     # print("Output: {}",format(ros_box))
 
     return ros_box
+
+class ImageReceiverROS:
+    from cv_bridge import CvBridge, CvBridgeError
+    from sensor_msgs.msg import Image, CompressedImage
+
+    def __init__(self, topic_name):
+        self.bridge = CvBridge()
+        self.image_sub = rospy.Subscriber(topic_name, Image, self.callback_img, queue_size=1)
+        # self.image_sub_compres = rospy.Subscriber("camera_compr", CompressedImage, self.callback_img_compressed, queue_size=1)
+
+        self.cv_image = None
+        self.cv_image_comp = None
+
+    def callback_img(self, data):
+        try:
+            self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+        except CvBridgeError as e:
+            rospy.logwarn(e)
+
+    def callback_img_compressed(self, data):
+        np_arr = np.fromstring(data.data, np.uint8)
+        self.cv_image_comp = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+    def get_image(self):
+        return self.cv_image
+
+    def get_image_compressed(self):
+        return self.cv_image_comp
