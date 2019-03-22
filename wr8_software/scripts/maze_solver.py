@@ -85,12 +85,14 @@ class MazeSolver:
         rospy.loginfo('Current node: {}'.format(self.car.cNode))
         rospy.loginfo('Set target: {}'.format(self.tNode))
 
+        right_shift = 0.15
+        rear_shift = 1.25
         shift_dir = { 
-                from_direction_letters[0] : Point(0.35, -1),
-                from_direction_letters[1] : Point(-1, -0.35),
-                from_direction_letters[2] : Point(-0.35, 1),
-                from_direction_letters[3] : Point(1, 0.35)
-            }        
+                from_direction_letters[0] : Point(right_shift, -rear_shift),
+                from_direction_letters[1] : Point(-rear_shift, -right_shift),
+                from_direction_letters[2] : Point(-right_shift, rear_shift),
+                from_direction_letters[3] : Point(rear_shift, right_shift)
+            }
 
         if self.car.isTargetEnding(self.tNode):
             tPoint = self.tNode.coord + Point(0.8, 0)
@@ -190,8 +192,6 @@ def main():
 
     solver.set_next_cross_goal()
 
-
-
     while not rospy.is_shutdown():
 
         if not solver.is_maze_completed:
@@ -200,8 +200,7 @@ def main():
                 # Signs test
                 if solver.is_sign_required():
                     seleceted_sign = int(random.random() * 6)
-
-                    # seleceted_sign = SIGNS_NONE
+                    # seleceted_sign = SIGNS_LEFT
 
                     solver.set_vision_sign(seleceted_sign)
 

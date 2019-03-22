@@ -138,7 +138,7 @@ class CarState:
         if self.cNode.orig_dirNeighb is None:
             self.cNode.orig_dirNeighb = self.cNode.dirNeighbours
 
-        self.cNode.dirNeighbours = self.cNode.orig_dirNeighb
+        self.cNode.dirNeighbours = np.array(self.cNode.orig_dirNeighb)
 
         # Clean prohibites directions
         nodeRemoval = signRemoveDirs[car_sign]

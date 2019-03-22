@@ -1,16 +1,11 @@
 <?xml version="1.0"?>
 <launch>
   
-  <include file="$(find wr8_software)/launch/base/signs_camera.launch">
+<!--   <include file="$(find wr8_software)/launch/base/signs_camera.launch">
       <arg name="device" value="/dev/v4l/by-id/usb-USB_Developer_Android_20080411-video-index0" />
       <arg name="frame_id" value="signs_camera" />
   </include>
-
-  <include file="$(find wr8_software)/launch/base/road_camera.launch">
-      <arg name="device" value="/dev/v4l/by-id/usb-046d_0825_CA00E440-video-index0" />
-      <arg name="frame_id" value="road_camera" />
-  </include>    
-
+ -->
   <node name="test_signs"  pkg="wr8_ai"  type="test_signs.py" output="screen" respawn="false" >
     <param name="fps_msr" value="true"/>  
 
@@ -21,6 +16,7 @@
     <param name="det_config_path" value="$(find wr8_ai)/best/TSD/config"/>  
 
     <remap from="nn_input" to="signs_camera/image_raw" />
+    <remap from="nn_input_compr" to="signs_camera/image_raw/compressed" />
 
   </node>
 

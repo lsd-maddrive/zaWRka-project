@@ -30,7 +30,7 @@ class DetectorNCS:
         
         rospy.loginfo('Config opened')
 
-        self.labels = ['brick', 'forward', 'forward_left', 'forward_right', 'left', 'right']
+        self.labels = config['model']['labels']
         anchors = config['model']['anchors']
 
         net_h, net_w = config['model']['infer_shape']
@@ -158,13 +158,14 @@ class DoubleDetector:
 
         return True
 
-    def infer(self, cv_img, yolo_img, corr_img):
+    def infer(self, cv_img, yolo_img=None, corr_img=None):
         # render_img = img.copy()
         ros_bboxes, yolo_bboxes = self.nn_det.infer(cv_img)
         
         yolo_result_img = cv_img.copy()
 
-        self.nn_det.draw_boxes(yolo_img, ros_bboxes)
+        if yolo_img is not None:
+            self.nn_det.draw_boxes(yolo_img, ros_bboxes)
 
         corrected_ros_bboxes = []
 
@@ -181,7 +182,8 @@ class DoubleDetector:
             corrected_ros_bboxes += [ros_box]
             # print('Predicted class: {}'.format(result_cl))
 
-        self.nn_det.draw_boxes(corr_img, corrected_ros_bboxes)
+        if corr_img is not None:
+            self.nn_det.draw_boxes(corr_img, corrected_ros_bboxes)
 
         return corrected_ros_bboxes
 
@@ -208,16 +210,21 @@ class SignsDetector:
         self.initialized = True
 
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("nn_input", Image, self.callback_img, queue_size=1)
+        # self.image_sub = rospy.Subscriber("nn_input", Image, self.callback_img, queue_size=1)
+        self.image_sub = rospy.Subscriber("nn_input_compr", CompressedImage, self.callback_comp_img, queue_size=1)
 
-        self.image_pub_yolo = rospy.Publisher("yolo/compressed", CompressedImage)
-        self.image_pub_yolo_corr = rospy.Publisher("yolo_corr/compressed", CompressedImage)
-        # self.image_sub = rospy.Subscriber("camera_compr", CompressedImage, self.callback_img_compressed, queue_size=1)
+        self.image_pub_yolo = rospy.Publisher("nn_yolo/compressed", CompressedImage)
+        self.image_pub_yolo_corr = rospy.Publisher("nn_result/compressed", CompressedImage)
 
         self.cv_image = None
-        # self.cv_image_comp = None
+        self.cv_image_comp = None
 
         return True
+
+    def callback_comp_img(self, data):
+        np_arr = np.fromstring(data.data, np.uint8)
+        self.cv_image_comp = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
 
     def callback_img(self, data):
         try:
@@ -233,6 +240,26 @@ class SignsDetector:
         corr_yolo_img = self.cv_image.copy()
 
         ros_boxes = self.detector.infer(self.cv_image, yolo_img, corr_yolo_img)
+
+        msg = CompressedImage()
+        msg.header.stamp = rospy.Time.now()
+        msg.format = "png"
+        msg.data = np.array(cv2.imencode('.png', yolo_img)[1]).tostring()
+        self.image_pub_yolo.publish(msg)
+
+        msg.data = np.array(cv2.imencode('.png', corr_yolo_img)[1]).tostring()
+        self.image_pub_yolo_corr.publish(msg)
+
+        return ros_boxes
+
+    def get_signs_compr(self):
+        if self.cv_image_comp is None:
+            return []
+
+        yolo_img = self.cv_image_comp.copy()
+        corr_yolo_img = self.cv_image_comp.copy()
+
+        ros_boxes = self.detector.infer(self.cv_image_comp, yolo_img, corr_yolo_img)
 
         msg = CompressedImage()
         msg.header.stamp = rospy.Time.now()

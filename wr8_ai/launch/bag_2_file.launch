@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="input_file" />
+
+  	<node pkg="rosbag" type="play" name="rosbag" required="true" args="$(arg input_file)"/>
+  	<node name="extract" pkg="image_view" type="extract_images" respawn="false" required="true" output="screen" cwd="ROS_HOME">
+    	<remap from="image" to="/signs_camera/image_raw" />
+    	<param name="image_transport" value="compressed" />
+  	</node>
+</launch>

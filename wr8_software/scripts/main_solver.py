@@ -81,120 +81,87 @@ class ControllerLocalization:
     def __init__(self):
         uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
         rospy.loginfo('UUID generated: {}'.format(uuid))
-
         roslaunch.configure_logging(uuid)
 
-        if gazebo_test:
-            lidar_cli_args = ['wr8_software', 'gz_localization.launch']
-        else:
-            lidar_cli_args = ['wr8_software', 'localization.launch']
+        maze_cli_args = ['wr8_software', 'localization.launch', 'fast:=false']
+        speed_cli_args = ['wr8_software', 'localization.launch', 'fast:=true']
 
-        roslaunch_lidar_file = roslaunch.rlutil.resolve_launch_arguments(lidar_cli_args)
+        roslaunch_maze_file = roslaunch.rlutil.resolve_launch_arguments(maze_cli_args)
+        roslaunch_speed_file = roslaunch.rlutil.resolve_launch_arguments(speed_cli_args)
 
-        self.launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_lidar_file, verbose=True, force_screen=True)
+        self.maze_launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_maze_file, verbose=True)
+        self.speed_launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_speed_file, verbose=True)
 
-        self.is_enabled = False
-        rospy.loginfo("ControllerLocalization initialized")
+        self.is_maze_enabled = False
+        self.is_speed_enabled = False
+        rospy.loginfo("Controller Localization initialized")
 
     def __del__(self):
         self.stop()
 
-    def start(self):
-        if self.is_enabled:
+    def start_maze(self):
+        if self.is_maze_enabled:
             return
 
-        self.is_enabled = True
-        self.launch.start()
-        rospy.loginfo("Enabled")
+        self.is_maze_enabled = True
+        self.maze_launch.start()
+        rospy.loginfo("Maze enabled")
+
+    def start_speed(self):
+        if self.is_speed_enabled:
+            return
+
+        self.is_speed_enabled = True
+        self.speed_launch.start()
+        rospy.loginfo("Speed enabled")
+
 
     def stop(self):
-        if not self.is_enabled:
-            return
+        if self.is_maze_enabled:
+            self.is_maze_enabled = False
+            self.maze_launch.shutdown()
 
-        self.is_enabled = False
-        self.launch.shutdown()
-        rospy.loginfo("Stopped")
+            rospy.loginfo("Maze stopped")
+
+        if self.is_speed_enabled:
+            self.is_speed_enabled = False
+            self.speed_launch.shutdown()
+
+            rospy.loginfo("Speed stopped")
 
 from wr8_ai.detectors import DoubleDetector
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image, CompressedImage
 import cv2
 import numpy as np
+from wr8_ai.detectors import SignsDetector
 
-class SignsDetector:
-
-    def __init__(self):
-        pass
-
-    def init(self):
-        rec_weights_path = rospy.get_param('~rec_weights_path')
-        rec_config_path = rospy.get_param('~rec_config_path')
-
-        det_graph_path = rospy.get_param('~det_graph_path')
-        det_config_path = rospy.get_param('~det_config_path')
-
-        self.detector = DoubleDetector()
-        if not self.detector.init(rec_config_path, rec_weights_path, det_config_path, det_graph_path):
-            rospy.logerr('Failed to init detectors')
-            self.initialized = False
-            return False
-
-        self.initialized = True
-
-        self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("nn_input", Image, self.callback_img, queue_size=1)
-
-        self.image_pub_yolo = rospy.Publisher("yolo/compressed", CompressedImage)
-        self.image_pub_yolo_corr = rospy.Publisher("yolo_corr/compressed", CompressedImage)
-        # self.image_sub = rospy.Subscriber("camera_compr", CompressedImage, self.callback_img_compressed, queue_size=1)
-
-        self.cv_image = None
-        # self.cv_image_comp = None
-
-        return True
-
-    def callback_img(self, data):
-        try:
-            self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-        except CvBridgeError as e:
-            rospy.logwarn(e)
-
-    def get_signs(self):
-        if self.cv_image is None:
-            return []
-
-        yolo_img = self.cv_image.copy()
-        corr_yolo_img = self.cv_image.copy()
-
-        ros_boxes = self.detector.infer(self.cv_image, yolo_img, corr_yolo_img)
-
-        msg = CompressedImage()
-        msg.header.stamp = rospy.Time.now()
-        msg.format = "png"
-        msg.data = np.array(cv2.imencode('.png', yolo_img)[1]).tostring()
-        self.image_pub_yolo.publish(msg)
-
-        msg.data = np.array(cv2.imencode('.png', corr_yolo_img)[1]).tostring()
-        self.image_pub_yolo_corr.publish(msg)
-
-        return ros_boxes
-
-    def get_image(self):
-        return self.cv_image
-
+from std_msgs.msg import UInt8
 
 from graph_path.car_state import *
 
+node_idx = 0
+
+def idx_cb(msg):
+    global node_idx
+    node_idx = msg.data
+    rospy.loginfo('New idx: {}'.format(node_idx))
+
 def main():
     rospy.init_node('main_solver')
+    
+    c_node_idx = 0
+    wait4cmd = False
+    node_idx_sub = rospy.Subscriber('node_idx', UInt8, idx_cb)
 
     state_pr = StateProcessor()
     slam_ctr = ControllerLocalization()
 
-    signs_detector = None#SignsDetector()
-    # if not signs_detector.init():
-        # rospy.logerr('Failed to initilize detector')
-        # signs_detector = None
+    signs_detector = None
+    signs_detector = SignsDetector()
+    if not signs_detector.init():
+        rospy.logerr('Failed to initilize detector')
+        signs_detector = None
 
     rate = rospy.Rate(20)
 
@@ -205,9 +172,23 @@ def main():
     last_point_idx = -1
     last_points = [(13.5, -14.6, 0), (14, 0.8, 90)]
 
+    maze_flag = False
+    speed_region_flag = False
+    init_stage_idx = 0
+
+    complete_time = 0
+
+    signs_stats = {}
+
     while not rospy.is_shutdown():
         if signs_detector:
             current_signs_rbboxes = signs_detector.get_signs()
+
+            for sign_bbox in current_signs_rbboxes:
+                if sign_bbox.Class in signs_stats:
+                    signs_stats[sign_bbox.Class] += 1
+                else:
+                    signs_stats[sign_bbox.Class] = 1
 
         if state_pr.is_state_changed():
 
@@ -215,31 +196,91 @@ def main():
                 if first_start_interrupted:
                     rospy.logwarn('Solver called after movement, reset node!')
                 else:
-                    time.sleep(5)
-                    rospy.loginfo('Sleep end, recover behaviour')
-
-                    slam_ctr.start()
-                    solver.init()
-                    solver.set_next_cross_goal()
+                    start_init_time = time.time()
+                    init_stage_idx += 1
             elif state_pr.last_state == StateProcessor.STOP:
                 slam_ctr.stop()
-                first_start_interrupted = True
+                maze_flag = False
+                speed_region_flag = False
+                init_stage_idx = 0
             elif state_pr.last_state == StateProcessor.IDLE:
                 slam_ctr.stop()
-                first_start_interrupted = True
+                maze_flag = False
+                speed_region_flag = False
+                init_stage_idx = 0
 
-        if state_pr.last_state == StateProcessor.RUN and not first_start_interrupted:
+        # Initialization block
+        if init_stage_idx == 1:
+            if time.time() - start_init_time > 5:
+                init_stage_idx += 1
+                rospy.loginfo('Sleep end, recover behaviour')
+        elif init_stage_idx == 2:
+            slam_ctr.start_maze()
+            solver.init()
+            rospy.loginfo('Initialized')
+            init_stage_idx += 1
+        elif init_stage_idx == 3:
+            solver.set_next_cross_goal()
+            first_start_interrupted = True
+            maze_flag = True
+            init_stage_idx = 0
+        elif init_stage_idx == 11:
+            slam_ctr.start_speed()
+            speed_region_flag = True
+            init_stage_idx = 0
+
+        # Maze logic
+        if maze_flag:
             # Main logic
             if not solver.is_maze_completed:
 
                 if solver.is_goal_completed:
-                    # Signs test
+                    if complete_time == 0:
+                        complete_time = time.time()
+
+                    # Wait for signs
+                    if time.time() - complete_time < 1:
+                        continue
+
                     if solver.is_sign_required():
-                        seleceted_sign = SIGNS_NONE
+                        seen_sign = max(signs_stats, key=signs_stats.get)
+
+                        tans_signs = {
+                                        'brick' : SIGNS_NO_PATH,
+                                        'forward' : SIGNS_FORWARD, 
+                                        'forward_left' : SIGNS_FORWARD_LEFT,
+                                        'forward_right' : SIGNS_FORWARD_RIGHT, 
+                                        'left' : SIGNS_LEFT, 
+                                        'right' : SIGNS_RIGHT, 
+                                        'negative' : SIGNS_NONE
+                                    }
+
+                        if signs_stats[seen_sign] < 100:
+                            seleceted_sign = SIGNS_NONE    
+                        else:
+                            seleceted_sign = tans_signs[seen_sign]
+
+                        # seleceted_sign = SIGNS_NONE
                         solver.set_vision_sign(seleceted_sign)
 
+                        rospy.loginfo('Stats: {}'.format(signs_stats))
                         rospy.loginfo('Set selected sign: {} [{}]'.format(sign_names[seleceted_sign], seleceted_sign))
 
+
+                    # if c_node_idx >= node_idx:
+                        # print('Sleep for next node {}, stats: {}'.format(node_idx, signs_stats))
+                        # wait4cmd = True
+                        # continue
+
+                    # if wait4cmd:
+                        # signs_stats = {}
+
+                    # if c_node_idx >= node_idx:
+                    #     rospy.loginfo('Node is waiting')
+                    #     continue
+
+                    c_node_idx += 1
+                    
                     if not solver.set_next_cross_goal():
                         rospy.loginfo('Failed to get maze path')
 
@@ -252,8 +293,12 @@ def main():
                     solver.recover_current_goal()
                 else:
                     time.sleep(0.1)
-
             else:
+                slam_ctr.stop()
+
+                init_stage_idx = 11
+
+        if speed_region_flag:
                 from actionlib_msgs.msg import GoalStatus
 
                 if solver.is_goal_completed:

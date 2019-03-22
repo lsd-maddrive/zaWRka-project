@@ -10,18 +10,20 @@
   <arg name="odom_topic" default="odom" />
   <arg name="laser_topic" default="scan" />
 
+  <arg name="config_dir" default="config" />
+
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-    <rosparam file="$(find wr8_software)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
-    <rosparam file="$(find wr8_software)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />   
+    <rosparam file="$(find wr8_software)/$(arg config_dir)/costmap_common_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find wr8_software)/$(arg config_dir)/costmap_common_params.yaml" command="load" ns="local_costmap" />   
 
-    <rosparam file="$(find wr8_software)/config/local_costmap_params.yaml" command="load" />   
-    <rosparam file="$(find wr8_software)/config/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find wr8_software)/$(arg config_dir)/local_costmap_params.yaml" command="load" />   
+    <rosparam file="$(find wr8_software)/$(arg config_dir)/global_costmap_params.yaml" command="load" />
 
-    <rosparam file="$(find wr8_software)/config/move_base_params.yaml" command="load" />
+    <rosparam file="$(find wr8_software)/$(arg config_dir)/move_base_params.yaml" command="load" />
 
-    <rosparam file="$(find wr8_software)/config/global_planner_params.yaml" command="load" />
-    <!-- <rosparam file="$(find wr8_software)/config/voronoi_planner_params.yaml" command="load" /> -->
-    <rosparam file="$(find wr8_software)/config/teb_local_planner_params.yaml" command="load" />
+    <rosparam file="$(find wr8_software)/$(arg config_dir)/global_planner_params.yaml" command="load" />
+    <!-- <rosparam file="$(find wr8_software)/$(arg config_dir)/voronoi_planner_params.yaml" command="load" /> -->
+    <rosparam file="$(find wr8_software)/$(arg config_dir)/teb_local_planner_params.yaml" command="load" />
     
     <!-- reset frame_id parameters using user input data -->
     <param name="global_costmap/global_frame" value="$(arg global_frame)"/>
