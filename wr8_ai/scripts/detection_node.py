@@ -3,40 +3,25 @@
 import rospy
 from wr8_ai.srv import ObjectDetection, ObjectDetectionResponse
 from cv_bridge import CvBridge, CvBridgeError
-
-import wr8_ai.detector_ncs as det
-
-rospy.init_node('yolo_detection')
-
-graph_path = rospy.get_param('~graph_path')
-config_path = rospy.get_param('~config_path')
-
-detector = det.DetectorNCS()
-if not detector.init(0, graph_path, config_path):
-    rospy.logerr('Failed to initialize detector')        
-
-def handle_srv(self, req):
-    try:
-        cv_image = bridge.imgmsg_to_cv2(req.image, "bgr8")
-    except CvBridgeError as e:
-        rospy.logwarn(e)
-
-    resp = ObjectDetectionResponse()
-
-    boxes, box_img = detector.get_signs(cv_img=image)
-
-    resp.bboxes = boxes
-
-    return resp
-
+from wr8_ai.detectors import SignsDetector
 
 def main():
+    rospy.init_node('yolo_detection')
 
-    rospy.Service('detect_signs', ObjectDetection, handle_srv)
-    rospy.loginfo("Ready to detect signs!")
+    signs_detector = SignsDetector()
+    if not signs_detector.init():
+        rospy.logerr('Failed to initilize detector')
+        signs_detector = None
+        exit(1)
 
-    rospy.spin()
+    rospy.logwarn('>>> SNN ready')
 
+    rate = rospy.Rate(20)
+
+    while not rospy.is_shutdown():
+    	signs_detector.update()
+
+    rate.sleep()
 
 if __name__ == '__main__':
     main()

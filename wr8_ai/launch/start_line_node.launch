@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="wr8_ai" type="white_line_detector.py" name="white_line_detection_node" output="screen" respawn="true">
+        <remap from="image" to="road_camera/image_raw" />
+    </node>
+
+</launch>

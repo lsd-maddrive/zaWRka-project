@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="wr8_ai" type="detection_node.py" name="detection_node" output="screen" respawn="true">
+        <param name="rec_weights_path" value="$(find wr8_ai)/best/TSR/weight"/>
+        <param name="rec_graph_path" value="$(find wr8_ai)/best/TSR/graph"/>  
+        <param name="rec_config_path" value="$(find wr8_ai)/best/TSR/config"/>  
+        <param name="det_graph_path" value="$(find wr8_ai)/best/TSD/graph"/>  
+        <param name="det_config_path" value="$(find wr8_ai)/best/TSD/config"/>  
+
+        <remap from="image" to="signs_camera/image_raw" />
+        <!-- <remap from="nn_input_compr" to="signs_camera/image_raw/compressed" /> -->
+    </node>
+
+</launch>

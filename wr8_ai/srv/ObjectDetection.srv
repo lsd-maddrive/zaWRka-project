@@ -1,3 +1,2 @@
-sensor_msgs/Image image
 ---
 wr8_ai/BoundingBox[] bboxes

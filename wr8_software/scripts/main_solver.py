@@ -11,8 +11,6 @@ import time
 state_topic_name = 'robot/state'
 reset_odon_srv_name = 'robot/reset_odometry'
 
-gazebo_test = False
-
 class StateProcessor:
 
     IDLE = 0
@@ -59,15 +57,14 @@ class StateProcessor:
     def run_init_state(self):
         rospy.loginfo('New state - RUN')
         
-        if not gazebo_test:
-            rospy.wait_for_service(reset_odon_srv_name)
-            reset_odom_prx = rospy.ServiceProxy(reset_odon_srv_name, Trigger)
+        rospy.wait_for_service(reset_odon_srv_name)
+        reset_odom_prx = rospy.ServiceProxy(reset_odon_srv_name, Trigger)
 
-            try:
-                resp = reset_odom_prx()
-                rospy.loginfo('Reset resp: {}'.format(resp))
-            except:
-                rospy.logwarn('Bad service resp')
+        try:
+            resp = reset_odom_prx()
+            rospy.loginfo('Reset resp: {}'.format(resp))
+        except:
+            rospy.logwarn('Bad service resp')
 
     def is_state_changed(self):
         if self.state_changed:
@@ -129,6 +126,7 @@ class ControllerLocalization:
 
             rospy.loginfo("Speed stopped")
 
+
 from wr8_ai.detectors import DoubleDetector
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image, CompressedImage
@@ -139,6 +137,7 @@ from wr8_ai.detectors import SignsDetector
 from std_msgs.msg import UInt8
 
 from graph_path.car_state import *
+from wr8_ai.yolo import fps
 
 node_idx = 0
 
@@ -146,6 +145,9 @@ def idx_cb(msg):
     global node_idx
     node_idx = msg.data
     rospy.loginfo('New idx: {}'.format(node_idx))
+
+from wr8_ai.srv import ObjectDetection
+from wr8_ai.srv import WhiteLineDetection
 
 def main():
     rospy.init_node('main_solver')
@@ -156,12 +158,6 @@ def main():
 
     state_pr = StateProcessor()
     slam_ctr = ControllerLocalization()
-
-    signs_detector = None
-    signs_detector = SignsDetector()
-    if not signs_detector.init():
-        rospy.logerr('Failed to initilize detector')
-        signs_detector = None
 
     rate = rospy.Rate(20)
 
@@ -176,20 +172,23 @@ def main():
     speed_region_flag = False
     init_stage_idx = 0
 
+    test_tl_flag = False
+
     complete_time = 0
 
     signs_stats = {}
 
+    wl_detection_service = 'wl/detect'
+    # rospy.wait_for_service(wl_detection_service)
+    # detect_wl_srv = rospy.ServiceProxy(wl_detection_service, WhiteLineDetection)
+
+    nn_detection_service = 'nn/detect_signs'
+    # rospy.wait_for_service(nn_detection_service)
+    # detect_signs_srv = rospy.ServiceProxy(nn_detection_service, ObjectDetection)
+
+    rospy.loginfo('Ready 2 go!')
+
     while not rospy.is_shutdown():
-        if signs_detector:
-            current_signs_rbboxes = signs_detector.get_signs()
-
-            for sign_bbox in current_signs_rbboxes:
-                if sign_bbox.Class in signs_stats:
-                    signs_stats[sign_bbox.Class] += 1
-                else:
-                    signs_stats[sign_bbox.Class] = 1
-
         if state_pr.is_state_changed():
 
             if state_pr.last_state == StateProcessor.RUN:
@@ -209,6 +208,7 @@ def main():
                 speed_region_flag = False
                 init_stage_idx = 0
 
+
         # Initialization block
         if init_stage_idx == 1:
             if time.time() - start_init_time > 5:
@@ -224,48 +224,89 @@ def main():
             first_start_interrupted = True
             maze_flag = True
             init_stage_idx = 0
+            signs_stats = {}
+
+            # # For debug
+            # time.sleep(1)
+            # slam_ctr.stop()
+
+            # init_stage_idx = 11
+            # print('>>>', init_stage_idx)
+            # continue
+
         elif init_stage_idx == 11:
             slam_ctr.start_speed()
+            solver.init()
             speed_region_flag = True
             init_stage_idx = 0
+            rospy.loginfo('Start speed region: {}'.format(solver.is_goal_completed))
+
+
+        if 0 and not speed_region_flag:
+            current_signs = []
+            try:
+                rospy.wait_for_service(nn_detection_service, timeout=0.5)
+                current_signs = detect_signs_srv()
+            except:
+                rospy.logwarn('Failed to call NN service')
+            
+            for sign_bbox in current_signs.bboxes:
+                if sign_bbox.Class in signs_stats:
+                    signs_stats[sign_bbox.Class] += 1
+                else:
+                    signs_stats[sign_bbox.Class] = 1
+
+            wl_coordinates = -1
+            try:
+                rospy.wait_for_service(nn_detection_service, timeout=0.5)
+                wl_coordinates = detect_wl_srv()
+                wl_coordinates = wl_coordinates.y_coord.data
+            except:
+                rospy.logwarn('Failed to call WL service')
+        
 
         # Maze logic
         if maze_flag:
             # Main logic
             if not solver.is_maze_completed:
-
+ 
                 if solver.is_goal_completed:
                     if complete_time == 0:
                         complete_time = time.time()
 
                     # Wait for signs
-                    if time.time() - complete_time < 1:
+                    if time.time() - complete_time > 1:
+                        rate.sleep()
                         continue
 
+                    complete_time = 0
+
                     if solver.is_sign_required():
-                        seen_sign = max(signs_stats, key=signs_stats.get)
+                        seleceted_sign = SIGNS_NONE
 
-                        tans_signs = {
-                                        'brick' : SIGNS_NO_PATH,
-                                        'forward' : SIGNS_FORWARD, 
-                                        'forward_left' : SIGNS_FORWARD_LEFT,
-                                        'forward_right' : SIGNS_FORWARD_RIGHT, 
-                                        'left' : SIGNS_LEFT, 
-                                        'right' : SIGNS_RIGHT, 
-                                        'negative' : SIGNS_NONE
-                                    }
+                        if signs_stats:
+                            seen_sign = max(signs_stats, key=signs_stats.get)
 
-                        if signs_stats[seen_sign] < 100:
-                            seleceted_sign = SIGNS_NONE    
-                        else:
-                            seleceted_sign = tans_signs[seen_sign]
+                            tans_signs = {
+                                            'brick' : SIGNS_NO_PATH,
+                                            'forward' : SIGNS_FORWARD, 
+                                            'forward_left' : SIGNS_FORWARD_LEFT,
+                                            'forward_right' : SIGNS_FORWARD_RIGHT, 
+                                            'left' : SIGNS_LEFT, 
+                                            'right' : SIGNS_RIGHT, 
+                                            'negative' : SIGNS_NONE,
+                                            'traffic_sign' : SIGNS_NONE
+                                        }
 
-                        # seleceted_sign = SIGNS_NONE
+                            if signs_stats[seen_sign] < 100:
+                                seleceted_sign = SIGNS_NONE    
+                            else:
+                                seleceted_sign = tans_signs[seen_sign]
+
                         solver.set_vision_sign(seleceted_sign)
 
                         rospy.loginfo('Stats: {}'.format(signs_stats))
                         rospy.loginfo('Set selected sign: {} [{}]'.format(sign_names[seleceted_sign], seleceted_sign))
-
 
                     # if c_node_idx >= node_idx:
                         # print('Sleep for next node {}, stats: {}'.format(node_idx, signs_stats))
@@ -273,7 +314,7 @@ def main():
                         # continue
 
                     # if wait4cmd:
-                        # signs_stats = {}
+                        signs_stats = {}
 
                     # if c_node_idx >= node_idx:
                     #     rospy.loginfo('Node is waiting')
@@ -292,16 +333,20 @@ def main():
                 elif solver.is_goal_failed:
                     solver.recover_current_goal()
                 else:
-                    time.sleep(0.1)
+                    rate.sleep()
+                    continue
             else:
                 slam_ctr.stop()
 
                 init_stage_idx = 11
+                maze_flag = False
 
         if speed_region_flag:
                 from actionlib_msgs.msg import GoalStatus
 
                 if solver.is_goal_completed:
+                    rospy.loginfo('Set goal')
+                    
                     last_point_idx += 1
                     if last_point_idx >= len(last_points):
                         break

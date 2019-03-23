@@ -14,20 +14,6 @@ from wr8_ai.detectors import SignsDetector
 
 import time
 
-class ImagePublisherROS:
-    def __init__(self):
-        self.bridge = CvBridge()
-        self.image_pub = rospy.Publisher("netout/compressed", CompressedImage)
-
-    def publish(self, cv_image):
-        msg = CompressedImage()
-        msg.header.stamp = rospy.Time.now()
-        msg.format = "png"
-        msg.data = np.array(cv2.imencode('.png', cv_image)[1]).tostring()
-
-        self.image_pub.publish(msg)
-
-
 def main():
     rospy.init_node('test_signs')
 
@@ -44,7 +30,7 @@ def main():
     while not rospy.is_shutdown():
         start = time.time()
 
-        current_signs_rbboxes = sign_det.get_signs_compr()
+        current_signs_rbboxes = sign_det.get_signs()
 
         if fps_msr:
             fps_meter.update(time.time() - start)

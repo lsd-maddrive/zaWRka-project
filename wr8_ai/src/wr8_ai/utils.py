@@ -1,13 +1,13 @@
 import rospy
 from cv_bridge import CvBridge, CvBridgeError
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CompressedImage
 
 
 class ImageReceiverROS:
 
-    def __init__(self):
+    def __init__(self, topic_name):
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("camera", Image, self.callback, queue_size=1)
+        self.image_sub = rospy.Subscriber(topic_name, Image, self.callback, queue_size=1)
 
         self.cv_image = None
         self.skip_cntr = 0
@@ -73,3 +73,21 @@ class ImageReceiverROS:
 
     def get_image_compressed(self):
         return self.cv_image_comp
+
+import cv2
+import numpy as np
+
+class ImagePublisherROS:
+    def __init__(self, topic_name):
+        self.bridge = CvBridge()
+        self.image_pub = rospy.Publisher(topic_name + '/compressed', CompressedImage, queue_size=10)
+
+    def publish(self, cv_image):
+        msg = CompressedImage()
+        msg.header.stamp = rospy.Time.now()
+        msg.format = "png"
+        msg.data = np.array(cv2.imencode('.png', cv_image)[1]).tostring()
+
+        self.image_pub.publish(msg)
+
+

@@ -85,8 +85,8 @@ class MazeSolver:
         rospy.loginfo('Current node: {}'.format(self.car.cNode))
         rospy.loginfo('Set target: {}'.format(self.tNode))
 
-        right_shift = 0.15
-        rear_shift = 1.25
+        right_shift = 0
+        rear_shift = 1
         shift_dir = { 
                 from_direction_letters[0] : Point(right_shift, -rear_shift),
                 from_direction_letters[1] : Point(-rear_shift, -right_shift),

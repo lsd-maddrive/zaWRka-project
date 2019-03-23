@@ -2,7 +2,7 @@
 
 # stop_base.sh
 
-roslaunch wr8_software base_launch.launch   camera_s:=true \
+roslaunch wr8_software base_launch.launch   camera_s:=false \
 											camera_r:=false \
 											solver:=true \
 											lidar:=true \

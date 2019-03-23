@@ -187,6 +187,7 @@ class DoubleDetector:
 
         return corrected_ros_bboxes
 
+from wr8_ai.srv import ObjectDetection, ObjectDetectionResponse
 
 class SignsDetector:
 
@@ -210,14 +211,18 @@ class SignsDetector:
         self.initialized = True
 
         self.bridge = CvBridge()
-        # self.image_sub = rospy.Subscriber("nn_input", Image, self.callback_img, queue_size=1)
-        self.image_sub = rospy.Subscriber("nn_input_compr", CompressedImage, self.callback_comp_img, queue_size=1)
+        self.image_sub = rospy.Subscriber("image", Image, self.callback_img, queue_size=1)
+        # self.image_sub = rospy.Subscriber("nn_input_compr", CompressedImage, self.callback_comp_img, queue_size=1)
 
-        self.image_pub_yolo = rospy.Publisher("nn_yolo/compressed", CompressedImage)
-        self.image_pub_yolo_corr = rospy.Publisher("nn_result/compressed", CompressedImage)
+        self.image_pub_yolo = rospy.Publisher("nn/yolo/image/compressed", CompressedImage, queue_size=10)
+        self.image_pub_yolo_corr = rospy.Publisher("nn/image/compressed", CompressedImage, queue_size=10)
+
+        rospy.Service('nn/detect_signs', ObjectDetection, self.get_signs_srv_hndlr)
 
         self.cv_image = None
         self.cv_image_comp = None
+
+        self.last_boxes_ros = None
 
         return True
 
@@ -225,6 +230,7 @@ class SignsDetector:
         np_arr = np.fromstring(data.data, np.uint8)
         self.cv_image_comp = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
+        self.last_boxes_ros = self.get_signs_compr()
 
     def callback_img(self, data):
         try:
@@ -232,20 +238,36 @@ class SignsDetector:
         except CvBridgeError as e:
             rospy.logwarn(e)
 
+        
+
+    def get_signs_srv_hndlr(self, req):
+        resp = ObjectDetectionResponse()
+        if self.last_boxes_ros is None:
+            resp.bboxes = []
+        else:
+            resp.bboxes = self.last_boxes_ros
+        return resp
+
+    def update(self):
+        if self.cv_image is None:
+            self.last_boxes_ros = []
+        else:
+            self.last_boxes_ros = self.get_signs()
+
     def get_signs(self):
         if self.cv_image is None:
             return []
 
-        yolo_img = self.cv_image.copy()
+        # yolo_img = self.cv_image.copy()
         corr_yolo_img = self.cv_image.copy()
 
-        ros_boxes = self.detector.infer(self.cv_image, yolo_img, corr_yolo_img)
+        ros_boxes = self.detector.infer(self.cv_image, None, corr_yolo_img)
 
         msg = CompressedImage()
         msg.header.stamp = rospy.Time.now()
         msg.format = "png"
-        msg.data = np.array(cv2.imencode('.png', yolo_img)[1]).tostring()
-        self.image_pub_yolo.publish(msg)
+        # msg.data = np.array(cv2.imencode('.png', yolo_img)[1]).tostring()
+        # self.image_pub_yolo.publish(msg)
 
         msg.data = np.array(cv2.imencode('.png', corr_yolo_img)[1]).tostring()
         self.image_pub_yolo_corr.publish(msg)
