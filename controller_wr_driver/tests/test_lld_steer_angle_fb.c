@@ -2,11 +2,11 @@
 #include <lld_steer_angle_fb.h>
 #include <lld_control.h>
 
-//#define STEER_FB_TERMINAL
+#define STEER_FB_TERMINAL
 //#define ADC_CHECK
-//#define ANGLE_CHECK
+#define ANGLE_CHECK
 
-#define STEER_FB_MATLAB
+//#define STEER_FB_MATLAB
 
 #ifdef STEER_FB_MATLAB
 static const SerialConfig sdcfg = {

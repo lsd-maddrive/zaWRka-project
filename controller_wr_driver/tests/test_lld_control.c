@@ -70,7 +70,7 @@ void testRawWheelsControlRoutine( void )
     }
 }
 
-#define SERIAL_SD7
+//#define SERIAL_SD7
 /*
  * @brief   Test steering and speed lld control
  * @note    Linear speed of object is also displayed
@@ -160,7 +160,7 @@ void testWheelsControlRoutines( void )
         dbgprintf( "SP(%d)\tR_SP:(%d)\tST(%d)\t\n\r",
                          speed_value, (int)( test_speed_lpf * 100 ), steer_value );
 #endif
-        time = chThdSleepUntilWindowed( time, time + MS2ST( 10 ) );
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
     }
 }
 

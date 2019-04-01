@@ -43,7 +43,7 @@ extern "C" {
 /***    TIMER RELATED                   ***/
 #define     PROGRAM_ROUTINE_TEST_SYSTEM_TIMER           61
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_MASTER
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND
 
 
 /**************/
@@ -57,17 +57,17 @@ extern "C" {
 /*** LLD LIMITS ***/
 /******************/
 
-#define SPEED_MAX           1650    //2000
+#define SPEED_MAX           1650    // 2000
 #define SPEED_NULL_FORWARD  1550    // 1500
 
 #define SPEED_ZERO          1500
 
 #define SPEED_NULL_BACK     1450
-#define SPEED_MIN           1350    //1000
+#define SPEED_MIN           1350
 
-#define STEER_MAX           2040 //1850 //2080
-#define STEER_NULL          1740
-#define STEER_MIN           1240 //1200//1160
+#define STEER_MAX           2300
+#define STEER_NULL          1400
+#define STEER_MIN           500
 
 #define CONTROL_MAX         100
 #define CONTROL_NULL        0

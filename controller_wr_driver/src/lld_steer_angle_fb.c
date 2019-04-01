@@ -14,9 +14,9 @@
 /***    OBJECT CONFIGURATION     ***/
 /***********************************/
 
-#define     STEER_ADC_RIGHT         1170 // 1075
-#define     STEER_ADC_LEFT          1830 // 1980
-#define     STEER_ADC_CENTER        1540 // 1510
+#define     STEER_ADC_RIGHT         215 // 1075
+#define     STEER_ADC_LEFT          3390 // 1980
+#define     STEER_ADC_CENTER        1800 // 1510
 
 #define     STEER_RAD_RIGHT         (float)(-0.593) // -34
 #define     STEER_RAD_LEFT          (float)0.52     // 29
