@@ -43,7 +43,7 @@ extern "C" {
 /***    TIMER RELATED                   ***/
 #define     PROGRAM_ROUTINE_TEST_SYSTEM_TIMER           61
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_STEERING_CS
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_RC
 
 
 /**************/

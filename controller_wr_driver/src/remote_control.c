@@ -1,9 +1,9 @@
 #include <tests.h>
 #include <remote_control.h>
 
-#define RC_STEER_MAX    2040
-#define RC_STEER_NULL   1630
-#define RC_STEER_MIN    1200
+#define RC_STEER_MAX    1850
+#define RC_STEER_NULL   1425
+#define RC_STEER_MIN    1000
 
 #define RC_SPEED_MAX    1935
 #define RC_SPEED_NULL   1520
