@@ -3,9 +3,9 @@
 
 pidControllerContext_t steerPIDparam = {
   .kp               = 0,
-  .ki               = 0.3,
+  .ki               = 0.1,
   .kd               = 0,
-  .integSaturation  = 100,
+  .integSaturation  = 30,
   .proptDeadZone    = 2
 };
 
