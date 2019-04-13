@@ -147,10 +147,11 @@ void mainControlTask( void )
         system_state state_now  = lldGetSystemState( );
 
         sendOdometryToRos( );
+        ros_driver_send_steering( lldGetSteerAngleDeg() );
+        ros_driver_send_encoder_raw( lldGetEncoderRawRevs() );
 
         if( state_now == IDLE )
         {
-
             lldLightResetTurnState( );  // turn off leds
 
             if( state_prev != state_now )
