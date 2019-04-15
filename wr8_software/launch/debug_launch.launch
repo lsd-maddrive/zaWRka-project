@@ -14,6 +14,10 @@
         <!-- All defaults -->
     </include>
 
+    <include if="$(arg uc)" file="$(find wr8_software)/launch/base/serial_uc_link.launch">
+        <arg name="device" value="/dev/serial/by-id/usb-STMicroelectronics_ChibiOS_RT_Virtual_COM_Port_404-if00" />
+    </include>
+
     <include if="$(arg lidar)" file="$(find wr8_software)/launch/base/lidar.launch">
         <!-- All defaults -->
     </include>
