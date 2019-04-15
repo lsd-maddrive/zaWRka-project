@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="pi/2" value="1.5707963267948966" />
+
+	<arg name="video_device" default="/dev/video0" />
+	
+	<include file="$(find elp_stereo_camera)/launch/camera_driver_elp.launch">
+		<arg name="video_device" value="$(arg video_device)" />
+		<arg name="camera_info" value="true" />
+	</include>
+
+	<node ns="stereo/cameras" pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen">
+        <!-- <param name="speckle_range" value="4" /> -->
+        <param name="speckle_size" value="250" />
+        <param name="min_disparity" value="0" /> 
+        <param name="disparity_range" value="64" />
+        <param name="stereo_algorithm" value="1" />
+	</node>
+
+<!-- 	<node name="disparity_view" pkg="image_view" type="stereo_view" output="screen">
+		<remap from="stereo" to="stereo/cameras" />
+		<remap from="image" to="image_rect" />
+	</node> -->
+
+	<include file="$(find rtabmap_ros)/launch/stereo_mapping.launch">
+		<arg name="stereo_namespace" value="/stereo/cameras" />
+		<arg name="rtabmapviz" value="false" />
+		<arg name="rviz" value="false" />
+		<arg name="rtabmap_args" value="-d" />
+		<!-- так OccupationGrid использует не LaserScan, а DepthMap для построения grid_map, 
+		потому что proj_map глубоко deprecated/> -->
+		<!--<param name="subscribe_depth" type="string" value="true" />-->
+
+		<!-- <arg name="scan_topic" value="/camera/scan" />  -->
+
+		<!-- <param name="Grid/FromDepth" type="string" value="true" /> -->
+	</include>
+
+<!-- 	<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+      <remap from="cloud_in" to="/voxel_cloud"/>
+      <remap from="scan" to="/camera/scan" />
+      <rosparam>
+        target_frame: camera_link
+        transform_tolerance: 0.01
+        min_height: 0.0
+        max_height: 1.0
+        
+        angle_min: -1.5708
+        angle_max: 1.5708
+        angle_increment: 0.0087
+        scan_time: 0.3333
+        range_min: 0.45
+        range_max: 4.0
+        use_inf: true
+        
+        #concurrency_level affects number of pc queued for processing and the number of threadsused
+        # 0: Detect number of cores
+        # 1: Single threaded
+        # 2: inf : Parallelism level
+        concurrency_level: 1
+      </rosparam>
+    </node> -->
+
+
+	<!-- <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
+		<arg name="stereo_namespace" value="/stereo/cameras" />
+		<arg name="rtabmapviz" value="true" />
+		<arg name="rviz" value="false" />
+		<arg name="stereo" value="true" />
+		<arg name="odom_topic" value="/odom"/>	
+	</include> -->
+
+</launch>
