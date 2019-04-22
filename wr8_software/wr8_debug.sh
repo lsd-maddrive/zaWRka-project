@@ -8,5 +8,5 @@ roslaunch wr8_software debug_launch.launch  camera_s:=false \
 											lidar:=false \
 											gui_server:=false \
 											uc:=true \
-											stereo:=true \
+											stereo:=false \
 											bag_record:=false

@@ -15,8 +15,10 @@
     <arg name="publish_rate" value="6.0" />
   </include>
 
-  <include file="$(find wr8_software)/launch/base/$(arg stereo_rtabmap).launch">
+  <include file="$(find wr8_software)/launch/base/stereo_rtabmap.launch">
 
   </include>
+
+  <remap from="/rtabmap/grid_map" to="/map" />
 
 </launch>

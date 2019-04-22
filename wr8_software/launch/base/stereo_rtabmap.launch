@@ -11,9 +11,9 @@
 
 	<node ns="stereo/cameras" pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen">
         <!-- <param name="speckle_range" value="4" /> -->
-        <param name="speckle_size" value="250" />
+        <param name="speckle_size" value="500" />
         <param name="min_disparity" value="0" /> 
-        <param name="disparity_range" value="64" />
+        <param name="disparity_range" value="32" />
         <param name="stereo_algorithm" value="1" />
 	</node>
 
