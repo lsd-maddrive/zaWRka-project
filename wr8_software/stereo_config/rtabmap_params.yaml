@@ -1,0 +1,4 @@
+Grid:
+  MaxGroundHeight: 0
+  MaxObstacleHeight: 1
+  NormalsSegmentation: false

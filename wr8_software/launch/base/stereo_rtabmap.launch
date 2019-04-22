@@ -59,7 +59,7 @@
   </include>
 
 
-	<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+	<!-- <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
     <remap from="cloud_in" to="/stereo/cameras/points2"/>
 		<remap from="scan" to="/camera/scan" />
       <rosparam>
@@ -82,7 +82,7 @@
         # 2: inf : Parallelism level
         concurrency_level: 1
       </rosparam>
-    </node>
+    </node> -->
 
 
 	<!-- <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
