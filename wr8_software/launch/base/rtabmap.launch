@@ -230,9 +230,7 @@
     <!-- Visual SLAM (robot side) -->
     <!-- args: "delete_db_on_start" and "udebug" -->
     <node name="rtabmap" pkg="rtabmap_ros" type="rtabmap" output="$(arg output)" args="$(arg rtabmap_args)" launch-prefix="$(arg launch_prefix)">
-        <param name="Grid/MaxGroundHeight" type="string" value="0" />
-	    <param name="Grid/MaxObstacleHeight" type="string" value="1" />
-	    <param name="Grid/NormalsSegmentation" type="string" value="1" />
+      <rosparam file="$(find wr8_software)/stereo_config/rtabmap_params.yaml" command="load" />
 
       <param     if="$(arg stereo)" name="subscribe_depth"  type="bool" value="false"/>
       <param unless="$(arg stereo)" name="subscribe_depth"  type="bool" value="true"/>
