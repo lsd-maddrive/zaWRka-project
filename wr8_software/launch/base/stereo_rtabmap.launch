@@ -22,25 +22,48 @@
 		<remap from="image" to="image_rect" />
 	</node> -->
 
-	<include file="$(find rtabmap_ros)/launch/stereo_mapping.launch">
-		<arg name="stereo_namespace" value="/stereo/cameras" />
-		<arg name="rtabmapviz" value="false" />
-		<arg name="rviz" value="false" />
-		<arg name="rtabmap_args" value="-d" />
-		<!-- так OccupationGrid использует не LaserScan, а DepthMap для построения grid_map, 
-		потому что proj_map глубоко deprecated/> -->
-		<!--<param name="subscribe_depth" type="string" value="true" />-->
+  <include file="$(find wr8_software)/launch/base/rtabmap.launch">
+    <arg name="stereo"                  value="true"/>
+    <arg name="rtabmapviz"              value="false" /> 
+    <arg name="rviz"                    value="false" />
+    <arg name="localization"            value="false"/>
+    <arg name="gui_cfg"                 value="$(find rtabmap_ros)/launch/config/rgbd_gui.ini" />
+    <arg name="rviz_cfg"                value="$(find rtabmap_ros)/launch/config/rgbd.rviz" />
+  
+    <arg name="frame_id"                value="base_link"/>
+    <arg name="namespace"               value="rtabmap"/>
+    <arg name="database_path"           value="~/.ros/rtabmap.db"/>
+    <arg name="wait_for_transform"      value="0.2"/>
+    <arg name="rtabmap_args"            value="-d"/>  
+    <arg name="launch_prefix"           value=""/>          
+    <arg name="approx_sync"             value="false"/>
 
-		<!-- <arg name="scan_topic" value="/camera/scan" />  -->
+    <arg name="stereo_namespace"        value="/stereo/cameras"/>
+    <arg name="left_image_topic"        value="/stereo/cameras/left/image_rect_color" />
+    <arg name="right_image_topic"       value="/stereo/cameras/right/image_rect_color" />
+    <arg name="left_camera_info_topic"  value="/stereo/cameras/left/camera_info" />
+    <arg name="right_camera_info_topic" value="/stereo/cameras/right/camera_info" />
+  
+    <arg name="compressed"              value="false"/>                                                                                
+   
+    <arg name="subscribe_scan"          value="false"/>
+    <arg name="scan_topic"              value="/scan"/>
+  
+    <arg name="subscribe_scan_cloud"    value="false"/>
+    <arg name="scan_cloud_topic"        value="/scan_cloud"/>
+   
+    <arg name="visual_odometry"         value="true"/>          
+    <arg name="odom_topic"              value="/odom"/>       
+    <arg name="odom_frame_id"           value=""/>   
+    <arg name="odom_args"               value="-d"/>
+  </include>
 
-		<!-- <param name="Grid/FromDepth" type="string" value="true" /> -->
-	</include>
 
-<!-- 	<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
-      <remap from="cloud_in" to="/voxel_cloud"/>
-      <remap from="scan" to="/camera/scan" />
+	<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+    <remap from="cloud_in" to="/stereo/cameras/points2"/>
+		<remap from="scan" to="/camera/scan" />
       <rosparam>
-        target_frame: camera_link
+        target_frame: base_link
         transform_tolerance: 0.01
         min_height: 0.0
         max_height: 1.0
@@ -59,7 +82,7 @@
         # 2: inf : Parallelism level
         concurrency_level: 1
       </rosparam>
-    </node> -->
+    </node>
 
 
 	<!-- <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
