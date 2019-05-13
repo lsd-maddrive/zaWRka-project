@@ -8,6 +8,7 @@
 typedef float   controllerRate_t;
 typedef float   controllerError_t;
 typedef float   controllerResponse_t;
+typedef float   csControlCSValue_t;
 
 typedef struct{
   controllerRate_t  kp;

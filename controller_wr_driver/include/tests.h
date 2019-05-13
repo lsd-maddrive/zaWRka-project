@@ -115,11 +115,14 @@ void testSteeringCS ( void );
 void testSpeedCS ( void );
 
 /*
- * @brief   NEED COMMENT
+ * @brief   Test LPF for speed control system
 */
 void testSpeedFilter( void );
 
-
+/*
+ * @brief   Test speed CS and steer CS via UART 7
+*/
+void testUARTControl( void );
 
 /***********************/
 /***   Light tests   ***/
@@ -232,6 +235,10 @@ static inline void testsRoutines( void )
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_FILTER )
 
     testSpeedFilter( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_UART_CS)
+
+    testUARTControl( );
 
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ESC_CALIBRATION )
 

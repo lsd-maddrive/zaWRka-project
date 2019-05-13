@@ -128,7 +128,7 @@ void driveSpeedCSSetParam( pidControllerContext_t speed_forward_param, pidContro
  *              center      =>     0  |   0
  *              max_right   =>    -25 | -100
  */
-void driveSteerCSSetPosition( steerAngleDegValue_t input_angl_deg )
+void driveSteerCSSetPosition( csControlCSValue_t input_angl_deg )
 {
     input_angl_deg = CLIP_VALUE( input_angl_deg, STEER_MAX_LIMIT_RIGHT, STEER_MAX_LIMIT_LEFT );
 
@@ -147,7 +147,7 @@ controlValue_t driveSteerGetControlVal ( void )
  * @brief       Control system for speed
  * @param       value of speed [m/s]
  */
-void driveSpeedCSSetSpeed ( float input_speed )
+void driveSpeedCSSetSpeed ( csControlCSValue_t input_speed )
 {
     input_speed = CLIP_VALUE( input_speed, SPEED_MIN_MPS, SPEED_MAX_MPS );
 

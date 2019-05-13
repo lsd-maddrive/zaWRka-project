@@ -5,6 +5,11 @@
 
 #define STEER_CS_TERMINAL
 
+static const SerialConfig sdcfg = {
+  .speed = 115200,
+  .cr1 = 0, .cr2 = 0, .cr3 = 0
+};
+
 /*
  * @brief   Test steering control system with feedback
  * @note    There are 2 options:
@@ -304,5 +309,50 @@ void testSpeedFilter( void )
        chThdSleepMilliseconds( 100 );
  #endif
      }
+}
 
+/*
+ * @brief   Test speed CS and steer CS via UART 7
+*/
+void testUARTControl( void )
+{
+    sdStart( &SD7, &sdcfg );
+    palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
+    palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
+
+    driverCSInit( NORMALPRIO );
+
+    char                  speed_cntrl   = 0;
+    char                  steer_cntrl   = 0;
+    const char            speed_lim     = 20;
+    const char            steer_lim     = 25;
+
+
+    systime_t   time = chVTGetSystemTimeX( );
+    while( 1 )
+    {
+        char rc_data    = sdGetTimeout( &SD7, TIME_IMMEDIATE );
+
+        switch( rc_data )
+        {
+            case 's':   // ASCII 73
+              speed_cntrl = sdGetTimeout( &SD7, TIME_IMMEDIATE );
+              if( speed_cntrl > speed_lim && speed_cntrl < -speed_lim)
+                speed_cntrl = 0;
+              break;
+
+            case 'r':   // ASCII 72
+              steer_cntrl = sdGetTimeout( &SD7, TIME_IMMEDIATE );
+              if( steer_cntrl > steer_lim && steer_cntrl < -steer_lim)
+                steer_cntrl = 0;
+              break;
+        }
+
+        steer_cntrl = CLIP_VALUE( steer_cntrl, -steer_lim, steer_lim );
+        driveSteerCSSetPosition( steer_cntrl );
+        speed_cntrl = CLIP_VALUE( speed_cntrl, -speed_lim, speed_lim );
+        driveSpeedCSSetSpeed( speed_cntrl );    // m/s
+
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 50 ) );
+    }
 }
