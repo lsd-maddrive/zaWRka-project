@@ -311,7 +311,9 @@ void testSpeedFilter( void )
      }
 }
 
-//#define DEBUG_UART
+// #define DEBUG_UART
+
+#define DEBUG_MIXED
 
 /*
  * @brief   Test speed CS and steer CS via UART 7
@@ -320,54 +322,62 @@ void testUARTControl( void )
 {
 #ifdef DEBUG_UART
     debug_stream_init( );
-#else
+#endif
+
+#ifdef DEBUG_MIXED
     sdStart( &SD7, &sdcfg );
     palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
     palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
+    debug_stream_init( );
 #endif
+ 
 
     driverCSInit( NORMALPRIO );
+    driverIsEnableCS(true);
 
-    char                  speed_cntrl   = 0;
-    char                  steer_cntrl   = 0;
+    int8_t                speed_cntrl   = 0;
+    int8_t                steer_cntrl   = 0;
     const char            speed_lim     = 20;
     const char            steer_lim     = 25;
-
 
     systime_t   time = chVTGetSystemTimeX( );
     while( 1 )
     {
 #ifdef DEBUG_UART
-        char rc_data    = sdGetTimeout( &SD3, TIME_IMMEDIATE );
-#else
-        char rc_data    = sdGetTimeout( &SD7, TIME_IMMEDIATE );
+        int8_t rc_data    = sdGetTimeout( &SD3, TIME_IMMEDIATE );
+#endif
+
+#ifdef DEBUG_MIXED    
+        int8_t rc_data    = sdGetTimeout( &SD7, TIME_IMMEDIATE );
 #endif
         switch( rc_data )
         {
             case 's':   // ASCII 73
 #ifdef DEBUG_UART
               speed_cntrl = sdGet( &SD3 );
-#else
+#endif
+#ifdef DEBUG_MIXED 
               speed_cntrl = sdGet( &SD7 );
 #endif
               if( speed_cntrl == 0 ) speed_cntrl = 0;
               else if( speed_cntrl > speed_lim && speed_cntrl < -speed_lim)
                 speed_cntrl = 0;
-              else
-                speed_cntrl -= 48; // decode from ASCII to int
+              // else
+              //   speed_cntrl -= 48; // decode from ASCII to int
               break;
 
             case 'r':   // ASCII 72
 #ifdef DEBUG_UART
               steer_cntrl = sdGet( &SD3 );
-#else
+#endif
+#ifdef DEBUG_MIXED 
               steer_cntrl = sdGet( &SD7 );
 #endif
               if( steer_cntrl == 0 ) steer_cntrl = 0;
               else if( steer_cntrl > steer_lim && steer_cntrl < -steer_lim)
                 steer_cntrl = 0;
-              else
-                steer_cntrl -= 48; // decode from ASCII to int
+              // else
+              //   steer_cntrl -= 48; // decode from ASCII to int
               break;
         }
 
@@ -378,6 +388,11 @@ void testUARTControl( void )
 #ifdef DEBUG_UART
         dbgprintf( "RC: %c\tST: %i\tSP: %i\n\r", rc_data, (steer_cntrl), speed_cntrl );
 #endif
-        time = chThdSleepUntilWindowed( time, time + MS2ST( 50 ) );
+
+#ifdef DEBUG_MIXED
+        dbgprintf( "RC: %c\tST: %i\tSP: %i\n\r", rc_data, (steer_cntrl), speed_cntrl );
+#endif
+
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 20 ) );
     }
 }
