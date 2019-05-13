@@ -14,6 +14,7 @@
 void testSteeringCS ( void )
 {
     driverCSInit( NORMALPRIO );
+    driverIsEnableCS(true);
 #ifdef STEER_CS_MATLAB
     sdStart( &SD7, &sdcfg );
     palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
@@ -25,7 +26,7 @@ void testSteeringCS ( void )
 
     steerAngleDegValue_t    steer_pos           = 0;
 
-    steerAngleDegValue_t    steer_pos_delta     = 25;
+    steerAngleDegValue_t    steer_pos_delta     = 1;
     controlValue_t          steer_control_prct  = 0;
 
 #ifdef STEER_CS_MATLAB
@@ -55,6 +56,11 @@ void testSteeringCS ( void )
           case 'd': // right
             steer_pos   -= steer_pos_delta;
             break;
+
+          case ' ':
+            steer_pos = 0;
+            break; 
+
 #ifdef STEER_CS_MATLAB
           case 'p': // start measuring
             steer_start_flag = 1;

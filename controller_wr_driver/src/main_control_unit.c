@@ -1,6 +1,7 @@
 #include <common.h>
 #include <lld_start_button.h>
 #include <lld_odometry.h>
+#include <lld_encoder.h>
 #include <drive_cs.h>
 #include <remote_control.h>
 #include <lld_light.h>
@@ -55,7 +56,6 @@ void ros_is_alive( void )
 
 void ros_control_handler( float speed, float steer )
 {
-    // dbgprintf("Smth is coming\n\r");
     ros_speed_control = speed;
     ros_steer_control = steer;
     ros_is_alive( );
@@ -134,12 +134,7 @@ void mainControlTask( void )
     uint32_t                print_cntr          = 0;
     system_state            state_prev          = 3; 
 
-    icuControlValue_t prev_rc_steer_prt     = 0; 
-    icuControlValue_t prev_rc_speed_prt          = 0; 
-
-
-
-    systime_t time = chVTGetSystemTimeX();
+   systime_t time = chVTGetSystemTimeX();
 
     while( 1 )
     {
@@ -147,10 +142,11 @@ void mainControlTask( void )
         system_state state_now  = lldGetSystemState( );
 
         sendOdometryToRos( );
+        ros_driver_send_steering( lldGetSteerAngleDeg() );
+        ros_driver_send_encoder_raw( lldGetEncoderRawRevs() );
 
         if( state_now == IDLE )
         {
-
             lldLightResetTurnState( );  // turn off leds
 
             if( state_prev != state_now )
@@ -167,21 +163,7 @@ void mainControlTask( void )
                 driverIsEnableCS( false );
                 icuControlValue_t rc_steer_prt    = rcGetSteerControlValue( );
                 icuControlValue_t rc_speed_prt    = rcGetSpeedControlValue( );
-                
-                // if( prev_rc_steer_prt != rc_steer_prt || prev_rc_speed_prt != rc_speed_prt )
-                // {
-                //     dbgprintf( "RC_SP:(%d)\tRC_ST:(%d)\n\r",
-                //                rc_speed_prt, rc_steer_prt );
-                // }
 
-
-                // if( print_cntr == SHOW_PERIOD-1 )
-                // {
-                //     dbgprintf( "RC_SP:(%d)\tRC_ST:(%d)\n\r",
-                //                rc_speed_prt, rc_steer_prt );
-                //     print_cntr = 0;
-
-                // }
                 lldControlSetDrMotorPower( rc_speed_prt );
                 lldControlSetSteerMotorPower( rc_steer_prt );
 

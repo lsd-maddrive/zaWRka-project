@@ -34,7 +34,6 @@ void testRemoteControlRoutine( void )
 
     while( 1 )
     {
-        time += MS2ST(20); // Next deadline
 
         show_counter += 1;
         mode = rcModeIsEnabled();
@@ -63,7 +62,7 @@ void testRemoteControlRoutine( void )
             show_counter = 0;
         }
 
-        chThdSleepUntil(time);
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 10 ) );
     }
 }
 

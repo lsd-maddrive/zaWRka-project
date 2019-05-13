@@ -90,13 +90,13 @@ public:
 
     void encoderRawCb(const std_msgs::Int32& msg)
     {
-        ROS_INFO("Received encoder data: %d", msg.data);
+        // ROS_INFO("Received encoder data: %d", msg.data);
         m_encoderRotations = msg.data;
     }
 
     void steerCb(const std_msgs::Float32& msg)
     {
-        ROS_INFO("Received steer data: %g", msg.data);
+        // ROS_INFO("Received steer data: %g", msg.data);
         m_steeringAngleDeg = msg.data;
     }
 
