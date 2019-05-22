@@ -40,7 +40,8 @@ void lldResetOdometry( void );
 odometryValue_t lldGetOdometryObjDistance( odometryDistanceUnit_t units );
 
 /*
- * TODO - Comments
+ * Set correction coefficient values
+ * for odometry setting via ros 
  */
 void lldOdometrySetCorrectionRates( float k_left, float k_right );
 

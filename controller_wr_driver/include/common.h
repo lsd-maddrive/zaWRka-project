@@ -23,9 +23,10 @@ extern "C" {
 #define     PROGRAM_ROUTINE_TEST_RESET_ODOMETRY         6
 /***    REMOTE CONTROL RELATED          ***/
 #define     PROGRAM_ROUTINE_TEST_RC                     7
+#define 	PROGRAM_ROUTINE_TEST_RC_ODOMETRY			8			
 /***    STEERING RELATED                ***/
-#define     PROGRAM_ROUTINE_TEST_STEERING_CS            8
-#define     PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND        9
+#define     PROGRAM_ROUTINE_TEST_STEERING_CS            9
+#define     PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND        10
 /***    SPEED RELATED                   ***/
 #define     PROGRAM_ROUTINE_TEST_SPEED_CS               11
 #define     PROGRAM_ROUTINE_TEST_SPEED_LIMIT_CALIB      12

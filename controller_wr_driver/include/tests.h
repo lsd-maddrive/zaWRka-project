@@ -84,6 +84,11 @@ void testResetOdometryRoutine( void );
  */
 void testRemoteControlRoutine( void );
 
+/*
+ * TODO - Comments
+ */
+void testRemoteControlOdometryRoutine( void );
+
 /****************************/
 /*** Steering Angle tests ***/
 /****************************/
@@ -203,6 +208,10 @@ static inline void testsRoutines( void )
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ODOMETRY )
 
     testOdometryRoutine( );
+
+#elif ( MAIN_PROGRAM_ROUTINE ==PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND)
+
+    testRemoteControlOdometryRoutine( );
 
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RESET_ODOMETRY )
 
