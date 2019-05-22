@@ -125,7 +125,9 @@ void testRemoteControlOdometryRoutine( void )
         if( show_counter == 1 ) // 20 ms 
         {
 #ifdef UART
-             sdWrite(&SD7, (uint8_t*) &start, 1);
+            if( speed_cmps >= 127 ) speed_cmps = 127;
+            else if (speed_cmps <= -127) speed_cmps = -127;
+            sdWrite(&SD7, (uint8_t*) &start, 1);
             sdWrite(&SD7, (uint8_t*) &speed_cmps, 1);
             sdWrite(&SD7, (uint8_t*) &steer_angl, 1);
 #endif 
