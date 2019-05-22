@@ -7,7 +7,7 @@
 
 // #ifdef MATLAB_RC
 static const SerialConfig sdcfg = {
-  .speed = 115200,
+  .speed = 38400,
   .cr1 = 0, .cr2 = 0, .cr3 = 0
 };
 // #endif
@@ -69,15 +69,19 @@ void testRemoteControlRoutine( void )
     }
 }
 
-
+#define UART
 
 void testRemoteControlOdometryRoutine( void )
 {
-
+#ifdef UART
     sdStart( &SD7, &sdcfg );
     palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
     palSetPadMode( GPIOE, 7, PAL_MODE_ALTERNATE(8) );   // RX
+#endif
 
+#ifdef DEBUG
+    debug_stream_init( );
+#endif  
     lldControlInit( );
     remoteControlInit( NORMALPRIO );
 
@@ -88,11 +92,11 @@ void testRemoteControlOdometryRoutine( void )
     int16_t     speed_cmps   = 0;
     int16_t     steer_angl   = 0;
 
-    // pwmValue_t          rc_speed        =   0;
-    // pwmValue_t          rc_steer        =   0;
-    icuControlValue_t   rc_steer_prt    =   0;
-    icuControlValue_t   rc_speed_prt    =   0;
+    int8_t   rc_steer_prt    =   0;
+    int8_t   rc_speed_prt    =   0;
     bool                mode            =   false;
+
+    uint8_t start = '#';
 
     systime_t time = chVTGetSystemTimeX();
 
@@ -106,14 +110,11 @@ void testRemoteControlOdometryRoutine( void )
 
         if( mode == true )
         {
-            // rc_speed        = rcGetSpeedDutyCycleValue( );
-            // rc_steer        = rcGetSteerDutyCycleValue( );
             rc_steer_prt    = rcGetSteerControlValue( );
             rc_speed_prt    = rcGetSpeedControlValue( );
 
             lldControlSetDrMotorPower( rc_speed_prt );
             lldControlSetSteerMotorPower( rc_steer_prt );
-
         }
         else
         {
@@ -121,15 +122,21 @@ void testRemoteControlOdometryRoutine( void )
             lldControlSetSteerMotorPower( 0 );
         }
 
-        if( show_counter == 10 ) // 100 ms 
+        if( show_counter == 1 ) // 20 ms 
         {
+#ifdef UART
+             sdWrite(&SD7, (uint8_t*) &start, 1);
+            sdWrite(&SD7, (uint8_t*) &speed_cmps, 1);
+            sdWrite(&SD7, (uint8_t*) &steer_angl, 1);
+#endif 
 
-            sdWrite(&SD7, (uint8_t*) &speed_cmps, 2);
-            sdWrite(&SD7, (uint8_t*) &steer_angl, 2);
+#ifdef DEBUG 
+            dbgprintf("SP:%d\tANG:%d\n\r", speed_cmps, steer_angl);
+#endif 
             show_counter = 0; 
         }
 
-        time = chThdSleepUntilWindowed( time, time + MS2ST( 10 ) );
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 20 ) );
     }
 
 }

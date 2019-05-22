@@ -205,6 +205,10 @@ static inline void testsRoutines( void )
 
     testRemoteControlRoutine( );
 
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RC_ODOMETRY )
+
+    testRemoteControlOdometryRoutine( );
+
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ODOMETRY )
 
     testOdometryRoutine( );
