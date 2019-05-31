@@ -33,7 +33,7 @@ odometryRawSpeedValue_t enc_speed_rps  = 0;
 odometrySpeedValue_t    speed_radps    = 0;
 
 float                   steer_angl_deg = 0;
-float                   speed_lpf_mps  = 0;
+float                   odom_speed_lpf_mps  = 0;
 
 /*
  * Check if ROS is spamming with control values,
@@ -115,7 +115,7 @@ void sendOdometryToRos( void )
     speed_radps    = lldGetOdometryObjTettaSpeedRadPS( );
 
     steer_angl_deg = lldGetSteerAngleDeg( );
-    speed_lpf_mps  = lldOdometryGetLPFObjSpeedMPS( );
+    odom_speed_lpf_mps  = lldOdometryGetLPFObjSpeedMPS( );
 
     x_pos          = lldGetOdometryObjX( OBJ_DIST_M );
     y_pos          = lldGetOdometryObjY( OBJ_DIST_M );

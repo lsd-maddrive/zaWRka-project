@@ -71,8 +71,11 @@ steerAngleRawValue_t    prev_steer_lpf_adc_val      = 0;
 
 static void adc_1_cb ( ADCDriver *adcp, adcsample_t *buffer, size_t n )
 {
+    // to avoid warnings only
     adcp = adcp;
     n = n;
+    buffer = buffer;
+    // **********************
 
     adc_cb_counter += 1;
 

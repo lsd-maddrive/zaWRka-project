@@ -85,7 +85,7 @@ void testResetOdometryRoutine( void );
 void testRemoteControlRoutine( void );
 
 /*
- * TODO - Comments
+ * @brief   Routine to test RC-mode&Odometry&CS-mode
  */
 void testRemoteControlOdometryRoutine( void );
 

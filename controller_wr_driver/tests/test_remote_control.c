@@ -1,16 +1,13 @@
 #include <tests.h>
 #include <remote_control.h>
-#include <lld_control.h>
+#include <drive_cs.h>
 
-#include <lld_odometry.h>
-#include <lld_steer_angle_fb.h>
-
-// #ifdef MATLAB_RC
+#ifdef MATLAB_RC
 static const SerialConfig sdcfg = {
-  .speed = 38400,
+  .speed = 115200,
   .cr1 = 0, .cr2 = 0, .cr3 = 0
 };
-// #endif
+#endif
 
 void testRemoteControlRoutine( void )
 {
@@ -71,6 +68,15 @@ void testRemoteControlRoutine( void )
 
 #define UART
 
+#ifdef UART
+static const SerialConfig sdcfg = {
+  .speed = 38400,
+  .cr1 = 0, .cr2 = 0, .cr3 = 0
+};
+#endif
+/*
+ * @brief   Routine to test RC-mode&Odometry&CS-mode
+ */
 void testRemoteControlOdometryRoutine( void )
 {
 #ifdef UART
@@ -82,24 +88,22 @@ void testRemoteControlOdometryRoutine( void )
 #ifdef DEBUG
     debug_stream_init( );
 #endif  
-    lldControlInit( );
     remoteControlInit( NORMALPRIO );
+    driverCSInit( NORMALPRIO-1 );
 
-    lldOdometryInit( );
-    lldSteerAngleFBInit( );
+    uint32_t    show_counter    = 0;
+    int16_t     speed_cmps      = 0;
+    int16_t     steer_angl      = 0;
 
-    uint32_t    show_counter = 0;
-    int16_t     speed_cmps   = 0;
-    int16_t     steer_angl   = 0;
+    int8_t      rc_steer_prt    = 0;
+    int8_t      rc_speed_prt    = 0;
+    bool        mode            = false;
 
-    int8_t   rc_steer_prt    =   0;
-    int8_t   rc_speed_prt    =   0;
-    bool                mode            =   false;
-
-    uint8_t start = '#';
+    int8_t      set_speed       = 0;
+    int8_t      set_steer       = 0;
+    uint8_t     start           = '#';
 
     systime_t time = chVTGetSystemTimeX();
-
     while( 1 )
     {
         show_counter += 1;
@@ -108,8 +112,18 @@ void testRemoteControlOdometryRoutine( void )
         speed_cmps = lldGetOdometryObjSpeedCMPS( );
         steer_angl = lldGetSteerAngleDeg( ); 
 
-        if( mode == true )
+        // get data to control car
+        char rc_data = sdGetTimeout( &SD7, TIME_IMMEDIATE );
+
+        if( rc_data == '#' )    // key-data
         {
+            set_speed = sdGet( &SD7 );
+            set_steer = sdGet( &SD7 );
+        }
+
+        if( mode ) // RC-mode
+        {
+            driverIsEnableCS( false );
             rc_steer_prt    = rcGetSteerControlValue( );
             rc_speed_prt    = rcGetSpeedControlValue( );
 
@@ -118,15 +132,18 @@ void testRemoteControlOdometryRoutine( void )
         }
         else
         {
-            lldControlSetDrMotorPower( 0 );
-            lldControlSetSteerMotorPower( 0 );
+            driverIsEnableCS( true );
+            driveSpeedCSSetSpeed( ((float)set_speed) / 100 );
+            driveSteerCSSetPosition( (float)set_steer );
+#ifdef DEBUG
+            dbgprintf( "SP:%d\tANG:%d\tCom:%i\n\r",
+                       (set_speed) , set_steer );
+#endif
         }
 
         if( show_counter == 1 ) // 20 ms 
         {
 #ifdef UART
-            if( speed_cmps >= 127 ) speed_cmps = 127;
-            else if (speed_cmps <= -127) speed_cmps = -127;
             sdWrite(&SD7, (uint8_t*) &start, 1);
             sdWrite(&SD7, (uint8_t*) &speed_cmps, 1);
             sdWrite(&SD7, (uint8_t*) &steer_angl, 1);

@@ -33,8 +33,10 @@ void testSteerAngleSendData( void )
     lldControlInit( );
     debug_stream_init( );
 
+#ifdef ADC_CHECK
     uint16_t                test_raw_steer          = 0;
     uint16_t                test_filtr_raw_steer    = 0;
+#endif
 #ifdef ANGLE_CHECK
     steerAngleRadValue_t    test_rad_angle          = 0;
     steerAngleDegValue_t    test_deg_angle          = 0;
@@ -50,8 +52,10 @@ void testSteerAngleSendData( void )
     systime_t   time = chVTGetSystemTimeX();
     while( true )
     {
+#ifdef ADC_CHECK
         test_raw_steer      = lldGetSteerAngleRawADC( );
         test_filtr_raw_steer  = lldGetSteerAngleFiltrRawADC( );
+#endif
 #ifdef ANGLE_CHECK
         test_rad_angle      = lldGetSteerAngleRad( );
         test_deg_angle      = lldGetSteerAngleDeg( );
@@ -95,13 +99,11 @@ void testSteerAngleSendData( void )
         lldControlSetSteerMotorPower( test_steer_cntrl );
 
 #ifdef ADC_CHECK
-
         dbgprintf( "C:(%d)\tA_RAW:(%d)\tMEAN_RAW:(%d)\n\r",
                   test_steer_cntrl, test_raw_steer, test_filtr_raw_steer );
 
         time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
 #endif
-
 #ifdef ANGLE_CHECK
 
         dbgprintf( "CONTROL:(%d)\tRAD:(%d)\tDEG:(%d)\n\r",
@@ -110,7 +112,6 @@ void testSteerAngleSendData( void )
 
         time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
 #endif
-
 #ifdef STEER_FB_MATLAB
         if( steer_start_flag == 1)
         {

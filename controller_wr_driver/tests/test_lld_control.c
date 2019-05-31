@@ -2,15 +2,6 @@
 #include <lld_control.h>
 #include <lld_odometry.h>
 
-/***************************************************/
-
-static const SerialConfig sdcfg = {
-  .speed = 115200,
-  .cr1 = 0, .cr2 = 0, .cr3 = 0
-};
-
-
-
 /*
  * @brief   Routine of low level driver control testing
  * @note    The routine has internal infinite loop
@@ -41,7 +32,7 @@ void testRawWheelsControlRoutine( void )
               speed_value -= speed_values_delta;
               break;
 
-            case ' ':
+            case ' ':   // Stop
               speed_value = SPEED_ZERO;
               steer_value = STEER_NULL;
               break;
@@ -71,6 +62,15 @@ void testRawWheelsControlRoutine( void )
 }
 
 //#define SERIAL_SD7
+#define DEBUG
+
+#ifdef SERIAL_SD7
+static const SerialConfig sdcfg = {
+  .speed = 115200,
+  .cr1 = 0, .cr2 = 0, .cr3 = 0
+};
+#endif
+
 /*
  * @brief   Test steering and speed lld control
  * @note    Linear speed of object is also displayed
@@ -85,8 +85,9 @@ void testWheelsControlRoutines( void )
     uint8_t     matlab_start_flag   = 0;
     uint16_t    matlab_speed_cmps   = 0;
 #endif
+#ifdef DEBUG
     debug_stream_init( );
-
+#endif
     lldControlInit( );
     lldOdometryInit( );
 
@@ -104,7 +105,8 @@ void testWheelsControlRoutines( void )
     {
 #ifdef SERIAL_SD7
         char rcv_data = sdGetTimeout( &SD7, TIME_IMMEDIATE );
-#else
+#endif
+#ifdef DEBUG
         char rcv_data = sdGetTimeout( &SD3, TIME_IMMEDIATE );
 #endif
         switch ( rcv_data )
@@ -141,7 +143,7 @@ void testWheelsControlRoutines( void )
             default:
                ;
         }
-        dbgprintf( "C:(%d)\n\r", speed_value );
+
         speed_value     = CLIP_VALUE( speed_value, CONTROL_MIN, CONTROL_MAX );
         steer_value     = CLIP_VALUE( steer_value, CONTROL_MIN, CONTROL_MAX );
         test_speed_lpf  = lldOdometryGetLPFObjSpeedMPS( );
@@ -155,12 +157,14 @@ void testWheelsControlRoutines( void )
           sdWrite(&SD7, (uint8_t*) &speed_value, 2);
           sdWrite(&SD7, (uint8_t*) &matlab_speed_cmps, 2);
         }
-
-#else
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 10 ) );
+#endif
+#ifdef DEBUG
         dbgprintf( "SP(%d)\tR_SP:(%d)\tST(%d)\t\n\r",
                          speed_value, (int)( test_speed_lpf * 100 ), steer_value );
+
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 200 ) );
 #endif
-        time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
     }
 }
 
