@@ -77,6 +77,7 @@ void testResetOdometryRoutine( void );
 /****************************/
 /*** Remote Control tests ***/
 /****************************/
+
 /*
  * @brief   Routine of remote control testing
  * @note    The routine has internal infinite loop

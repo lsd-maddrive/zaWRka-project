@@ -60,8 +60,8 @@ extern "C" {
 /*** LLD LIMITS ***/
 /******************/
 
-#define SPEED_MAX           1650    // 2000
-#define SPEED_NULL_FORWARD  1550    // 1500
+#define SPEED_MAX           1650
+#define SPEED_NULL_FORWARD  1550
 
 #define SPEED_ZERO          1500
 

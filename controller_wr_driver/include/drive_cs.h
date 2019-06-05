@@ -63,20 +63,21 @@ void driveSpeedCSSetSpeed ( float input_speed );
  */
 controlValue_t driveSpeedGetControlVal ( void );
 
-
-//float driveSpeedGetGlobalFloatControl( void );
-
+/*
+ * @brief       Get value of reference speed
+ * @note        Only for debugging
+ */
 float driveSpeedGetGlobalRefSpeed( void );
 
-
-
 /*
- * TODO COMMENTS
+ * @brief       Reset all components for PID-controller
  */
 void driverResetCS( void );
 
 /*
- * TODO COMMENTS
+ * @brief       The Control system is dis/enable
+ *              true  - enable
+ *              false - disable
  */
 void driverIsEnableCS( bool permition );
 

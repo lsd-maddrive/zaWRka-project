@@ -298,13 +298,21 @@ void driverCSInit( tprio_t prio )
     isInitialized = true;
 }
 
+
+/*
+ * @brief       The Control system is dis/enable
+ *              true  - enable
+ *              false - disable
+ */
 void driverIsEnableCS( bool permition )
 {
   permition_flag = permition;
 
 }
 
-
+/*
+ * @brief       Reset all components for PID-controller
+ */
 void driverResetCS( void )
 {
 

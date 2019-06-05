@@ -147,6 +147,9 @@ rawEncoderValue_t   lldGetAbsoluteEncoderRawRevs( void )
     return enc_null_revs_cntr;
 }
 
+/*
+ * @brief   Reset all variable for lld-encoder unit
+ */
 void lldResetEncoder( void )
 {
     enc_tick_cntr       = 0;
