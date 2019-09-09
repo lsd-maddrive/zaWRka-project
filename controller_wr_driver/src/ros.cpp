@@ -33,13 +33,10 @@ static const ros_driver_cb_ctx_t default_cb_ctx = {
 
 static ros_driver_cb_ctx_t last_cb_ctx = default_cb_ctx;
 
-
 ros_driver_cb_ctx_t ros_driver_get_new_cb_ctx( void )
 {
     return default_cb_ctx;
 }
-
-
 
 void trigger_task_cb( const std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &resp )
 {   

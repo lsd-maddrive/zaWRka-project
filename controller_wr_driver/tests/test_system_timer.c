@@ -1,5 +1,8 @@
 #include <common.h>
 
+/*
+ * @brief   Routine of system timer test
+ */
 void testSystemTimer( void )
 {
     debug_stream_init();

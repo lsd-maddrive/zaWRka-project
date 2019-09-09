@@ -13,30 +13,30 @@ typedef uint32_t    rawPwmValue_t;
 void lldControlInit ( void );
 
 /**
- * @brief   Set power for driving motor
+ * @brief   		   Set power for driving motor
  * @param   inputPrc   Motor power value [-100 100]
  */
 void lldControlSetDrMotorPower( controlValue_t inputPrc );
 
 /**
- * @brief   Set power for steering motor
- * @param   inputPrc   Motor power value [-100 100]
- *                     100  - max left
- *                     center = 0
- *                     -100 - max right
+ * @brief   			Set power for steering motor
+ * @param   inputPrc    Motor power value [-100 100]
+ *                      100  	- max left
+ *                      center 	- 0
+ *                      -100 	- max right
  */
 void lldControlSetSteerMotorPower( controlValue_t inputPrc );
 
 /**
- * @brief   Set power (in ticks) for driving motor
- * @param   drDuty   dutycycle for speed control
+ * @brief   			Set power (in ticks) for driving motor
+ * @param   drDuty  	dutycycle for speed control
  */
-void lldControlSetDrMotorRawPower( rawPwmValue_t dutyCycleSpeed);
+void lldControlSetDrMotorRawPower( rawPwmValue_t dutyCycleSpeed );
 
 /**
- * @brief   Set power (in ticks) for steering motor
+ * @brief   			Set power (in ticks) for steering motor
  * @param   steerDuty   dutycycle for steering control
  */
-void lldControlSetSteerMotorRawPower( rawPwmValue_t dutyCycleSteer);
+void lldControlSetSteerMotorRawPower( rawPwmValue_t dutyCycleSteer );
 
 #endif /* INCLUDE_LLD_CONTROL_H_ */

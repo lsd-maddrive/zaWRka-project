@@ -1,8 +1,6 @@
-
 #ifndef INCLUDE_REMOTE_CONTROL_H_
 #define INCLUDE_REMOTE_CONTROL_H_
 
-/*** Variables ***/
 typedef uint32_t    pwmValue_t;
 typedef int32_t     icuControlValue_t;
 
@@ -30,7 +28,6 @@ pwmValue_t rcGetSpeedDutyCycleValue( void );
  */
 pwmValue_t rcGetSteerDutyCycleValue( void );
 
-
 /**
  * @brief   Detect working mode
  * @return  true    - RC mode enable
@@ -39,7 +36,6 @@ pwmValue_t rcGetSteerDutyCycleValue( void );
  *          getting width value
  */
 bool rcModeIsEnabled( void );
-
 
 /**
  * @brief   Get control values for driving wheels
@@ -56,6 +52,5 @@ icuControlValue_t rcGetSpeedControlValue( void );
  *          rcModeIsEnabled must be checked
  */
 icuControlValue_t rcGetSteerControlValue( void );
-
 
 #endif /* INCLUDE_REMOTE_CONTROL_H_ */

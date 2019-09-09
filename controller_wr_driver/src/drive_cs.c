@@ -39,16 +39,15 @@ pidControllerContext_t  b_speedPIDparam = {
   .kr               = 0
 };
 
-/************************************/
-/***    CONTROLLER PARAMETRS      ***/
-/************************************/
+/*============================================================================*/
+/* CONTROLLER PARAMETRS                                                       */
+/*============================================================================*/
 
 #define STEER_LEFT_BUST_K   3.652
 #define STEER_LEFT_BUST_B   (0)
 
 #define STEER_RIGHT_BUST_K  (2.9641)
 #define STEER_RIGHT_BUST_B  (0)
-
 
 /************************************/
 
@@ -272,7 +271,10 @@ static THD_FUNCTION(Controller, arg)
     }
 }
 
-
+/**
+ * @brief       Get reference value of speed 
+ * @note        Used for debugging used
+ */
 float driveSpeedGetGlobalRefSpeed( void )
 {
     return speed_ref;

@@ -1,6 +1,7 @@
 #include <ros_protos.h>
 #include <math.h>
 
+
 int32_t encoder_value 	= 0;
 float 	encoder_2_m		= 0.001; // [ticks/m]
 
@@ -9,6 +10,10 @@ static void update_encoder( void )
 	encoder_value += 10;
 }
 
+/*
+ * @brief   Test odometry, speed and steering control via ROS
+ * @note    Frequency = 50 Hz
+*/
 void testROSConnection( void )
 {
 	ros_driver_cb_ctx_t cb_ctx = ros_driver_get_new_cb_ctx();
@@ -40,7 +45,6 @@ void testROSConnection( void )
 			}
 			else
 			{
-				// Whaaaat?
 				chSysHalt("Whaaaat?");
 			}
 		}

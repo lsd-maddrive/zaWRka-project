@@ -3,12 +3,18 @@
 #include <drive_cs.h>
 
 #ifdef MATLAB_RC
+
 static const SerialConfig sdcfg = {
   .speed = 115200,
   .cr1 = 0, .cr2 = 0, .cr3 = 0
 };
 #endif
 
+/*
+ * @brief   Routine of remote control testing
+ * @note    The routine has internal infinite loop
+ *          and strictly depended on time
+ */
 void testRemoteControlRoutine( void )
 {
 #ifdef MATLAB_RC
@@ -74,8 +80,9 @@ static const SerialConfig sdcfg = {
   .cr1 = 0, .cr2 = 0, .cr3 = 0
 };
 #endif
+
 /*
- * @brief   Routine to test RC-mode&Odometry&CS-mode
+ * @brief   Routine to test RC-mode & Odometry & CS-mode
  */
 void testRemoteControlOdometryRoutine( void )
 {

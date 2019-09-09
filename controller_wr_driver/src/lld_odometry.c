@@ -4,9 +4,9 @@
 #include <lld_steer_angle_fb.h>
 
 
-/************************************/
-/***     Coefficient variables    ***/
-/************************************/
+/*============================================================================*/
+/* Coefficient Variables                                                      */
+/*============================================================================*/
 
 float    odom_dist_4_obj    = 0;
 /* need to check, maybe should 0.105 / 6 */
@@ -24,7 +24,7 @@ float    cm_2_m         = 0;
 #define  MS_2_SEC       100; // 10 ms - > 1 s
 #define  CM_2_M         (float)0.01;
 
-/************************************/
+/*****************************************************************************/
 
 
 /**
@@ -38,9 +38,9 @@ odometryValue_t lldGetOdometryObjDistance( odometryDistanceUnit_t units )
     return ( revs * odom_dist_4_obj * units );
 }
 
-/************************************/
-/***     Variables for speed      ***/
-/************************************/
+/*============================================================================*/
+/* Variables for speed                                                        */
+/*============================================================================*/
 
 odometryRawSpeedValue_t     prev_revs           = 0;
 odometryRawSpeedValue_t     revs_per_sec        = 0;
@@ -49,9 +49,9 @@ odometryValue_t             prev_distance       = 0;
 odometrySpeedValue_t        speed_cm_per_sec    = 0;
 odometrySpeedValue_t        speed_m_per_sec     = 0;
 
-/************************************/
-/***     Variables for odometry   ***/
-/************************************/
+/*============================================================================*/
+/* Variables for odometry                                                     */
+/*============================================================================*/
 
 odometryValue_t             tetta_rad_angle     = 0;
 odometryValue_t             x_pos_m             = 0;
@@ -97,7 +97,8 @@ static float correction_k_left  = 0.65;
 static float correction_k_right = 0.6;
 
 /*
- * TODO - Comments
+ * @brief   Set correction coeffitients 
+            to merge visual odometry and hardware-odometry 
  */
 void lldOdometrySetCorrectionRates( float k_left, float k_right )
 {

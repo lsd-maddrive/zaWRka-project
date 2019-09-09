@@ -1,18 +1,20 @@
 #include <tests.h>
 #include <lld_encoder.h>
 
-/***************************************************/
-
-
 //#define MATLAB_ENCODER
 
 #ifdef MATLAB_ENCODER
+
 static const SerialConfig sdcfg = {
   .speed = 115200,
   .cr1 = 0, .cr2 = 0, .cr3 = 0
 };
 #endif
 
+/**
+ * @brief   Test ticks and revs counting, also direction detection
+ * @note    chprintf works only when encoder is rotation
+ */
 void testEncoderCommonRoutine( void )
 {
 #ifdef MATLAB_ENCODER
@@ -63,7 +65,6 @@ void testEncoderCommonRoutine( void )
         }
         chThdSleepUntil(time);
 #else
-
 
 #ifdef ABSOLUTE_ENCODER
         dbgprintf( "Ts:(%d)\tRs:(%d)\tA_Rs:(%d)\tD:(%d)\n\r",

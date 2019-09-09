@@ -3,12 +3,13 @@
 
 #include <common.h>
 
-/****************************/
-/*** Driver Control tests ***/
-/****************************/
+/*============================================================================*/
+/* Driver Control tests                                                       */
+/*============================================================================*/
 
 /*
  * @brief   Routine of system timer test
+ * @note    Not sure that it's still needed ?? 
  */
 void testSystemTimer( void );
 
@@ -37,16 +38,15 @@ void testWheelsControlRoutines( void );
  */
 void testDrivingWheelsESCCalibration ( void );
 
-
 /*
  * @brief   Test for speed max/min limits calibration
  * @note    show linear speed and control signal in %
  */
 void testSpeedLimitsCalibrationRoutine( void );
 
-/*********************/
-/*** Encoder tests ***/
-/*********************/
+/*============================================================================*/
+/* Encoder tests                                                              */
+/*============================================================================*/
 
 /**
  * @brief   Test ticks and revs counting, also direction detection
@@ -54,9 +54,9 @@ void testSpeedLimitsCalibrationRoutine( void );
  */
 void testEncoderCommonRoutine( void );
 
-/**************************/
-/***    Odometry tests  ***/
-/**************************/
+/*============================================================================*/
+/*    Odometry tests                                                          */
+/*============================================================================*/
 
 /*
  * @brief   Test Odometry Routine
@@ -74,9 +74,9 @@ void testOdometryRoutine( void );
  */
 void testResetOdometryRoutine( void );
 
-/****************************/
-/*** Remote Control tests ***/
-/****************************/
+/*============================================================================*/
+/* Remote Control tests                                                       */
+/*============================================================================*/
 
 /*
  * @brief   Routine of remote control testing
@@ -90,9 +90,9 @@ void testRemoteControlRoutine( void );
  */
 void testRemoteControlOdometryRoutine( void );
 
-/****************************/
-/*** Steering Angle tests ***/
-/****************************/
+/*============================================================================*/
+/* Steering Angle tests                                                       */
+/*============================================================================*/
 
 /*
  * @brief   Test for routine of getting steering angle
@@ -103,9 +103,9 @@ void testRemoteControlOdometryRoutine( void );
 void testSteerAngleSendData( void );
 
 
-/*************************************/
-/***    Control System tests       ***/
-/*************************************/
+/*============================================================================*/
+/* Control System tests                                                       */
+/*============================================================================*/
 
 /*
  * @brief   Test steering control system with feedback
@@ -130,48 +130,43 @@ void testSpeedFilter( void );
 */
 void testUARTControl( void );
 
-/***********************/
-/***   Light tests   ***/
-/***********************/
+/*============================================================================*/
+/* Light tests                                                                */
+/*============================================================================*/
 
 /**
  * @brief   Test lights (LEDs) with different input conditions 
  */
 void testLightRoutine( void ); 
 
-/*
- * NEED COMMENT
- */
-void testLedMatrixRoutine( void );
+/*============================================================================*/
+/* GUI tests                                                                  */
+/*============================================================================*/
 
-/***********************/
-/***    GUI tests    ***/
-/***********************/
-
-/*
+/**
  * @brief   Test GUI with odometry
 */
 void testGUIRoutineServer ( void );
 
+/*============================================================================*/
+/* ROS tests                                                                  */
+/*============================================================================*/
 
-/***********************/
-/***    ROS tests    ***/
-/***********************/
-
-/*
+/**
  * @brief   Test odometry via ROS
  * @note    Frequency = 50 Hz
 */
 void testRoutineROSOdometry( void );
 
-/*
+/**
  * @brief   Test odometry, speed and steering control via ROS
  * @note    Frequency = 50 Hz
 */
 void testRosRoutineControl( void );
 
-
-
+/**
+* @brief    Test start button routine 
+*/
 void testButtonRoutine( void );
 
 

@@ -2,8 +2,10 @@
 #include <lld_steer_angle_fb.h>
 #include <lld_encoder.h>
 #include <ros_protos.h>
-
-
+ 
+/*
+ * @brief   Test GUI with odometry
+*/
 void testGUIRoutineServer( void )
 {
     ros_driver_init( NORMALPRIO, NULL );

@@ -216,7 +216,6 @@ void testSpeedCS ( void )
     }
 }
 
-
 /*
  * @brief   Test LPF for speed control system
 */

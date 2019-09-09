@@ -3,20 +3,17 @@
 
 #define ENC_MAX_TICK_NUM        500
 
-/*******************************/
-/***    LINE CONFIGURATION   ***/
-/*******************************/
+/*============================================================================*/
+/* LINE CONFIGURATION                                                         */
+/*============================================================================*/
 
 #define ENCODER_GREEN_LINE  PAL_LINE( GPIOD, 5 )
 #define ENCODER_WHITE_LINE  PAL_LINE( GPIOD, 4 )
 #define ENCODER_NULL_LINE   PAL_LINE( GPIOD, 3 )
 
-/*******************************/
-
-
-/***********************************/
-/***    Variable CONFIGURATION   ***/
-/***********************************/
+/*============================================================================*/
+/* Variable CONFIGURATION                                                     */
+/*============================================================================*/
 
 rawEncoderValue_t       enc_tick_cntr       = 0;
 rawRevEncoderValue_t    enc_revs_cntr       = 0;
@@ -24,9 +21,6 @@ rawRevEncoderValue_t    enc_revs_cntr       = 0;
 rawEncoderValue_t       enc_null_revs_cntr  = 0;
 
 bool                    enc_dir_state       = 0;
-
-/***********************************/
-
 
 /***    Base channel processing     ***/
 static void extcb_base(EXTDriver *extp, expchannel_t channel)

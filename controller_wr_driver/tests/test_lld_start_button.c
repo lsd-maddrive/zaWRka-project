@@ -1,6 +1,9 @@
 #include <tests.h>
 #include <lld_start_button.h>
 
+/**
+* @brief    Test start button routine 
+*/
 void testButtonRoutine( void )
 {
     debug_stream_init( );
@@ -13,13 +16,11 @@ void testButtonRoutine( void )
 
     while( 1 )
     {
-        time += MS2ST(100);
         test_s_state    = lldGetSystemState( );
 
-        dbgprintf( "SS:(%d)\n\r",
-                   (int)test_s_state );
+        dbgprintf( "SS:(%d)\n\r", (int)test_s_state );
 
-        chThdSleepUntil(time);
+        time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
     }
 }
 

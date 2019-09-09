@@ -1,6 +1,9 @@
 #include <tests.h>
 #include <remote_control.h>
 
+/*============================================================================*/
+/* VALUE LIMITS                                                               */
+/*============================================================================*/
 
 #define RC_STEER_MAX    1850
 #define RC_STEER_NULL   1425
@@ -10,7 +13,9 @@
 #define RC_SPEED_NULL   1520
 #define RC_SPEED_MIN    1060
 
-
+/*============================================================================*/
+/* PINS CONFIGURATION                                                         */
+/*============================================================================*/
 
 #define icuSteering         PAL_LINE( GPIOE, 5 )
 #define icuSpeed            PAL_LINE( GPIOC, 6 )
@@ -53,6 +58,10 @@ static void icuWidthcb_speed(ICUDriver *icup)
 
 
 }
+
+/*============================================================================*/
+/* CONFIGURATION ZONE                                                         */
+/*============================================================================*/
 
 
 /*** Configuration structures for Steering channel ***/

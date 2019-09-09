@@ -1,18 +1,18 @@
 #include <tests.h>
 #include <lld_steer_angle_fb.h>
 
-/***********************************/
-/***    FILTER CONFIGURATION     ***/
-/***********************************/
+/*============================================================================*/
+/* FILTER CONFIGURATION                                                       */
+/*============================================================================*/
 
 #define STEER_FILTER_MEAN       0
 #define STEER_FILTER_LPF        1
 
 #define STEER_ACTIVE_FILTER     STEER_FILTER_LPF
 
-/***********************************/
-/***    OBJECT CONFIGURATION     ***/
-/***********************************/
+/*============================================================================*/
+/* OBJECT CONFIGURATION                                                       */
+/*============================================================================*/
 
 #define     STEER_ADC_RIGHT         215 // 1075
 #define     STEER_ADC_LEFT          3390 // 1980
@@ -27,9 +27,9 @@
  * R1_right = 44   cm => tg = L / R1 = 0.6818  => 34 deg
  */
 
-/**************************/
-/*** CONFIGURATION ZONE ***/
-/**************************/
+/*============================================================================*/
+/* CONFIGURATION ZONE                                                         */
+/*============================================================================*/
 
 /***    ADC CONFIG    ***/
 
@@ -50,9 +50,9 @@ steerAngleRawValue_t            steer_raw_ADC_val   = 0;
 
 static adcsample_t              adc_1_buffer[ADC_1_NUM_CHANNELS * ADC_1_BUF_DEPTH];
 
-/***************************/
-/***    FILTER CONFIG    ***/
-/***************************/
+/*============================================================================*/
+/* FILTER CONFIG                                                              */
+/*============================================================================*/
 
 steerAngleRawValue_t    steer_filtered_adc_val      = 0;
 
@@ -75,7 +75,6 @@ static void adc_1_cb ( ADCDriver *adcp, adcsample_t *buffer, size_t n )
     adcp = adcp;
     n = n;
     buffer = buffer;
-    // **********************
 
     adc_cb_counter += 1;
 
@@ -126,8 +125,9 @@ static const ADCConversionGroup steer_adc_1_cnfg = {
   .sqr3         = ADC_SQR3_SQ1_N(ADC_CHANNEL_IN10)
 };
 
-/***    TIMER CONFIG    ***/
-
+/*============================================================================*/
+/* TIMER CONFIG                                                               */
+/*============================================================================*/
 static GPTDriver            *adcTrgDriver   = &GPTD4;
 
 static const GPTConfig gpt_trg_cnfg = {
@@ -137,8 +137,9 @@ static const GPTConfig gpt_trg_cnfg = {
   .dier      =  0U
  };
 
-/***    COEFFICIENT INIT    ***/
-
+/*============================================================================*/
+/* COEFFICIENT INIT                                                           */
+/*============================================================================*/
 static bool     isInitialized       = false;
 
 float           steer_right_k   = 0;

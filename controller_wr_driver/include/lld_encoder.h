@@ -4,7 +4,6 @@
 typedef int32_t    rawEncoderValue_t;
 typedef float      rawRevEncoderValue_t;
 
-
 /**
  * @brief   Initialize periphery connected to encoder
  * @note    Stable for repeated calls
@@ -42,7 +41,6 @@ rawRevEncoderValue_t   lldGetEncoderRawRevs( void );
  * @return  Encoder revolutions number depends on direction of rotation
  */
 rawEncoderValue_t   lldGetAbsoluteEncoderRawRevs( void );
-
 
 /*
  * @brief   Reset all variable for lld-encoder unit

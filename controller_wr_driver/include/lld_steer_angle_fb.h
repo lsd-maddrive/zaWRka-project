@@ -14,8 +14,8 @@ typedef float       steerAngleDegValue_t;
 void lldSteerAngleFBInit ( void );
 
 /*============================================================================*/
-/* ADC FUNCS                                                                  */
-/* ===========================================================================*/
+/* ADC Related Functions													  */
+/*============================================================================*/
 
 /**
  * @brief       Get raw value of steering angle
@@ -23,7 +23,9 @@ void lldSteerAngleFBInit ( void );
 */
 steerAngleRawValue_t lldGetSteerAngleRawADC (void);
 
+/*******************************/
 /***     ADC FILTER FUNCS    ***/
+/*******************************/
 
 /**
  * @brief       Get raw filtered value of steering angle
@@ -45,7 +47,7 @@ steerAngleRawValue_t lldGetSteerAngleFiltrRawADC ( void );
 
 /*============================================================================*/
 /* ANGLE FUNCS                                                                */
-/* ===========================================================================*/
+/*============================================================================*/
 
 /**
  * @brief       Get steering angle [rad]

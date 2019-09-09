@@ -6,9 +6,13 @@ static const SerialConfig sd_st_cfg = {
   .cr1 = 0, .cr2 = 0, .cr3 = 0
 };
 
-static SerialDriver			*debug_serial = &SD3;
-static BaseSequentialStream *debug_stream = NULL;
+static  SerialDriver			*debug_serial = &SD3;
+static  BaseSequentialStream    *debug_stream = NULL;
 
+/**
+* @brief    Initialization of usb-serial unit
+* @note     Stable for repeated calls 
+*/
 void debug_stream_init( void )
 {
     sdStart( debug_serial, &sd_st_cfg );
@@ -18,6 +22,9 @@ void debug_stream_init( void )
     debug_stream = (BaseSequentialStream *)debug_serial;
 }
 
+/**
+* @brief    Print aka chprintf 
+*/
 void dbgprintf( const char* format, ... )
 {
     if ( !debug_stream )

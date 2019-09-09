@@ -40,14 +40,14 @@ void lldResetOdometry( void );
 odometryValue_t lldGetOdometryObjDistance( odometryDistanceUnit_t units );
 
 /*
- * Set correction coefficient values
- * for odometry setting via ros 
+ * @brief   Set correction coeffitients 
+            to merge visual odometry and hardware-odometry 
  */
 void lldOdometrySetCorrectionRates( float k_left, float k_right );
 
-/**********************************/
-/***    Functions for speed     ***/
-/**********************************/
+/*============================================================================*/
+/* Functions for speed     													  */
+/*============================================================================*/
 
 /**
  * @brief   Get speed of encoder rotation
@@ -84,9 +84,9 @@ odometrySpeedValue_t lldOdometryGetObjCSSpeedMPS( void );
  */
 odometrySpeedValue_t lldGetOdometryObjTettaSpeedRadPS( void );
 
-/**********************************/
-/***    Functions for odometry  ***/
-/**********************************/
+/*============================================================================*/
+/* Functions for odometry  													  */
+/*============================================================================*/
 
 /**
  * @brief   Get tetta (orientation) of objects
