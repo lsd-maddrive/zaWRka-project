@@ -31,7 +31,7 @@ if [ "$ROS_DISTRO" = "kinetic" ]; then
 						ros-$ROS_DISTRO-qt-build \
 						ros-$ROS_DISTRO-hector-mapping \
 						ros-$ROS_DISTRO-hector-trajectory-server \
-						ros-$ROS_DISTRO-laser-scan-matcher
+						ros-$ROS_DISTRO-laser-scan-matcher 
 
 	# For special cases
 	sudo apt install ros-$ROS_DISTRO-gazebo9-plugins
@@ -46,7 +46,7 @@ else
 	sudo apt install ros-$ROS_DISTRO-gazebo-ros-control \
 						ros-$ROS_DISTRO-tf2-sensor-msgs
 
-fi
+fi			
 
 # ln -sf ../../neural_networks/_common/ncs.py        	wr8_ai/src/wr8_ai/ncs.py
 # ln -sf ../../neural_networks/_common/utils.py			wr8_ai/src/wr8_ai/nn_utils.py
