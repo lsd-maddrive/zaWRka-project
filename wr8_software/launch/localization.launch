@@ -2,8 +2,8 @@
 <launch>
  
 <!--   <include file="$(find wr8_software)/launch/base/laser_scan_matcher.launch" >
-    <arg name="base_frame" value="base_footprint" />
-    <arg name="odom_topic" value="ackermann_drive_controller/odom" />
+    <arg name="base_frame" value="base_link" />
+    <arg name="odom_topic" value="robot/odom" />
   </include> -->
 
   <!-- <node pkg="rosservice" type="rosservice" name="reset_odom" args="call robot/reset_odom"/> -->
