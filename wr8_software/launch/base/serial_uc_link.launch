@@ -18,8 +18,8 @@
             <!-- <param name="baud" value="9600" />  -->
         </node>
 
-        <!-- <node pkg="wr8_software" type="odometry_pub.py" name="odometry_node" output="screen" respawn="false">
-        </node>     -->
+        <node pkg="wr8_software" type="odometry_pub.py" name="odometry_node" output="screen" respawn="false">
+        </node>    
     </group>
 
 

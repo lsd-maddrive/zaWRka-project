@@ -9,8 +9,6 @@
   <!-- <node pkg="rosservice" type="rosservice" name="reset_odom" args="call robot/reset_odom"/> -->
   <!-- <node pkg="rosservice" type="rosservice" name="reset_gz" args="call gazebo/reset_simulation"/> -->
 
-  <arg name="fast" default="false" />
-
   <node name="map_server" pkg="map_server" type="map_server" args="$(find wr8_software)/maps/map2_h.yaml" />
   <!-- <node name="map_server" pkg="map_server" type="map_server" args="$(find wr8_software)/maps/depart.yaml" /> -->
 
@@ -19,19 +17,11 @@
     <arg name="odom_frame" value="odom" />
   </include>
 
-  <include unless="$(arg fast)" file="$(find wr8_software)/launch/base/move_base.launch">
+  <include file="$(find wr8_software)/launch/base/move_base.launch">
     <arg name="base_frame" value="base_link" />
     <arg name="odom_topic" value="robot/odom" />
     <arg name="cmd_topic" value="robot/cmd_vel" />
     <arg name="config_dir" value="config" />
-  </include>
-
-
-  <include if="$(arg fast)" file="$(find wr8_software)/launch/base/move_base.launch">
-    <arg name="base_frame" value="base_link" />
-    <arg name="odom_topic" value="robot/odom" />
-    <arg name="cmd_topic" value="robot/cmd_vel" />
-    <arg name="config_dir" value="fast_config" />
   </include>
 
   <include file="$(find wr8_software)/launch/base/slime.launch">
