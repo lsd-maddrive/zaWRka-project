@@ -20,6 +20,10 @@ TebLocalPlannerROS:
 
     max_vel_x: 0.7
     max_vel_x_backwards: 0.5
+    # For fast
+    # max_vel_x: 1.0
+    # max_vel_x_backwards: 0.6
+
     max_vel_theta: 0.43
     acc_lim_x: 0.03
     acc_lim_theta: 0.05

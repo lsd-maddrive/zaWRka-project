@@ -1,35 +1,14 @@
 <?xml version="1.0"?>
 <launch>
 
-<!--   <include file="$(find wr8_software)/launch/base/laser_scan_matcher.launch" >
-    <arg name="base_frame" value="base_footprint" />
-    <arg name="odom_topic" value="ackermann_drive_controller/odom" />
-  </include> -->
-
-  <!-- <node name="reset_odom" pkg="wr8_software" type="reset_odometry.py"> -->
-  <!-- </node> -->
-
-  <!-- Can be - gmapping / heactor_mapping -->
-  <arg name="mapping_algorithm" default="hector_mapping" />
-
-  <include file="$(find wr8_software)/launch/base/move_base.launch">
-    <arg name="base_frame" value="base_footprint" />
-
-    <arg name="odom_topic" value="ackermann_drive_controller/odom" />
-    <arg name="cmd_topic" value="car/cmd_vel" />
+  <include file="$(find wr8_description)/launch/gazebo.launch">
   </include>
 
-  <include file="$(find wr8_software)/launch/base/slime.launch">
-    <arg name="global_frame" value="map" />
-    <arg name="track_frame" value="base_footprint"/>
-    <arg name="update_rate" value="10" />
-    <arg name="publish_rate" value="6.0" />
+  <include file="$(find wr8_software)/launch/slam.launch">
+    <arg name="mapping_algorithm" value="hector_mapping" />
   </include>
 
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find wr8_software)/rviz/nav.rviz" />
-
-  <include file="$(find wr8_software)/launch/base/$(arg mapping_algorithm).launch">
-    <arg name="base_frame" value="base_footprint" />
+  <include file="$(find wr8_software)/launch/rviz_slam_view.launch">
   </include>
 
 </launch>

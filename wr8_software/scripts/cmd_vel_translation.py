@@ -21,7 +21,7 @@ def callback(msg):
 
     if msg.linear.x == 0 and msg.angular.z == 0:
         x_cmd = 0
-        z_cmd = 0;
+        z_cmd = 0
     else:
         if msg.angular.z != 0:
             z_cmd += z_delta * sign(msg.angular.z)
@@ -32,8 +32,8 @@ def callback(msg):
     x_cmd = np.clip(x_cmd, -0.5, 0.5)
 
     cmd = Twist()
-    cmd.linear.x = x_cmd;
-    cmd.angular.z = z_cmd;
+    cmd.linear.x = x_cmd
+    cmd.angular.z = z_cmd
 
     # print(cmd)
 

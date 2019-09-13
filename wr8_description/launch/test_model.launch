@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="rqt_robot_steering" pkg="rqt_robot_steering" type="rqt_robot_steering">
+    <param name="default_topic" value="robot/cmd_vel"/>
+  </node>
+
+  <include file="$(find wr8_description)/launch/gazebo.launch">
+    <arg name="gz_gui" value="true" />
+    <arg name="native_odom" value="true" />
+    <arg name="world_name" value="empty_bullet.world" />
+  </include>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find wr8_description)/rviz/model_view.rviz" />
+  
+  <!-- Just to show in rviz for robot model -->
+  <!-- <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher" >
+    <param name="use_gui" value="true" />
+  </node> -->
+</launch>

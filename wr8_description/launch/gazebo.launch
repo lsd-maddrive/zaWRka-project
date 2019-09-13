@@ -4,11 +4,12 @@
   <!-- Параметры (-x, -y и т.д.) заданы как опции для узла spawn_model -->
   <arg name="x" default="0" />
   <arg name="y" default="0" />
-  <arg name="native_odom" default="false" />
+  <arg name="native_odom" default="true" />
 
   <arg name="initial_pose" default="-x $(arg x) -y $(arg y) -z 0.5 -R 0 -P 0 -Y 1.57" />
+  <arg name="world_name" default="RFMaze.v2.world" />
 
-  <arg name="tmode" default="false" />
+  <arg name="gz_gui" default="false" />
 
   <!-- Аргумент, который содержит имя файла -->
   <arg name="urdf_file" default="$(find wr8_description)/urdf/model.urdf.xacro" />
@@ -29,36 +30,21 @@
     args="ackermann_joint_state_controller
           ackermann_drive_controller"/>
 
-  <!-- Precise setup for simulator -->
+  <!-- Precise setup for simulator (to be as in real robot) -->
   <param name="ackermann_drive_controller/enable_odom_tf" value="$(arg native_odom)" />
-  <remap from="ackermann_drive_controller/cmd_vel" to="car/cmd_vel" />
-  <remap from="ackermann_drive_controller/reset_odom" to="car/reset_odom" />
+  <remap from="ackermann_drive_controller/cmd_vel" to="robot/cmd_vel" />
+  <remap from="ackermann_drive_controller/reset_odom" to="robot/reset_odom" />
+  <remap from="ackermann_drive_controller/odom" to="robot/odom" />
 
-  <arg name="gz_gui" default="false" />
-  <arg name="rviz_gui" default="false" />
   <!-- Запускаем Gazebo, мир пустой - стандартный -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <env name="GAZEBO_MODEL_PATH" value="$(find wr8_description)/worlds" />
 
     <arg name="respawn_gazebo" value="true" />
-    <!-- <arg name="world_name" value="$(find wr8_description)/worlds/empty_bullet.world"/> -->
-    <arg unless="$(arg tmode)" name="world_name" value="$(find wr8_description)/worlds/RFMaze.v2.world"/>
+    <arg name="world_name" value="$(find wr8_description)/worlds/$(arg world_name)"/>
     <arg name="use_sim_time" value="true"/>
     <arg name="debug" value="false"/>
     <arg name="gui" value="$(arg gz_gui)"/>
   </include>
 
-  <!-- Просто запустим rviz, после настройки добавим запуск конфигурации -->
-  <node if="$(arg rviz_gui)" name="rviz" pkg="rviz" type="rviz" args="-d $(find wr8_description)/rviz/model_view.rviz" />
-  
-  <node if="$(arg tmode)" name="rqt_robot_steering" pkg="rqt_robot_steering" type="rqt_robot_steering">
-    <param name="default_topic" value="/ackermann_drive_controller/cmd_vel"/>
-  </node>
-
-  <!-- Опубликуем TF динамические преобразования на основе описания `robot_description` -->
-<!--   
-  <node if="$(arg rviz_gui)" pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher" >
-    <param name="use_gui" value="true" />
-  </node>
- -->
 </launch>
