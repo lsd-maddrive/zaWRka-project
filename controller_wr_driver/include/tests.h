@@ -74,6 +74,19 @@ void testOdometryRoutine( void );
  */
 void testResetOdometryRoutine( void );
 
+/*
+ * @brief   Test for odometry (x, y, tetta values)
+ * @note    Control via RC 
+*/
+void testRCOdodmetry( void );
+
+/*
+ * @brief   Test odometry
+ * @note    Reference value of x-distance = 20 cm 
+ *          Speed is constant (0.1 m/s)
+*/
+void testXdistanceOdometry( void );
+
 /*============================================================================*/
 /* Remote Control tests                                                       */
 /*============================================================================*/
@@ -212,6 +225,14 @@ static inline void testsRoutines( void )
 #elif ( MAIN_PROGRAM_ROUTINE ==PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND)
 
     testRemoteControlOdometryRoutine( );
+
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_ODOMETRY_RC )
+
+    testRCOdodmetry( ); 
+
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_X_DIST_ODOMETRY )
+
+    testXdistanceOdometry( );
 
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RESET_ODOMETRY )
 

@@ -2,6 +2,8 @@
 #include <lld_odometry.h>
 #include <lld_steer_angle_fb.h>
 #include <lld_control.h>
+#include <remote_control.h>
+#include <drive_cs.h>
 
 #define JUST_ODOMETRY
 
@@ -204,4 +206,109 @@ void testResetOdometryRoutine( void )
 
         time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
     }
+}
+
+/*
+ * @brief   Test for odometry (x, y, tetta values)
+ * @note    Control via RC 
+*/
+void testRCOdodmetry( void )
+{
+  lldOdometryInit( );
+  lldControlInit( );
+  debug_stream_init( );
+  remoteControlInit( NORMALPRIO );
+
+
+  icuControlValue_t   rc_steer_prt    = 0;
+  icuControlValue_t   rc_speed_prt    = 0;
+  bool                mode            = false;
+
+  odometryValue_t     test_tetta_deg  = 0;
+  odometryValue_t     test_x_pos      = 0;
+  odometryValue_t     test_y_pos      = 0;
+
+  uint32_t            show_counter    = 0;
+
+  systime_t time = chVTGetSystemTimeX();
+
+  while( 1 )
+  {
+    show_counter += 1;
+    mode = rcModeIsEnabled();
+
+    if( mode == true )
+    {
+      rc_steer_prt    = rcGetSteerControlValue( );
+      rc_speed_prt    = rcGetSpeedControlValue( );
+
+      lldControlSetDrMotorPower( rc_speed_prt );
+      lldControlSetSteerMotorPower( rc_steer_prt );
+    }
+    else
+    {
+      lldControlSetSteerMotorRawPower( STEER_NULL );
+      lldControlSetDrMotorRawPower( SPEED_ZERO );
+    }
+
+    test_tetta_deg  = lldGetOdometryObjTettaDeg( );
+    test_x_pos      = lldGetOdometryObjX( OBJ_DIST_CM );
+    test_y_pos      = lldGetOdometryObjY( OBJ_DIST_CM );
+
+    if( show_counter == 20 )
+    {
+      dbgprintf( "X:(%d)\tY:(%d)\tT:(%d)\n\r",
+                  (int)test_x_pos, (int)test_y_pos,
+                  (int)test_tetta_deg);
+
+      show_counter = 0;
+    } 
+
+    time = chThdSleepUntilWindowed( time, time + MS2ST( 10 ) );
+  }
+}
+
+/*
+ * @brief   Test odometry
+ * @note    Reference value of x-distance = 20 cm 
+ *          Speed is constant (0.1 m/s)
+*/
+void testXdistanceOdometry( void )
+{
+  lldOdometryInit( );
+  debug_stream_init( );
+  driverCSInit( NORMALPRIO );
+  driverIsEnableCS(true);
+
+  odometryValue_t     test_x_pos          = 0;
+
+  uint32_t            show_counter    = 0;
+
+  systime_t time = chVTGetSystemTimeX();
+
+  while( 1 )
+  {
+    show_counter += 1;
+    driveSteerCSSetPosition( 0 );
+    test_x_pos      = lldGetOdometryObjX( OBJ_DIST_CM );
+
+    if(test_x_pos >= 20)
+    {
+      driveSpeedCSSetSpeed( 0 );
+    }
+    else
+    {
+      driveSpeedCSSetSpeed( 0.1 );
+    }
+
+
+    if( show_counter == 20 )
+    {
+      dbgprintf( "X:(%d)\n\r", (int)test_x_pos );
+
+      show_counter = 0;
+    } 
+
+    time = chThdSleepUntilWindowed( time, time + MS2ST( 10 ) );
+  }
 }

@@ -21,21 +21,23 @@ extern "C" {
 #define     PROGRAM_ROUTINE_TEST_ENCODER                4
 #define     PROGRAM_ROUTINE_TEST_ODOMETRY               5
 #define     PROGRAM_ROUTINE_TEST_RESET_ODOMETRY         6
+#define		PROGRAM_ROUTINE_ODOMETRY_RC					7 // this is correct
+#define		PROGRAM_ROUTINE_X_DIST_ODOMETRY				8
 /***    REMOTE CONTROL RELATED          ***/
-#define     PROGRAM_ROUTINE_TEST_RC                     7
-#define 	PROGRAM_ROUTINE_TEST_RC_ODOMETRY			8			
+#define     PROGRAM_ROUTINE_TEST_RC                     10
+#define 	PROGRAM_ROUTINE_TEST_RC_ODOMETRY			11 // may be we shout delete this			
 /***    STEERING RELATED                ***/
-#define     PROGRAM_ROUTINE_TEST_STEERING_CS            9
-#define     PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND        10
+#define     PROGRAM_ROUTINE_TEST_STEERING_CS            12
+#define     PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND        13
 /***    SPEED RELATED                   ***/
-#define     PROGRAM_ROUTINE_TEST_SPEED_CS               11
-#define     PROGRAM_ROUTINE_TEST_SPEED_LIMIT_CALIB      12
-#define     PROGRAM_ROUTINE_TEST_SPEED_FILTER           13
+#define     PROGRAM_ROUTINE_TEST_SPEED_CS               14
+#define     PROGRAM_ROUTINE_TEST_SPEED_LIMIT_CALIB      15
+#define     PROGRAM_ROUTINE_TEST_SPEED_FILTER           16
 /***    BOTH CS RELATED                 ***/
-#define     PROGRAM_ROUTINE_TEST_UART_CS                14
+#define     PROGRAM_ROUTINE_TEST_UART_CS                17
 /*** 	LIGHT RELATED					***/
-#define		PROGRAM_ROUTINE_TEST_LIGHT					15 
-#define		PROGRAM_ROUTINE_TEST_LED_MATRIX				16
+#define		PROGRAM_ROUTINE_TEST_LIGHT					18 
+#define		PROGRAM_ROUTINE_TEST_LED_MATRIX				19
 /***    BUTTON RELATED                  ***/
 #define     PROGRAM_ROUTINE_TEST_BUTTON_STATE           20
 /***    ROS RELATED                     ***/

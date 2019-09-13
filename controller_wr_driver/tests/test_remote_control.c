@@ -25,7 +25,7 @@ void testRemoteControlRoutine( void )
     debug_stream_init( );
 #endif
     debug_stream_init( );
-    lldControlInit( );
+    lldControlInit( ); 
     remoteControlInit( NORMALPRIO );
 
     pwmValue_t          rc_speed        =   0;

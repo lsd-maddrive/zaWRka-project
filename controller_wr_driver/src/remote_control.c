@@ -5,7 +5,7 @@
 /* VALUE LIMITS                                                               */
 /*============================================================================*/
 
-#define RC_STEER_MAX    1850
+#define RC_STEER_MAX    1700
 #define RC_STEER_NULL   1425
 #define RC_STEER_MIN    1000
 
