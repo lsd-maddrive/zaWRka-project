@@ -92,11 +92,6 @@ void testXdistanceOdometry( void );
  */
 void testRemoteControlRoutine( void );
 
-/*
- * @brief   Routine to test RC-mode&Odometry&CS-mode
- */
-void testRemoteControlOdometryRoutine( void );
-
 /*============================================================================*/
 /* Steering Angle tests                                                       */
 /*============================================================================*/
@@ -203,10 +198,6 @@ static inline void testsRoutines( void )
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RC )
 
     testRemoteControlRoutine( );
-
-#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RC_ODOMETRY )
-
-    testRemoteControlOdometryRoutine( );
 
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ODOMETRY )
 

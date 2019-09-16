@@ -21,11 +21,11 @@ extern "C" {
 #define     PROGRAM_ROUTINE_TEST_ENCODER                4
 #define     PROGRAM_ROUTINE_TEST_ODOMETRY               5
 #define     PROGRAM_ROUTINE_TEST_RESET_ODOMETRY         6
-#define		PROGRAM_ROUTINE_ODOMETRY_RC					7 // this is correct
+#define		PROGRAM_ROUTINE_ODOMETRY_RC					7 
 #define		PROGRAM_ROUTINE_X_DIST_ODOMETRY				8
 /***    REMOTE CONTROL RELATED          ***/
 #define     PROGRAM_ROUTINE_TEST_RC                     10
-#define 	PROGRAM_ROUTINE_TEST_RC_ODOMETRY			11 // may be we shout delete this			
+
 /***    STEERING RELATED                ***/
 #define     PROGRAM_ROUTINE_TEST_STEERING_CS            12
 #define     PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND        13
