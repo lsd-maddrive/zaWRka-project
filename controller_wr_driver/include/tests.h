@@ -8,12 +8,6 @@
 /*============================================================================*/
 
 /*
- * @brief   Routine of system timer test
- * @note    Not sure that it's still needed ?? 
- */
-void testSystemTimer( void );
-
-/*
  * @brief	Routine of ROS connection test via USB
  * @note 	USB bus is used (for ROS activity, not test)
  */
@@ -186,11 +180,7 @@ void testButtonRoutine( void );
 
 static inline void testsRoutines( void )
 {
-#if (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SYSTEM_TIMER)
-
-    testSystemTimer();
-
-#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS)
+#if (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS)
 
     testROSConnection( );
 
