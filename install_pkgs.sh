@@ -13,6 +13,10 @@ sudo apt install ros-$ROS_DISTRO-base-local-planner \
 					ros-$ROS_DISTRO-global-planner \
 					ros-$ROS_DISTRO-map-server \
 					ros-$ROS_DISTRO-amcl \
+					ros-$ROS_DISTRO-controller-interface \
+					ros-$ROS_DISTRO-realtime-tools \
+					ros-$ROS_DISTRO-urdf \
 					libsuitesparse-dev 
 
-git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
+# git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
+git -C ackermann_controller pull 		|| git clone https://github.com/KaiL4eK/ackermann_controller.git -b $ROS_DISTRO
