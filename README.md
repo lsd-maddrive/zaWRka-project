@@ -1,5 +1,12 @@
 # MadDrive project
 
+## How to start (read it!)
+
+1. Clone repo with `git clone --recursive ...` (to fetch submodules)
+2. Install all dependencies with `install_pkgs.sh`
+
+## Some information
+
 Проект под командной разработкой, направленный на участие в ежегодных соревнованиях Profest AutoNet 18+  
 
 Некоторые [правила оформления](https://github.com/serykhelena/AutoNetChallenge/blob/develop/controller_wr_driver/docs/dev_rules.md)
