@@ -5,6 +5,8 @@
 1. Clone repo with `git clone --recursive ...` (to fetch submodules)
 2. Install all dependencies with `install_pkgs.sh`
 
+> Don't forget to do `git submodule update --init` along with `git pull` to get updates of submodules 
+
 ## Some information
 
 Проект под командной разработкой, направленный на участие в ежегодных соревнованиях Profest AutoNet 18+  
