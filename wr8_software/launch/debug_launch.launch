@@ -2,13 +2,13 @@
 <launch>
    
     <arg name="lidar" default="true" />
-    <arg name="camera_s" default="true" />
-    <arg name="camera_r" default="true" />
+    <arg name="camera_s" default="false" />
+    <arg name="camera_r" default="false" />
     <arg name="uc" default="true" />
-    <arg name="solver" default="true" />
-    <arg name="gui_server" default="true" />
-    <arg name="bag_record" default="true" />
-    <arg name="stereo" default="true" />
+    <arg name="solver" default="false" />
+    <arg name="gui_server" default="false" />
+    <arg name="bag_record" default="false" />
+    <arg name="stereo" default="false" />
 
     <include if="$(arg stereo)" file="$(find wr8_software)/launch/base/stereo_rtabmap.launch">
         <!-- All defaults -->

@@ -1,3 +1,7 @@
 [submodule "ydlidar"]
 	path = ydlidar
 	url = https://github.com/EAIBOT/ydlidar.git
+[submodule "rosserial"]
+	path = rosserial
+	url = https://github.com/ros-drivers/rosserial.git
+	branch = melodic-devel
