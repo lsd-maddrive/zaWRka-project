@@ -127,7 +127,6 @@ bool lldGetEncoderDirection( void )
  */
 rawRevEncoderValue_t   lldGetEncoderRawRevs( void )
 {
-    palToggleLine( LINE_LED1 );
     return ( enc_revs_cntr + enc_tick_cntr / (float)ENC_MAX_TICK_NUM );
 }
 

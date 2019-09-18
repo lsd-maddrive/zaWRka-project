@@ -134,7 +134,7 @@ void mainControlTask( void )
     uint32_t                print_cntr          = 0;
     system_state            state_prev          = 3; 
 
-   systime_t time = chVTGetSystemTimeX();
+    systime_t time = chVTGetSystemTimeX();
 
     while( 1 )
     {
