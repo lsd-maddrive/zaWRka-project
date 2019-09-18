@@ -4,6 +4,7 @@
 
 1. Clone repo with `git clone --recursive ...` (to fetch submodules)
 2. Install all dependencies with `install_pkgs.sh`
+3. Install all python modules with `requirements.txt` (`pip install -r requirements.txt`)
 
 > Don't forget to do `git submodule update --init` along with `git pull` to get updates of submodules 
 

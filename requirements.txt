@@ -2,3 +2,5 @@ catkin_tools
 catkin-pkg
 rospkg
 empy
+pyserial
+numpy
