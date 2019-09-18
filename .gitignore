@@ -1,3 +1,5 @@
 *.tar.gz
 **/.idea
 *.pyc
+ackermann_controller
+wr8_gui_server/smart_vehicle_gui/
