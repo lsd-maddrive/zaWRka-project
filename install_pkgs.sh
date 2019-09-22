@@ -7,6 +7,7 @@ if [ "$CALL_DIR" != "." ]; then
 fi
 
 sudo apt install ros-$ROS_DISTRO-base-local-planner \
+					ros-$ROS_DISTRO-gazebo-ros-control \
 					ros-$ROS_DISTRO-costmap-converter \
 					ros-$ROS_DISTRO-libg2o \
 					ros-$ROS_DISTRO-move-base \
@@ -23,6 +24,7 @@ sudo apt install ros-$ROS_DISTRO-base-local-planner \
 					ros-$ROS_DISTRO-compressed-image-transport \
 					ros-$ROS_DISTRO-interactive-markers \
 					ros-$ROS_DISTRO-key-teleop \
+					ros-$ROS_DISTRO-gmapping \
 					qt5-default \
 					libsuitesparse-dev 
 
