@@ -13,22 +13,23 @@
   <!-- <node name="map_server" pkg="map_server" type="map_server" args="$(find wr8_software)/maps/depart.yaml" /> -->
 
   <include file="$(find wr8_software)/launch/base/amcl.launch">
-    <arg name="base_frame" value="base_link" />
-    <arg name="odom_frame" value="odom" />
+    <arg name="base_frame"    value="base_link" />
+    <arg name="odom_frame"    value="odom" />
+    <arg name="global_frame"  value="map" />
   </include>
 
   <include file="$(find wr8_software)/launch/base/move_base.launch">
-    <arg name="base_frame" value="base_link" />
-    <arg name="odom_topic" value="robot/odom" />
-    <arg name="cmd_topic" value="robot/cmd_vel" />
-    <arg name="config_dir" value="config" />
+    <arg name="base_frame"    value="base_link" />
+    <arg name="odom_topic"    value="robot/odom" />
+    <arg name="cmd_topic"     value="robot/cmd_vel" />
+    <arg name="config_dir"    value="config" />
   </include>
 
   <include file="$(find wr8_software)/launch/base/slime.launch">
-    <arg name="global_frame" value="map" />
-    <arg name="track_frame" value="base_link"/>
-    <arg name="update_rate" value="10" />
-    <arg name="publish_rate" value="6.0" />
+    <arg name="global_frame"  value="map" />
+    <arg name="track_frame"   value="base_link"/>
+    <arg name="update_rate"   value="10" />
+    <arg name="publish_rate"  value="6.0" />
   </include>
 
 </launch>

@@ -22,7 +22,7 @@ sudo apt install ros-$ROS_DISTRO-base-local-planner \
 					ros-$ROS_DISTRO-tf2-eigen \
 					ros-$ROS_DISTRO-compressed-image-transport \
 					ros-$ROS_DISTRO-interactive-markers \
-					qt4-default \
+					qt5-default \
 					libsuitesparse-dev 
 
 # git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git

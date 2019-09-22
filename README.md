@@ -40,7 +40,9 @@
 
 ## Принцип подмены симуляцией
 
-**TODO**
+<p align="center">
+<img src="asserts/full_scheme.PNG">
+</p>
 
 ## Start notes
 
