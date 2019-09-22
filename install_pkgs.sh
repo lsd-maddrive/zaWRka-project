@@ -22,6 +22,7 @@ sudo apt install ros-$ROS_DISTRO-base-local-planner \
 					ros-$ROS_DISTRO-tf2-eigen \
 					ros-$ROS_DISTRO-compressed-image-transport \
 					ros-$ROS_DISTRO-interactive-markers \
+					ros-$ROS_DISTRO-key-teleop \
 					qt5-default \
 					libsuitesparse-dev 
 
