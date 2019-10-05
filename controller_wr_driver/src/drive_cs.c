@@ -169,6 +169,7 @@ static THD_FUNCTION(Controller, arg)
 
     while( 1 )
     {
+        palToggleLine(LINE_LED1);
         systime_t   th_time     = chVTGetSystemTimeX();
 
         if( !permition_flag )

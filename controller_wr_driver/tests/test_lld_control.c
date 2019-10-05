@@ -116,7 +116,7 @@ void testWheelsControlRoutines( void )
               break;
 
             case 'd':   // Negative speed
-              speed_value = speed_values_delta;
+              speed_value -= speed_values_delta;
               break;
 
             case 's':

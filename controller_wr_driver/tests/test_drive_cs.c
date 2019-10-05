@@ -1,7 +1,7 @@
 #include <tests.h>
 #include <drive_cs.h>
 #include <lld_encoder.h>
-
+ 
 
 #define STEER_CS_TERMINAL
 
@@ -118,7 +118,9 @@ static const SerialConfig sdcfg = {
 */
 void testSpeedCS ( void )
 {
-      driverCSInit( NORMALPRIO );
+    driverCSInit( NORMALPRIO );
+    driverIsEnableCS(true);
+
 #ifdef SPEED_CS_MATLAB
     sdStart( &SD7, &sdcfg );
     palSetPadMode( GPIOE, 8, PAL_MODE_ALTERNATE(8) );   // TX
@@ -150,6 +152,7 @@ void testSpeedCS ( void )
     systime_t   time = chVTGetSystemTimeX( );
     while( 1 )
     {
+      
       lldControlSetSteerMotorPower( 0 );
 
 #ifdef SPEED_CS_MATLAB
@@ -310,9 +313,9 @@ void testSpeedFilter( void )
      }
 }
 
-// #define DEBUG_UART
+#define DEBUG_UART
 
-#define DEBUG_MIXED
+// #define DEBUG_MIXED
 
 /*
  * @brief   Test speed CS and steer CS via UART 7
