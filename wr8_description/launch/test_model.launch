@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
+<!-- Test simulation work without navigation stack -->
 <launch>
+  <arg name="enable_robot_model_in_rviz" default="false" doc="[true, false]" />
 
   <node name="rqt_robot_steering" pkg="rqt_robot_steering" type="rqt_robot_steering">
     <param name="default_topic" value="robot/cmd_vel"/>
@@ -12,9 +14,11 @@
   </include>
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find wr8_description)/rviz/model_view.rviz" />
-  
-  <!-- Just to show in rviz for robot model -->
-  <!-- <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher" >
-    <param name="use_gui" value="true" />
-  </node> -->
+
+  <group if="$(arg enable_robot_model_in_rviz)">
+    <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher" >
+      <param name="use_gui" value="false" />
+    </node>
+  </group>
 </launch>
+
