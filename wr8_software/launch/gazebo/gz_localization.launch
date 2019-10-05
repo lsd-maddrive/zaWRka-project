@@ -1,14 +1,7 @@
 <?xml version="1.0"?>
+<!-- Run simulation for solve problem of localization -->
 <launch>
-
-  <include file="$(find wr8_description)/launch/gazebo.launch">
-  </include>
-
-  <include file="$(find wr8_software)/launch/localization.launch">
-  </include>
-
-  <include file="$(find wr8_software)/launch/rviz_localization_view.launch">
-  </include>
-
-
+  <include file="$(find wr8_description)/launch/gazebo.launch"/>
+  <include file="$(find wr8_software)/launch/localization.launch"/>
+  <include file="$(find wr8_software)/launch/rviz_localization_view.launch"/>
 </launch>

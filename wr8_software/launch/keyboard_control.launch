@@ -1,26 +1,13 @@
 <?xml version="1.0"?>
-
-<!-- ros-kinetic-rosserial-msgs required!! -->
-
-<!-- https://answers.ros.org/question/41446/a-is-not-in-your-ssh-known_hosts-file/?answer=42629#post-id-42629 -->
-
 <launch>
-	<!-- <node pkg="wr8_software" type="cmd_vel_translation.py" name="cmd_converter" output="screen" respawn="true"> -->
-		<!-- <remap from="input_cmd_vel" to="raw_cmd_vel" /> -->
-		<!-- <remap from="output_cmd_vel" to="robot/cmd_vel" /> -->
-	<!-- </node> -->
-
-	<node pkg="key_teleop" type="key_teleop.py" name="keyborad_cmd" output="screen" respawn="false">
-		<param name="turbo/steps" value="10" />
-		<param name="turbo/linear_forward_min" value="0.04" />
-		<param name="turbo/linear_forward_max" value="0.4" />
-		<param name="turbo/linear_backward_min" value="0.03" />
-		<param name="turbo/linear_backward_max" value="0.3" />
-		<!-- 25 deg = 0.43633 rad -->
-		<param name="turbo/angular_min" value="0.043633" />
-		<param name="turbo/angular_max" value="0.43633" />
-
-		<remap from="key_vel" to="robot/cmd_vel" />
-	</node>
-
+  <node pkg="key_teleop" type="key_teleop.py" name="keyborad_cmd" output="screen" respawn="false">
+    <param name="turbo/steps" value="10" />
+    <param name="turbo/linear_forward_min" value="0.04" />
+    <param name="turbo/linear_forward_max" value="0.4" />
+    <param name="turbo/linear_backward_min" value="0.03" />
+    <param name="turbo/linear_backward_max" value="0.3" />
+    <param name="turbo/angular_min" value="0.043633" /> <!-- 25 deg = 0.43633 rad -->
+    <param name="turbo/angular_max" value="0.43633" />
+    <remap from="key_vel" to="robot/cmd_vel" />
+  </node>
 </launch>
