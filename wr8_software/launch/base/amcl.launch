@@ -9,9 +9,7 @@
     <param name="base_frame_id" value="$(arg base_frame)" />
     <param name="global_frame_id" value="$(arg global_frame)" />
 
-    <!-- Publish scans from best pose at a max of 10 Hz -->
     <param name="odom_model_type" value="diff"/>
-    <!-- <param name="odom_alpha5" value="0.1"/> -->
     <param name="transform_tolerance" value="0.2" />
     <param name="gui_publish_rate" value="10.0"/>
 
@@ -24,7 +22,6 @@
     
     <param name="odom_alpha1" value="10"/>
     <param name="odom_alpha2" value="10"/>
-    <!-- translation std dev, m -->
     <param name="odom_alpha3" value="0.2"/>
     <param name="odom_alpha4" value="0.2"/>
 
@@ -35,7 +32,6 @@
     <param name="laser_sigma_hit" value="0.2"/>
     <param name="laser_lambda_short" value="0.1"/>
     <param name="laser_model_type" value="likelihood_field"/>
-    <!-- <param name="laser_model_type" value="beam"/> -->
     <param name="laser_likelihood_max_dist" value="2.0"/>
 
     <param name="update_min_d" value="0.05"/>

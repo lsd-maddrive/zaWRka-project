@@ -1,14 +1,11 @@
 <?xml version="1.0"?>
+<!-- Run simulation for solve problem of slam -->
 <launch>
-
-  <include file="$(find wr8_description)/launch/gazebo.launch">
-  </include>
+  <include file="$(find wr8_description)/launch/gazebo.launch"/>
 
   <include file="$(find wr8_software)/launch/slam.launch">
     <arg name="mapping_algorithm" value="hector_mapping" />
   </include>
 
-  <include file="$(find wr8_software)/launch/rviz_slam_view.launch">
-  </include>
-
+  <include file="$(find wr8_software)/launch/rviz_slam_view.launch"/>
 </launch>

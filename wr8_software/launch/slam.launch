@@ -1,16 +1,7 @@
 <?xml version="1.0"?>
+<!-- Run SLAM stack -->
 <launch>
-
-  <!-- <include file="$(find wr8_software)/launch/base/laser_scan_matcher.launch" > -->
-    <!-- <arg name="base_frame" value="base_link" /> -->
-    <!-- <arg name="odom_topic" value="robot/odom" /> -->
-  <!-- </include> -->
-
-  <!-- <node name="reset_odom" pkg="wr8_software" type="reset_odometry.py"> -->
-  <!-- </node> -->
-
-  <!-- Can be - gmapping / heactor_mapping -->
-  <arg name="mapping_algorithm" default="hector_mapping" />
+  <arg name="mapping_algorithm" default="hector_mapping" doc="[gmapping, heactor_mapping]"/>
 
   <include file="$(find wr8_software)/launch/base/move_base.launch">
     <arg name="base_frame"    value="base_link" />
@@ -24,12 +15,11 @@
     <arg name="base_frame"    value="base_link" />
     <arg name="map_resol"     value="0.05"/>
   </include>
-  
+
   <include file="$(find wr8_software)/launch/base/slime.launch">
     <arg name="global_frame"  value="map" />
     <arg name="track_frame"   value="base_link"/>
     <arg name="update_rate"   value="10" />
     <arg name="publish_rate"  value="6.0" />
   </include>
-
 </launch>
