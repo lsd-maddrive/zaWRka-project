@@ -155,7 +155,7 @@
       <axis xyz="0 0 -1"/>
     </joint>
 
-<!--     <transmission name="${name}_rotate_trans">
+    <!-- <transmission name="${name}_rotate_trans">
       <type>transmission_interface/SimpleTransmission</type>
       <joint name="${name}_rotate_joint">
         <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
@@ -202,25 +202,27 @@
     <!-- </visual> -->
   </gazebo>
 
-  <joint name="base_footage_2_link" type="fixed">
-    <parent link="base_footprint"/>
-    <child link="base_link"/>
+  <joint name="base_link_2_footprint" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_footprint"/>
     <!-- base_footprint - base_link on floor -->
-    <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0"/>
+    <origin xyz="0 0 ${-wheel_radius}" rpy="0 0 0"/>
   </joint>
 
-  <joint name="base_footage_2_center" type="fixed">
-    <parent link="base_footprint"/>
+  <joint name="base_link_2_center" type="fixed">
+    <parent link="base_link"/>
     <child link="base_center"/>
-    <origin xyz="${wheelbase/2} 0 ${wheel_radius}" rpy="0 0 0"/>
+    <origin xyz="${wheelbase/2} 0 0" rpy="0 0 0"/>
   </joint>
 
 <!-- 
   <xacro:steering_wheel name="right_steer_wheel" base_name="base_center" xyz="${wheelbase/2} ${-chassis_width/2} 0" ref="-1" />
   <xacro:steering_wheel name="left_steer_wheel" base_name="base_center" xyz="${wheelbase/2} ${chassis_width/2} 0" ref="1" />
  -->
-  <xacro:steering_wheel name="right_steer_wheel" base_name="base_center" xyz="${wheelbase/2} ${-(chassis_width/2 + wheel_chassis_bias)} ${-chassis_height/2}" ref="-1" />
-  <xacro:steering_wheel name="left_steer_wheel" base_name="base_center" xyz="${wheelbase/2} ${(chassis_width/2 + wheel_chassis_bias)} ${-chassis_height/2}" ref="1" />
+  <xacro:steering_wheel name="right_steer_wheel" base_name="base_center"
+                        xyz="${wheelbase/2} ${-(chassis_width/2 + wheel_chassis_bias)} ${-chassis_height/2}" ref="-1" />
+  <xacro:steering_wheel name="left_steer_wheel" base_name="base_center" 
+                        xyz="${wheelbase/2} ${(chassis_width/2 + wheel_chassis_bias)} ${-chassis_height/2}" ref="1" />
 
   <xacro:traveling_wheel name="right_travel_wheel" base_name="base_center" 
                          xyz="${-wheelbase/2} ${-(chassis_width/2 + wheel_chassis_bias)} ${-chassis_height/2}" />
@@ -261,7 +263,7 @@
     </visual>
   </link>
 
-  <joint name="hokuyo_joint" type="fixed">
+  <joint name="laser_joint" type="fixed">
     <child link="laser_frame" />
     <parent link="base_link" />
     <!-- Taken from physical parameters (wr8_software/launch/base/lidar.launch) -->
