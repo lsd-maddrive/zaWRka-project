@@ -28,5 +28,5 @@ sudo apt install ros-$ROS_DISTRO-base-local-planner \
 					qt4-default \
 					libsuitesparse-dev 
 
-# git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
+git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
 git -C ackermann_controller pull 		|| git clone https://github.com/KaiL4eK/ackermann_controller.git -b $ROS_DISTRO

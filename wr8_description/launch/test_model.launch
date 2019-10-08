@@ -5,6 +5,11 @@
 
   <node name="rqt_robot_steering" pkg="rqt_robot_steering" type="rqt_robot_steering">
     <param name="default_topic" value="robot/cmd_vel"/>
+    <!-- Limit are connected to wr8_software config + real physics -->
+    <param name="default_vx_max" value="0.7"/>
+    <param name="default_vx_min" value="-0.5"/>
+    <param name="default_vw_max" value="0.43"/>
+    <param name="default_vw_min" value="-0.43"/>
   </node>
 
   <include file="$(find wr8_description)/launch/gazebo.launch">
