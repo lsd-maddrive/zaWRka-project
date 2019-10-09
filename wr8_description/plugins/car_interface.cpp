@@ -62,13 +62,40 @@ void Wr8InterfacePlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
         robot_name_ = std::string("");
     }
 
-    if (sdf->HasElement("pubTf"))
+    // if (sdf->HasElement("pubTf"))
+    // {
+    //     sdf->GetElement("pubTf")->GetValue()->Get(pub_tf_);
+    // }
+    // else
+    // {
+    //     pub_tf_ = false;
+    // }
+
+    if (sdf->HasElement("maxSteerRad"))
     {
-        sdf->GetElement("pubTf")->GetValue()->Get(pub_tf_);
+        sdf->GetElement("maxSteerRad")->GetValue()->Get(max_steer_rad_);
     }
     else
     {
-        pub_tf_ = false;
+        max_steer_rad_ = M_PI * 30 / 180;
+    }
+
+    if (sdf->HasElement("wheelbase"))
+    {
+        sdf->GetElement("wheelbase")->GetValue()->Get(wheelbase_);
+    }
+    else
+    {
+        wheelbase_ = 0.3;
+    }
+
+    if (sdf->HasElement("trackWidth"))
+    {
+        sdf->GetElement("trackWidth")->GetValue()->Get(track_width_);
+    }
+    else
+    {
+        track_width_ = 0.23;
     }
 
     if (sdf->HasElement("tfFreq"))
@@ -88,17 +115,7 @@ void Wr8InterfacePlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
     // ROS initialization
     n_ = new ros::NodeHandle(robot_name_);
 
-    sub_steering_cmd_ = n_->subscribe("steering_cmd", 1, &Wr8InterfacePlugin::recvSteeringCmd, this);
-    sub_brake_cmd_ = n_->subscribe("brake_cmd", 1, &Wr8InterfacePlugin::recvBrakeCmd, this);
-    sub_throttle_cmd_ = n_->subscribe("throttle_cmd", 1, &Wr8InterfacePlugin::recvThrottleCmd, this);
-
-    pub_twist_ = n_->advertise<geometry_msgs::TwistStamped>("twist", 1);
-    // twist_timer_ = n_->createTimer(ros::Duration(0.02), &Wr8InterfacePlugin::twistTimerCallback, this);
-
-    if (pub_tf_)
-    {
-        // tf_timer_ = n_->createTimer(ros::Duration(1.0 / tf_freq_), &Wr8InterfacePlugin::tfTimerCallback, this);
-    }
+    sub_vel_cmd_ = n_->subscribe("cmd_vel", 1, &Wr8InterfacePlugin::onCmdVel, this);
 
     cout << "Wr8 plugin loaded!" << endl;
 }
@@ -113,7 +130,7 @@ void Wr8InterfacePlugin::OnUpdate(const common::UpdateInfo &info)
 
     // twistStateUpdate();
     // driveUpdate();
-    // steeringUpdate(info);
+    steeringUpdate(info);
     // dragUpdate();
 }
 
@@ -177,7 +194,7 @@ void Wr8InterfacePlugin::steeringUpdate(const common::UpdateInfo &info)
     last_update_time_ = info.simTime;
 
     // Arbitrarily set maximum steering rate to 800 deg/s
-    const double max_rate = 800.0 * M_PI / 180.0 / AUDIBOT_STEERING_RATIO;
+    const double max_rate = 800.0 * M_PI / 180.0 * WR8_STEERING_RATIO;
     double max_inc = time_step * max_rate;
 
     if ((target_angle_ - current_steering_angle_) > max_inc)
@@ -191,8 +208,8 @@ void Wr8InterfacePlugin::steeringUpdate(const common::UpdateInfo &info)
 
     // Compute Ackermann steering angles for each wheel
     double t_alph = tan(current_steering_angle_);
-    double left_steer = atan(AUDIBOT_WHEELBASE * t_alph / (AUDIBOT_WHEELBASE - 0.5 * AUDIBOT_TRACK_WIDTH * t_alph));
-    double right_steer = atan(AUDIBOT_WHEELBASE * t_alph / (AUDIBOT_WHEELBASE + 0.5 * AUDIBOT_TRACK_WIDTH * t_alph));
+    double left_steer = atan(wheelbase_ * t_alph / (wheelbase_ - 0.5 * track_width_ * t_alph));
+    double right_steer = atan(wheelbase_ * t_alph / (wheelbase_ + 0.5 * track_width_ * t_alph));
 
 #if GAZEBO_MAJOR_VERSION >= 9
     steer_fl_joint_->SetParam("vel", 0, 100.0 * (left_steer - steer_fl_joint_->Position(0)));
@@ -230,10 +247,22 @@ void Wr8InterfacePlugin::setAllWheelTorque(double torque)
     wheel_fr_joint_->SetForce(0, 0.25 * torque);
 }
 
-void Wr8InterfacePlugin::setRearWheelTorque(double torque)
+void Wr8InterfacePlugin::onCmdVel(const geometry_msgs::Twist& command)
 {
-    wheel_rl_joint_->SetForce(0, 0.5 * torque);
-    wheel_rr_joint_->SetForce(0, 0.5 * torque);
+    target_angle_ = command.angular.z * WR8_STEERING_RATIO;
+    if (target_angle_ > max_steer_rad_)
+    {
+        target_angle_ = max_steer_rad_;
+    }
+    else if (target_angle_ < -max_steer_rad_)
+    {
+        target_angle_ = -max_steer_rad_;
+    }
+
+    ROS_INFO_STREAM(target_angle_ << " / " << max_steer_rad_ );
+
+    // wheel_rl_joint_->SetForce(0, 0.5 * torque);
+    // wheel_rr_joint_->SetForce(0, 0.5 * torque);
 }
 
 void Wr8InterfacePlugin::stopWheels()
@@ -242,78 +271,6 @@ void Wr8InterfacePlugin::stopWheels()
     wheel_fr_joint_->SetForce(0, -1000.0 * wheel_fr_joint_->GetVelocity(0));
     wheel_rl_joint_->SetForce(0, -1000.0 * wheel_rl_joint_->GetVelocity(0));
     wheel_rr_joint_->SetForce(0, -1000.0 * wheel_rr_joint_->GetVelocity(0));
-}
-
-void Wr8InterfacePlugin::recvSteeringCmd(const std_msgs::Float64ConstPtr &msg)
-{
-    if (!std::isfinite(msg->data))
-    {
-        target_angle_ = 0.0;
-        return;
-    }
-
-    target_angle_ = msg->data / AUDIBOT_STEERING_RATIO;
-    if (target_angle_ > AUDIBOT_MAX_STEER_ANGLE)
-    {
-        target_angle_ = AUDIBOT_MAX_STEER_ANGLE;
-    }
-    else if (target_angle_ < -AUDIBOT_MAX_STEER_ANGLE)
-    {
-        target_angle_ = -AUDIBOT_MAX_STEER_ANGLE;
-    }
-}
-
-void Wr8InterfacePlugin::recvBrakeCmd(const std_msgs::Float64ConstPtr &msg)
-{
-    brake_cmd_ = msg->data;
-    if (brake_cmd_ < 0)
-    {
-        brake_cmd_ = 0;
-    }
-    else if (brake_cmd_ > MAX_BRAKE_TORQUE)
-    {
-        brake_cmd_ = MAX_BRAKE_TORQUE;
-    }
-    brake_stamp_ = ros::Time::now();
-}
-
-void Wr8InterfacePlugin::recvThrottleCmd(const std_msgs::Float64ConstPtr &msg)
-{
-    throttle_cmd_ = msg->data;
-    if (throttle_cmd_ < 0.0)
-    {
-        throttle_cmd_ = 0.0;
-    }
-    else if (throttle_cmd_ > 1.0)
-    {
-        throttle_cmd_ = 1.0;
-    }
-    throttle_stamp_ = ros::Time::now();
-}
-
-void Wr8InterfacePlugin::twistTimerCallback(const ros::TimerEvent &event)
-{
-    geometry_msgs::TwistStamped twist_msg;
-    twist_msg.header.frame_id = tf::resolve(robot_name_, footprint_link_->GetName());
-    twist_msg.header.stamp = event.current_real;
-    twist_msg.twist = twist_;
-    pub_twist_.publish(twist_msg);
-}
-
-void Wr8InterfacePlugin::tfTimerCallback(const ros::TimerEvent &event)
-{
-    tf::StampedTransform t;
-    t.frame_id_ = "world";
-    t.child_frame_id_ = tf::resolve(robot_name_, footprint_link_->GetName());
-    t.stamp_ = event.current_real;
-#if GAZEBO_MAJOR_VERSION >= 9
-    t.setOrigin(tf::Vector3(world_pose_.Pos().X(), world_pose_.Pos().Y(), world_pose_.Pos().Z()));
-    t.setRotation(tf::Quaternion(world_pose_.Rot().X(), world_pose_.Rot().Y(), world_pose_.Rot().Z(), world_pose_.Rot().W()));
-#else
-    t.setOrigin(tf::Vector3(world_pose_.pos.x, world_pose_.pos.y, world_pose_.pos.z));
-    t.setRotation(tf::Quaternion(world_pose_.rot.x, world_pose_.rot.y, world_pose_.rot.z, world_pose_.rot.w));
-#endif
-    br_.sendTransform(t);
 }
 
 void Wr8InterfacePlugin::Reset()

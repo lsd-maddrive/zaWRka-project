@@ -3,7 +3,6 @@
 <launch>
   <arg name="x" default="0" />
   <arg name="y" default="0" />
-  <arg name="native_odom" default="true" />
   <arg name="initial_pose" default="-x $(arg x) -y $(arg y) -z 0 -R 0 -P 0 -Y 1.57" />
   <arg name="world_name" default="RFMaze.v2.world" />
   <arg name="gz_gui" default="false" />
@@ -18,12 +17,6 @@
 
   <!-- Publish the robot state to tf -->
   <node ns="robot" pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
-
-  <!-- Precise setup for simulator (to be as in real robot) -->
-  <!-- <param name="ackermann_drive_controller/enable_odom_tf" value="$(arg native_odom)" /> -->
-  <!-- <remap from="ackermann_drive_controller/cmd_vel" to="robot/cmd_vel" /> -->
-  <!-- <remap from="ackermann_drive_controller/reset_odom" to="robot/reset_odom" /> -->
-  <!-- <remap from="ackermann_drive_controller/odom" to="robot/odom" /> -->
 
   <!-- Run gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">

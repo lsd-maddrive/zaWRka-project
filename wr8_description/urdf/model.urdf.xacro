@@ -28,12 +28,13 @@
   <xacro:property name="lidar_mass" value="0.1" />
 
   <!-- https://github.com/jbpassot/ackermann_vehicle/blob/master/ackermann_vehicle_description/urdf/em_3905.urdf.xacro -->
-  <xacro:property name="degrees_45" value="0.785398163"/>
-  <xacro:property name="degrees_90" value="1.57079633"/>
+  <xacro:property name="degrees_45" value="${pi/4}"/>
+  <xacro:property name="degrees_90" value="${pi/2}"/>
 
   <!-- ~0.5 rad -->
-  <xacro:property name="degrees_30" value="${pi/3}"/>
-  <xacro:property name="wheel_turn_limit" value="${degrees_30}"/>
+  <xacro:property name="degrees_30" value="${pi/6}"/>
+  <xacro:property name="mid_wheel_turn_limit" value="${degrees_30}"/>
+  <xacro:property name="wheel_turn_limit" value="${degrees_45}"/>
 
   <!-- <xacro:property name="servo_stall_torque" value="0.5649"/> -->
   <!-- <xacro:property name="servo_stall_torque" value="100"/>
@@ -55,6 +56,9 @@
       <robotName>$(arg robot_name)</robotName>
       <pubTf>$(arg pub_tf)</pubTf>
       <tfFreq>100.0</tfFreq>
+      <maxSteerRad>${mid_wheel_turn_limit}</maxSteerRad>
+      <wheelbase>${wheelbase}</wheelbase>
+      <trackWidth>${half_track_width*2}</trackWidth>
     </plugin>
 
     <!-- Publish current joint angles -->
@@ -291,7 +295,7 @@
         </noise>
       </ray>
       <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
-        <topicName>scan</topicName>
+        <topicName>$(arg robot_name)/scan</topicName>
         <frameName>laser_frame</frameName>
       </plugin>
     </sensor>

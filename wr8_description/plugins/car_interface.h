@@ -1,8 +1,6 @@
 #pragma once
 
-
 #include <ros/ros.h>
-#include <std_msgs/Float64.h>
 #include <geometry_msgs/TwistStamped.h>
 
 #include <gazebo/common/Plugin.hh>
@@ -13,11 +11,7 @@
 namespace gazebo {
 
 // Kinematics parameters
-#define AUDIBOT_STEERING_RATIO      17.3  // Ratio between steering wheel angle and tire angle
-#define AUDIBOT_LOCK_TO_LOCK_REVS   3.2   // Number of steering wheel turns to go from lock to lock
-#define AUDIBOT_MAX_STEER_ANGLE     (M_PI * AUDIBOT_LOCK_TO_LOCK_REVS / AUDIBOT_STEERING_RATIO)
-#define AUDIBOT_WHEELBASE           2.65  // Distance between front and rear axles
-#define AUDIBOT_TRACK_WIDTH         1.638 // Distance between front wheels
+#define WR8_STEERING_RATIO      1       // Ratio between steering wheel angle and tire angle
 
 // Drag parameters
 #define ROLLING_RESISTANCE_COEFF  0.01
@@ -37,12 +31,12 @@ protected:
     virtual void Reset();
 
 private:
+    void onCmdVel(const geometry_msgs::Twist& command);
+
     void twistTimerCallback(const ros::TimerEvent& event);
     void tfTimerCallback(const ros::TimerEvent& event);
     void OnUpdate(const common::UpdateInfo& info);
-    void recvSteeringCmd(const std_msgs::Float64ConstPtr& msg);
-    void recvThrottleCmd(const std_msgs::Float64ConstPtr& msg);
-    void recvBrakeCmd(const std_msgs::Float64ConstPtr& msg);
+
     void twistStateUpdate();
     void driveUpdate();
     void steeringUpdate(const common::UpdateInfo& info);
@@ -53,10 +47,7 @@ private:
 
     ros::NodeHandle* n_;
     ros::Publisher pub_twist_;
-    ros::Subscriber sub_steering_cmd_;
-    ros::Subscriber sub_throttle_cmd_;
-    ros::Subscriber sub_brake_cmd_;
-    ros::Subscriber sub_model_states_;
+    ros::Subscriber sub_vel_cmd_;
     ros::Timer twist_timer_;
     ros::Timer tf_timer_;
 
@@ -81,7 +72,10 @@ private:
     // SDF parameters
     std::string robot_name_;
     bool pub_tf_;
+    double max_steer_rad_;
     double tf_freq_;
+    double wheelbase_;
+    double track_width_;
 
     // Steering values
     double right_angle_;
