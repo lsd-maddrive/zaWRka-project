@@ -129,6 +129,9 @@ void Wr8InterfacePlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
 
     update_connection_ = event::Events::ConnectWorldUpdateBegin(boost::bind(&Wr8InterfacePlugin::OnUpdate, this, _1));
 
+    mps2rpm = 60 / wheel_radius_ / (2*M_PI);
+    mps2rps = 1.0 / wheel_radius_;
+
     steer_fl_joint_->SetParam("fmax", 0, 99999.0);
     steer_fr_joint_->SetParam("fmax", 0, 99999.0);
 
@@ -195,10 +198,25 @@ void Wr8InterfacePlugin::OnUpdate(const common::UpdateInfo &info)
 
 void Wr8InterfacePlugin::updateOdometry()
 {
+    const double linear = cur_virtual_speed_rps_ / mps2rps * time_step_;
+    const double angular = linear * tan(cur_virtual_steering_rad_) / wheelbase_;
+    const double curvature_radius = wheelbase_ / cos(M_PI/2.0 - cur_virtual_steering_rad_);
 
+    linear_ = linear;
+    angular_ = angular;
 
-    cout << last_odom_update_time_ << " / " << publish_period_ << " / " << last_update_time_ << endl;
-
+    if (fabs(curvature_radius) > 0.0001)
+    {
+        const double elapsed_distance = linear;
+        const double elapsed_angle = elapsed_distance / curvature_radius;
+        const double x_curvature = curvature_radius * sin(elapsed_angle);
+        const double y_curvature = curvature_radius * (cos(elapsed_angle) - 1.0);
+        const double wheel_heading = yaw_ + cur_virtual_steering_rad_;
+        y_ += x_curvature * sin(wheel_heading) + y_curvature * cos(wheel_heading);
+        x_ += x_curvature * cos(wheel_heading) - y_curvature * sin(wheel_heading);
+        yaw_ += elapsed_angle;
+    }
+    
     /*** Update publishers ***/
     if ( last_odom_update_time_ + publish_period_ > last_update_time_ )
     {
@@ -212,8 +230,8 @@ void Wr8InterfacePlugin::updateOdometry()
     if (odom_pub_->trylock())
     {
         odom_pub_->msg_.header.stamp = ros::Time( last_update_time_.Double() );
-        odom_pub_->msg_.pose.pose.position.x = x_;
-        odom_pub_->msg_.pose.pose.position.y = y_;
+        odom_pub_->msg_.pose.pose.position.x = x_ + wheelbase_ * (1.0 - cos(yaw_));
+        odom_pub_->msg_.pose.pose.position.y = y_ - wheelbase_ * sin(yaw_);
         odom_pub_->msg_.pose.pose.orientation = orientation;
         odom_pub_->msg_.twist.twist.linear.x  = 0;
         odom_pub_->msg_.twist.twist.angular.z = 0;
@@ -224,8 +242,8 @@ void Wr8InterfacePlugin::updateOdometry()
     {
         geometry_msgs::TransformStamped& odom_frame = tf_odom_pub_->msg_.transforms[0];
         odom_frame.header.stamp = ros::Time( last_update_time_.Double() );
-        odom_frame.transform.translation.x = x_;
-        odom_frame.transform.translation.y = y_;
+        odom_frame.transform.translation.x = x_ + wheelbase_ * (1.0 - cos(yaw_));
+        odom_frame.transform.translation.y = y_ - wheelbase_ * sin(yaw_);
         odom_frame.transform.rotation = orientation;
         tf_odom_pub_->unlockAndPublish();
     }
@@ -233,9 +251,6 @@ void Wr8InterfacePlugin::updateOdometry()
 
 void Wr8InterfacePlugin::driveUpdate()
 {
-    static const double mps2rpm = 60 / wheel_radius_ / (2*M_PI);
-    static const double mps2rps = 1.0 / wheel_radius_;
-
     double ref_rotation_speed_rps = target_speed_mps_ * mps2rps;
 
     double cur_right_rspeed_rps = wheel_rr_joint_->GetVelocity(0);
@@ -246,7 +261,7 @@ void Wr8InterfacePlugin::driveUpdate()
     double ref_right_rspeed = ref_rotation_speed_rps * (1 + (0.5 * track_width_ / radius));
     double ref_left_rspeed = ref_rotation_speed_rps * (1 - (0.5 * track_width_ / radius));
 
-    ROS_INFO_STREAM( "Target speeds: " << ref_left_rspeed << " / " << ref_right_rspeed );
+    // ROS_INFO_STREAM( "Target speeds: " << ref_left_rspeed << " / " << ref_right_rspeed );
 
     double right_rspeed_error = ref_right_rspeed - cur_right_rspeed_rps;
     double left_rspeed_error = ref_left_rspeed - cur_left_rpeed_rps;
@@ -271,7 +286,7 @@ void Wr8InterfacePlugin::updateCurrentState()
 
     cur_virtual_speed_rps_ = (wheel_rl_joint_->GetVelocity(0) + wheel_rr_joint_->GetVelocity(0)) / 2;
 
-    ROS_INFO_STREAM( "Estimated state: " << cur_virtual_steering_rad_ << " / " << cur_virtual_speed_rps_ );
+    // ROS_INFO_STREAM( "Estimated state: " << cur_virtual_steering_rad_ << " / " << cur_virtual_speed_rps_ );
 }
 
 void Wr8InterfacePlugin::steeringUpdate()

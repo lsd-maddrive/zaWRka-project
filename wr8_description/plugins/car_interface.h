@@ -84,6 +84,12 @@ private:
     std::string odom_frame_id_;
     std::string base_frame_id_;
 
+    double mps2rpm;
+    double mps2rps;
+
+    double linear_;  //   [m/s]
+    double angular_; // [rad/s]
+
     // Odometry
     double x_;
     double y_;
