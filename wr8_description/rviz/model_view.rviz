@@ -29,7 +29,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -68,6 +68,8 @@ Visualization Manager:
           Value: true
         laser_frame:
           Value: true
+        odom:
+          Value: true
         steer_fl:
           Value: false
         steer_fr:
@@ -101,6 +103,8 @@ Visualization Manager:
                 {}
             laser_frame:
               {}
+        odom:
+          {}
       Update Interval: 0
       Value: true
     - Alpha: 0.5
@@ -233,7 +237,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: base_footprint
+    Fixed Frame: odom
     Frame Rate: 30
   Name: root
   Tools:
@@ -294,4 +298,4 @@ Window Geometry:
     collapsed: false
   Width: 1366
   X: 1600
-  Y: 99
+  Y: 68

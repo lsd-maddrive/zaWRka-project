@@ -58,6 +58,7 @@
       <tfFreq>100.0</tfFreq>
       <maxSteerRad>${mid_wheel_turn_limit}</maxSteerRad>
       <wheelbase>${wheelbase}</wheelbase>
+      <wheelRadius>${wheel_radius}</wheelRadius>
       <trackWidth>${half_track_width*2}</trackWidth>
     </plugin>
 
@@ -140,6 +141,8 @@
       <mu1>${wheel_friction}</mu1>
       <mu2>${wheel_friction}</mu2>
       <material>Gazebo/Black</material>
+      <kp>10000000</kp>
+      <kd>1</kd> 
     </gazebo>
   </xacro:macro>
 

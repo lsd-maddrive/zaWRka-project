@@ -1,5 +1,8 @@
 #include "car_interface.h"
 
+#include <boost/assign.hpp>
+
+
 using namespace std;
 
 namespace gazebo
@@ -8,10 +11,12 @@ namespace gazebo
 Wr8InterfacePlugin::Wr8InterfacePlugin()
 {
     target_angle_ = 0.0;
-    brake_cmd_ = 0.0;
+    target_speed_mps_ = 0.0;
     throttle_cmd_ = 0.0;
     current_steering_angle_ = 0.0;
     rollover_ = false;
+
+    x_ = 0; y_ = 0; yaw_ = 0;
 
     cout << "Wr8 plugin created!" << endl;
 }
@@ -89,6 +94,16 @@ void Wr8InterfacePlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
         wheelbase_ = 0.3;
     }
 
+    
+    if (sdf->HasElement("wheelRadius"))
+    {
+        sdf->GetElement("wheelRadius")->GetValue()->Get(wheel_radius_);
+    }
+    else
+    {
+        wheel_radius_ = 0.04;
+    }
+
     if (sdf->HasElement("trackWidth"))
     {
         sdf->GetElement("trackWidth")->GetValue()->Get(track_width_);
@@ -107,15 +122,53 @@ void Wr8InterfacePlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
         tf_freq_ = 100.0;
     }
 
+    /* TODO - read from SDF */
+    odom_frame_id_ = "odom";
+    base_frame_id_ = "base_footprint";
+    publish_period_ = 1. / 100;
+
     update_connection_ = event::Events::ConnectWorldUpdateBegin(boost::bind(&Wr8InterfacePlugin::OnUpdate, this, _1));
 
     steer_fl_joint_->SetParam("fmax", 0, 99999.0);
     steer_fr_joint_->SetParam("fmax", 0, 99999.0);
 
     // ROS initialization
-    n_ = new ros::NodeHandle(robot_name_);
+    n_ = ros::NodeHandle(robot_name_);
 
-    sub_vel_cmd_ = n_->subscribe("cmd_vel", 1, &Wr8InterfacePlugin::onCmdVel, this);
+    sub_vel_cmd_ = n_.subscribe("cmd_vel", 1, &Wr8InterfacePlugin::onCmdVel, this);
+
+    /* Prepare publishers */
+    double pose_cov_list[6] = { 0.001, 0.001, 0.001, 0.001, 0.001, 0.03 }; 
+    double twist_cov_list[6] = { 0.001, 0.001, 0.001, 0.001, 0.001, 0.03 }; 
+
+    // Setup odometry realtime publisher + odom message constant fields
+    odom_pub_.reset(new realtime_tools::RealtimePublisher<nav_msgs::Odometry>(n_, "odom", 100));
+    odom_pub_->msg_.header.frame_id = odom_frame_id_;
+    odom_pub_->msg_.child_frame_id = base_frame_id_;
+    odom_pub_->msg_.pose.pose.position.z = 0;
+    // odom_pub_->msg_.pose.covariance = boost::assign::list_of
+    //                                   (static_cast<double>(pose_cov_list[0])) (0)  (0)  (0)  (0)  (0)
+    //                                   (0)  (static_cast<double>(pose_cov_list[1])) (0)  (0)  (0)  (0)
+    //                                   (0)  (0)  (static_cast<double>(pose_cov_list[2])) (0)  (0)  (0)
+    //                                   (0)  (0)  (0)  (static_cast<double>(pose_cov_list[3])) (0)  (0)
+    //                                   (0)  (0)  (0)  (0)  (static_cast<double>(pose_cov_list[4])) (0)
+    //                                   (0)  (0)  (0)  (0)  (0)  (static_cast<double>(pose_cov_list[5]));
+    odom_pub_->msg_.twist.twist.linear.y  = 0;
+    odom_pub_->msg_.twist.twist.linear.z  = 0;
+    odom_pub_->msg_.twist.twist.angular.x = 0;
+    odom_pub_->msg_.twist.twist.angular.y = 0;
+    // odom_pub_->msg_.twist.covariance = boost::assign::list_of
+    //                                    (static_cast<double>(twist_cov_list[0])) (0)  (0)  (0)  (0)  (0)
+    //                                    (0)  (static_cast<double>(twist_cov_list[1])) (0)  (0)  (0)  (0)
+    //                                    (0)  (0)  (static_cast<double>(twist_cov_list[2])) (0)  (0)  (0)
+    //                                    (0)  (0)  (0)  (static_cast<double>(twist_cov_list[3])) (0)  (0)
+    //                                    (0)  (0)  (0)  (0)  (static_cast<double>(twist_cov_list[4])) (0)
+    //                                    (0)  (0)  (0)  (0)  (0)  (static_cast<double>(twist_cov_list[5]));
+    tf_odom_pub_.reset(new realtime_tools::RealtimePublisher<tf::tfMessage>(n_, "/tf", 100));
+    tf_odom_pub_->msg_.transforms.resize(1);
+    tf_odom_pub_->msg_.transforms[0].transform.translation.z = 0.0;
+    tf_odom_pub_->msg_.transforms[0].child_frame_id = base_frame_id_;
+    tf_odom_pub_->msg_.transforms[0].header.frame_id = odom_frame_id_;
 
     cout << "Wr8 plugin loaded!" << endl;
 }
@@ -125,126 +178,131 @@ void Wr8InterfacePlugin::OnUpdate(const common::UpdateInfo &info)
     if (last_update_time_ == common::Time(0))
     {
         last_update_time_ = info.simTime;
+        last_odom_update_time_ = info.simTime;
         return;
     }
 
+    time_step_ = (info.simTime - last_update_time_).Double();
+    last_update_time_ = info.simTime;
+
     // twistStateUpdate();
-    // driveUpdate();
-    steeringUpdate(info);
-    // dragUpdate();
+    updateCurrentState();
+    updateOdometry();
+
+    driveUpdate();
+    steeringUpdate();
 }
 
-void Wr8InterfacePlugin::twistStateUpdate()
+void Wr8InterfacePlugin::updateOdometry()
 {
-#if GAZEBO_MAJOR_VERSION >= 9
-    world_pose_ = footprint_link_->WorldPose();
-    twist_.linear.x = footprint_link_->RelativeLinearVel().X();
-    twist_.angular.z = footprint_link_->RelativeAngularVel().Z();
-    rollover_ = (fabs(world_pose_.Rot().X()) > 0.2 || fabs(world_pose_.Rot().Y()) > 0.2);
-#else
-    world_pose_ = footprint_link_->GetWorldPose();
-    twist_.linear.x = footprint_link_->GetRelativeLinearVel().x;
-    twist_.angular.z = footprint_link_->GetRelativeAngularVel().z;
-    rollover_ = (fabs(world_pose_.rot.x) > 0.2 || fabs(world_pose_.rot.y) > 0.2);
-#endif
+
+
+    cout << last_odom_update_time_ << " / " << publish_period_ << " / " << last_update_time_ << endl;
+
+    /*** Update publishers ***/
+    if ( last_odom_update_time_ + publish_period_ > last_update_time_ )
+    {
+        return;
+    }
+
+    last_odom_update_time_ += publish_period_;
+
+    const geometry_msgs::Quaternion orientation(tf::createQuaternionMsgFromYaw(yaw_));
+
+    if (odom_pub_->trylock())
+    {
+        odom_pub_->msg_.header.stamp = ros::Time( last_update_time_.Double() );
+        odom_pub_->msg_.pose.pose.position.x = x_;
+        odom_pub_->msg_.pose.pose.position.y = y_;
+        odom_pub_->msg_.pose.pose.orientation = orientation;
+        odom_pub_->msg_.twist.twist.linear.x  = 0;
+        odom_pub_->msg_.twist.twist.angular.z = 0;
+        odom_pub_->unlockAndPublish();
+    }
+
+    if (tf_odom_pub_->trylock())
+    {
+        geometry_msgs::TransformStamped& odom_frame = tf_odom_pub_->msg_.transforms[0];
+        odom_frame.header.stamp = ros::Time( last_update_time_.Double() );
+        odom_frame.transform.translation.x = x_;
+        odom_frame.transform.translation.y = y_;
+        odom_frame.transform.rotation = orientation;
+        tf_odom_pub_->unlockAndPublish();
+    }
 }
 
 void Wr8InterfacePlugin::driveUpdate()
 {
-    // Stop wheels if vehicle is rolled over
-    if (rollover_)
-    {
-        stopWheels();
-        return;
-    }
+    static const double mps2rpm = 60 / wheel_radius_ / (2*M_PI);
+    static const double mps2rps = 1.0 / wheel_radius_;
 
-    // Brakes have precedence over throttle
-    ros::Time current_stamp = ros::Time::now();
-    if ((brake_cmd_ > 0) && ((current_stamp - brake_stamp_).toSec() < 0.25))
-    {
-        double brake_torque_factor = 1.0;
-        if (twist_.linear.x < -0.1)
-        {
-            brake_torque_factor = -1.0;
-        }
-        else if (twist_.linear.x < 0.1)
-        {
-            brake_torque_factor = 1.0 + (twist_.linear.x - 0.1) / 0.1;
-        }
+    double ref_rotation_speed_rps = target_speed_mps_ * mps2rps;
 
-        setAllWheelTorque(-brake_torque_factor * brake_cmd_);
-    }
-    else
-    {
-        if ((current_stamp - throttle_stamp_).toSec() < 0.25)
-        {
-            double max_throttle_torque = throttle_cmd_ * 4000.0 - 40.1 * twist_.linear.x;
-            if (max_throttle_torque < 0.0)
-            {
-                max_throttle_torque = 0.0;
-            }
-            setRearWheelTorque(max_throttle_torque);
-        }
-    }
+    double cur_right_rspeed_rps = wheel_rr_joint_->GetVelocity(0);
+    double cur_left_rpeed_rps = wheel_rl_joint_->GetVelocity(0);
+
+    double radius = wheelbase_ / tan(cur_virtual_steering_rad_) ;
+
+    double ref_right_rspeed = ref_rotation_speed_rps * (1 + (0.5 * track_width_ / radius));
+    double ref_left_rspeed = ref_rotation_speed_rps * (1 - (0.5 * track_width_ / radius));
+
+    ROS_INFO_STREAM( "Target speeds: " << ref_left_rspeed << " / " << ref_right_rspeed );
+
+    double right_rspeed_error = ref_right_rspeed - cur_right_rspeed_rps;
+    double left_rspeed_error = ref_left_rspeed - cur_left_rpeed_rps;
+
+    wheel_rl_joint_->SetVelocity(0, ref_right_rspeed);
+    wheel_rr_joint_->SetVelocity(0, ref_left_rspeed);   
 }
 
-void Wr8InterfacePlugin::steeringUpdate(const common::UpdateInfo &info)
+void Wr8InterfacePlugin::updateCurrentState()
 {
-    double time_step = (info.simTime - last_update_time_).Double();
-    last_update_time_ = info.simTime;
+    double t_cur_lsteer = tan(steer_fl_joint_->Position(0));
+    double t_cur_rsteer = tan(steer_fr_joint_->Position(0));
 
+    // std::atan(wheelbase_ * std::tan(steering_angle)/std::abs(wheelbase_ + it->lateral_deviation_ * std::tan(steering_angle)));
+
+    double virt_lsteer = atan( wheelbase_ * t_cur_lsteer / ( wheelbase_ + t_cur_lsteer * 0.5 * track_width_ ) );
+    double virt_rsteer = atan( wheelbase_ * t_cur_rsteer / ( wheelbase_ - t_cur_rsteer * 0.5 * track_width_ ) );
+
+    // ROS_INFO_STREAM( "Steerings: " << virt_lsteer << " / " << virt_rsteer );
+
+    cur_virtual_steering_rad_ = (virt_lsteer + virt_rsteer) / 2;
+
+    cur_virtual_speed_rps_ = (wheel_rl_joint_->GetVelocity(0) + wheel_rr_joint_->GetVelocity(0)) / 2;
+
+    ROS_INFO_STREAM( "Estimated state: " << cur_virtual_steering_rad_ << " / " << cur_virtual_speed_rps_ );
+}
+
+void Wr8InterfacePlugin::steeringUpdate()
+{
     // Arbitrarily set maximum steering rate to 800 deg/s
     const double max_rate = 800.0 * M_PI / 180.0 * WR8_STEERING_RATIO;
-    double max_inc = time_step * max_rate;
+    double max_inc = time_step_ * max_rate;
 
-    if ((target_angle_ - current_steering_angle_) > max_inc)
-    {
-        current_steering_angle_ += max_inc;
-    }
-    else if ((target_angle_ - current_steering_angle_) < -max_inc)
-    {
-        current_steering_angle_ -= max_inc;
-    }
+    // if ((target_angle_ - current_steering_angle_) > max_inc)
+    // {
+    //     current_steering_angle_ += max_inc;
+    // }
+    // else if ((target_angle_ - current_steering_angle_) < -max_inc)
+    // {
+    //     current_steering_angle_ -= max_inc;
+    // }
+
+    // ROS_INFO_STREAM( "Target steering: " << target_angle_ );
 
     // Compute Ackermann steering angles for each wheel
-    double t_alph = tan(current_steering_angle_);
+    double t_alph = tan(target_angle_);
     double left_steer = atan(wheelbase_ * t_alph / (wheelbase_ - 0.5 * track_width_ * t_alph));
     double right_steer = atan(wheelbase_ * t_alph / (wheelbase_ + 0.5 * track_width_ * t_alph));
 
 #if GAZEBO_MAJOR_VERSION >= 9
-    steer_fl_joint_->SetParam("vel", 0, 100.0 * (left_steer - steer_fl_joint_->Position(0)));
-    steer_fr_joint_->SetParam("vel", 0, 100.0 * (right_steer - steer_fr_joint_->Position(0)));
+    steer_fl_joint_->SetParam("vel", 0, STEER_P_RATE * (left_steer - steer_fl_joint_->Position(0)));
+    steer_fr_joint_->SetParam("vel", 0, STEER_P_RATE * (right_steer - steer_fr_joint_->Position(0)));
 #else
-    steer_fl_joint_->SetParam("vel", 0, 100.0 * (left_steer - steer_fl_joint_->GetAngle(0).Radian()));
-    steer_fr_joint_->SetParam("vel", 0, 100.0 * (right_steer - steer_fr_joint_->GetAngle(0).Radian()));
+    steer_fl_joint_->SetParam("vel", 0, STEER_P_RATE * (left_steer - steer_fl_joint_->GetAngle(0).Radian()));
+    steer_fr_joint_->SetParam("vel", 0, STEER_P_RATE * (right_steer - steer_fr_joint_->GetAngle(0).Radian()));
 #endif
-}
-
-void Wr8InterfacePlugin::dragUpdate()
-{
-    // Apply rolling resistance and aerodynamic drag forces
-    double rolling_resistance_torque = ROLLING_RESISTANCE_COEFF * VEHICLE_MASS * GRAVITY_ACCEL;
-    double drag_force = AERO_DRAG_COEFF * twist_.linear.x * twist_.linear.x;
-    double drag_torque = drag_force * WHEEL_RADIUS; // Implement aerodynamic drag as a torque disturbance
-
-    if (twist_.linear.x > 0.0)
-    {
-        setAllWheelTorque(-rolling_resistance_torque);
-        setAllWheelTorque(-drag_torque);
-    }
-    else
-    {
-        setAllWheelTorque(rolling_resistance_torque);
-        setAllWheelTorque(drag_torque);
-    }
-}
-
-void Wr8InterfacePlugin::setAllWheelTorque(double torque)
-{
-    wheel_rl_joint_->SetForce(0, 0.25 * torque);
-    wheel_rr_joint_->SetForce(0, 0.25 * torque);
-    wheel_fl_joint_->SetForce(0, 0.25 * torque);
-    wheel_fr_joint_->SetForce(0, 0.25 * torque);
 }
 
 void Wr8InterfacePlugin::onCmdVel(const geometry_msgs::Twist& command)
@@ -259,18 +317,7 @@ void Wr8InterfacePlugin::onCmdVel(const geometry_msgs::Twist& command)
         target_angle_ = -max_steer_rad_;
     }
 
-    ROS_INFO_STREAM(target_angle_ << " / " << max_steer_rad_ );
-
-    // wheel_rl_joint_->SetForce(0, 0.5 * torque);
-    // wheel_rr_joint_->SetForce(0, 0.5 * torque);
-}
-
-void Wr8InterfacePlugin::stopWheels()
-{
-    wheel_fl_joint_->SetForce(0, -1000.0 * wheel_fl_joint_->GetVelocity(0));
-    wheel_fr_joint_->SetForce(0, -1000.0 * wheel_fr_joint_->GetVelocity(0));
-    wheel_rl_joint_->SetForce(0, -1000.0 * wheel_rl_joint_->GetVelocity(0));
-    wheel_rr_joint_->SetForce(0, -1000.0 * wheel_rr_joint_->GetVelocity(0));
+    target_speed_mps_ = command.linear.x;
 }
 
 void Wr8InterfacePlugin::Reset()
@@ -279,8 +326,7 @@ void Wr8InterfacePlugin::Reset()
 
 Wr8InterfacePlugin::~Wr8InterfacePlugin()
 {
-    n_->shutdown();
-    delete n_;
+    n_.shutdown();
 }
 
 } // namespace gazebo

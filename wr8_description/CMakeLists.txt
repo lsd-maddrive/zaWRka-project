@@ -5,9 +5,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   gazebo_ros
   tf
+  realtime_tools
 )
-
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
 find_package(gazebo REQUIRED)
 link_directories(${GAZEBO_LIBRARY_DIRS})

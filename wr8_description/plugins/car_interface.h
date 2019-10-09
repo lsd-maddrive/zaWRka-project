@@ -7,6 +7,12 @@
 #include <gazebo/physics/physics.hh>
 #include <tf/tf.h>
 #include <tf/transform_broadcaster.h>
+#include <tf/tfMessage.h>
+
+#include <realtime_tools/realtime_buffer.h>
+#include <realtime_tools/realtime_publisher.h>
+
+#include <nav_msgs/Odometry.h>
 
 namespace gazebo {
 
@@ -18,8 +24,10 @@ namespace gazebo {
 #define AERO_DRAG_COEFF           0.35
 #define GRAVITY_ACCEL             9.81
 #define VEHICLE_MASS              1700.0
-#define WHEEL_RADIUS              0.36
 #define MAX_BRAKE_TORQUE          3000.0
+
+#define STEER_P_RATE    100.0
+#define SPEED_P_RATE    100.0
 
 class Wr8InterfacePlugin : public ModelPlugin {
 public:
@@ -32,20 +40,19 @@ protected:
 
 private:
     void onCmdVel(const geometry_msgs::Twist& command);
+    void updateCurrentState();
+    void updateOdometry();
 
     void twistTimerCallback(const ros::TimerEvent& event);
     void tfTimerCallback(const ros::TimerEvent& event);
     void OnUpdate(const common::UpdateInfo& info);
 
-    void twistStateUpdate();
     void driveUpdate();
-    void steeringUpdate(const common::UpdateInfo& info);
-    void dragUpdate();
-    void stopWheels();
-    void setAllWheelTorque(double torque);
-    void setRearWheelTorque(double torque);
+    void steeringUpdate();
 
-    ros::NodeHandle* n_;
+    void stopWheels();
+    
+    ros::NodeHandle n_;
     ros::Publisher pub_twist_;
     ros::Subscriber sub_vel_cmd_;
     ros::Timer twist_timer_;
@@ -69,6 +76,21 @@ private:
     physics::LinkPtr footprint_link_;
     common::Time last_update_time_;
 
+    std::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::Odometry> > odom_pub_;
+    std::shared_ptr<realtime_tools::RealtimePublisher<tf::tfMessage> > tf_odom_pub_;
+
+    double time_step_;
+
+    std::string odom_frame_id_;
+    std::string base_frame_id_;
+
+    // Odometry
+    double x_;
+    double y_;
+    double yaw_;
+    double publish_period_;
+    common::Time last_odom_update_time_;
+
     // SDF parameters
     std::string robot_name_;
     bool pub_tf_;
@@ -76,6 +98,7 @@ private:
     double tf_freq_;
     double wheelbase_;
     double track_width_;
+    double wheel_radius_;
 
     // Steering values
     double right_angle_;
@@ -83,11 +106,11 @@ private:
     double target_angle_;
     double current_steering_angle_;
 
-    // Brakes
-    double brake_cmd_;
-    ros::Time brake_stamp_;
+    double cur_virtual_steering_rad_;
+    double cur_virtual_speed_rps_;
 
     // Throttle
+    double target_speed_mps_;
     double throttle_cmd_;
     ros::Time throttle_stamp_;
     };
