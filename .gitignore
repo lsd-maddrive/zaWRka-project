@@ -1,5 +1,6 @@
 *.tar.gz
 **/.idea
 *.pyc
-ackermann_controller
-wr8_gui_server/smart_vehicle_gui/
+wr8_gui_server/smart_vehicle_gui
+elp_stereo_camera
+**/.vscode

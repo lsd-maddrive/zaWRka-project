@@ -6,6 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /TF1
+        - /TF1/Frames1
         - /RobotModel1
       Splitter Ratio: 0.5
     Tree Height: 355
@@ -57,42 +59,48 @@ Visualization Manager:
       Enabled: true
       Frame Timeout: 15
       Frames:
-        All Enabled: true
+        All Enabled: false
+        base_center:
+          Value: false
         base_footprint:
-          Value: true
+          Value: false
         base_link:
           Value: true
-        hokuyo_link:
+        laser_frame:
           Value: true
-        left_steer_wheel_base:
-          Value: true
-        left_travel_wheel:
-          Value: true
-        odom:
-          Value: true
-        right_steer_wheel_base:
-          Value: true
-        right_travel_wheel:
-          Value: true
+        steer_fl:
+          Value: false
+        steer_fr:
+          Value: false
+        wheel_fl:
+          Value: false
+        wheel_fr:
+          Value: false
+        wheel_rl:
+          Value: false
+        wheel_rr:
+          Value: false
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        odom:
-          base_footprint:
-            base_link:
-              hokuyo_link:
+        base_footprint:
+          base_link:
+            base_center:
+              steer_fl:
+                wheel_fl:
+                  {}
+              steer_fr:
+                wheel_fr:
+                  {}
+              wheel_rl:
                 {}
-              left_steer_wheel_base:
+              wheel_rr:
                 {}
-              left_travel_wheel:
-                {}
-              right_steer_wheel_base:
-                {}
-              right_travel_wheel:
-                {}
+            laser_frame:
+              {}
       Update Interval: 0
       Value: true
     - Alpha: 0.5
@@ -105,6 +113,11 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        base_center:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         base_footprint:
           Alpha: 1
           Show Axes: false
@@ -113,36 +126,35 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
-        hokuyo_link:
+        laser_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        left_steer_wheel:
+        steer_fl:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        steer_fr:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        wheel_fl:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        left_steer_wheel_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_travel_wheel:
+        wheel_fr:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        right_steer_wheel:
+        wheel_rl:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        right_steer_wheel_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_travel_wheel:
+        wheel_rr:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -221,7 +233,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: odom
+    Fixed Frame: base_footprint
     Frame Rate: 30
   Name: root
   Tools:
@@ -245,25 +257,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.176231384277344
+      Distance: 3.6307966709136963
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.08109026402235031
-        Y: -0.33698931336402893
-        Z: -1.2762525081634521
+        X: 1.3032687902450562
+        Y: -0.5002247095108032
+        Z: -0.4606412351131439
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.169796347618103
+      Pitch: 0.4947969913482666
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.9503908157348633
+      Yaw: 2.7503905296325684
     Saved: ~
 Window Geometry:
   "&Displays":
@@ -281,5 +293,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1366
-  X: 0
-  Y: 0
+  X: 1600
+  Y: 99

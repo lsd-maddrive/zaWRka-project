@@ -4,7 +4,7 @@
   <arg name="x" default="0" />
   <arg name="y" default="0" />
   <arg name="native_odom" default="true" />
-  <arg name="initial_pose" default="-x $(arg x) -y $(arg y) -z 0.5 -R 0 -P 0 -Y 1.57" />
+  <arg name="initial_pose" default="-x $(arg x) -y $(arg y) -z 0 -R 0 -P 0 -Y 1.57" />
   <arg name="world_name" default="RFMaze.v2.world" />
   <arg name="gz_gui" default="false" />
   <arg name="urdf_file" default="$(find wr8_description)/urdf/model.urdf.xacro" />
@@ -17,17 +17,13 @@
         args="$(arg initial_pose) -unpause -urdf -param robot_description -model my_robot" />
 
   <!-- Publish the robot state to tf -->
-  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
+  <node ns="robot" pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
 
   <!-- Precise setup for simulator (to be as in real robot) -->
-  <rosparam command="load" file="$(find wr8_description)/config/controllers.yaml" />
-  <node name="ackermann_controller_spawner" pkg="controller_manager" type="spawner"
-    args="ackermann_joint_state_controller
-          ackermann_drive_controller"/>
-  <param name="ackermann_drive_controller/enable_odom_tf" value="$(arg native_odom)" />
-  <remap from="ackermann_drive_controller/cmd_vel" to="robot/cmd_vel" />
-  <remap from="ackermann_drive_controller/reset_odom" to="robot/reset_odom" />
-  <remap from="ackermann_drive_controller/odom" to="robot/odom" />
+  <!-- <param name="ackermann_drive_controller/enable_odom_tf" value="$(arg native_odom)" /> -->
+  <!-- <remap from="ackermann_drive_controller/cmd_vel" to="robot/cmd_vel" /> -->
+  <!-- <remap from="ackermann_drive_controller/reset_odom" to="robot/reset_odom" /> -->
+  <!-- <remap from="ackermann_drive_controller/odom" to="robot/odom" /> -->
 
   <!-- Run gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
