@@ -21,8 +21,11 @@
     <param name="global_costmap/robot_base_frame" value="$(arg base_frame)"/>
     <param name="local_costmap/global_frame" value="$(arg global_frame)"/>
     <param name="local_costmap/robot_base_frame" value="$(arg base_frame)"/>
+
     <param name="base_global_planner" value="global_planner/GlobalPlanner"/>
     <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
+
+    
 
     <remap from="cmd_vel" to="$(arg cmd_topic)"/>
     <remap from="odom" to="$(arg odom_topic)"/>
