@@ -3,10 +3,10 @@
   <arg name="odom_frame"   default="odom"/>
   <arg name="base_frame"   default="base_footprint"/>
   <arg name="global_frame" default="map"/>
-  <arg name="cmd_topic" default="cmd_vel" />
-  <arg name="odom_topic" default="odom" />
-  <arg name="laser_topic" default="scan" />
-  <arg name="config_dir" default="config" />
+  <arg name="cmd_topic"    default="cmd_vel" />
+  <arg name="odom_topic"   default="odom" />
+  <arg name="laser_topic"  default="scan" />
+  <arg name="config_dir"   default="config" />
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <rosparam file="$(find wr8_software)/$(arg config_dir)/costmap_common_params.yaml" command="load" ns="global_costmap" />

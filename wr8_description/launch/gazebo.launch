@@ -3,7 +3,7 @@
 <launch>
   <arg name="x" default="0" />
   <arg name="y" default="0" />
-  <arg name="initial_pose" default="-x $(arg x) -y $(arg y) -z 0 -R 0 -P 0 -Y 1.57" />
+  <arg name="initial_pose" default="-x $(arg x) -y $(arg y) -z 0.5 -R 0 -P 0 -Y 1.57" />
   <arg name="world_name" default="RFMaze.v2.world" />
   <arg name="gz_gui" default="false" />
   <arg name="urdf_file" default="$(find wr8_description)/urdf/model.urdf.xacro" />

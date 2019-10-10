@@ -8,7 +8,7 @@
     <arg name="config_dir" value="stereo_config" />
   </include>
 
-  <include file="$(find wr8_software)/launch/base/slime.launch">
+  <include file="$(find wr8_software)/launch/base/trajectory.launch">
     <arg name="global_frame" value="map" />
     <arg name="track_frame" value="base_link"/>
     <arg name="update_rate" value="10" />
