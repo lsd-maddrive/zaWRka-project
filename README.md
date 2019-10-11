@@ -2,7 +2,7 @@
 
 ## How to start (preinstallation)
 
-1. Clone repo with `git clone --recursive ...` (to fetch submodules)
+1. Clone repo with `git clone --recursive https://github.com/lsd-maddrive/zaWRka-project.git` (to fetch submodules)
 2. Install all dependencies with `install_pkgs.sh`
 3. Install all python modules with `requirements.txt` (`pip install -r requirements.txt`)
 
@@ -26,7 +26,6 @@
 - [hector_slam](http://wiki.ros.org/hector_slam) - пакет метода hector_slam со всеми сопутствующими
 - [teb_local_planner](http://wiki.ros.org/teb_local_planner) - локальный планнер, который рассчитывает локальный маршрут с учетом минимального радиуса поворота (то ,что требуется для автомобилей)
 - [rosserial](http://wiki.ros.org/rosserial) - пакет коммуникации по последовательному интерфейсу (Serial)
-- `ackermann_controller` - драйвер, который является связующим звеном между Gazebo и ROS топиками (нужен только для симулятора машинки)
 
 > Стягиваются и собираются они по причине совместимости или наличия в репозиториях (некоторых пакетов нет, а некоторые не работают при скачивании через `apt`).
 
@@ -66,10 +65,14 @@
 - [wr8_software/config](wr8_software/config) - конфигурации [move_base](http://wiki.ros.org/move_base) для стека навигации (более подробно: http://wiki.ros.org/navigation/Tutorials/RobotSetup)
 - [wr8_software/calib](wr8_software/calib) - калибровочные данные камер (**устарело - надо обновить**)
 - [wr8_software/maps](wr8_software/maps) - готовые карты, которые использует [map_server](http://wiki.ros.org/map_server) для представления и решения задачи локализации
-- [wr8_software/params](wr8_software/params) - директория с сохраненными параметрами работы (**устарело - надо обновить**)
+- [wr8_software/param](wr8_software/param) - директория с сохраненными параметрами работы (**устарело - надо обновить**)
 - [wr8_software/rviz](wr8_software/rviz) - сохраненные параметры представлений Rviz
 - [wr8_software/scripts](wr8_software/scripts) - папка со скриптами для Python
 - [wr8_software/stereo_config](wr8_software/stereo_config) - конфигурации [move_base](http://wiki.ros.org/move_base) для стека навигации при работе со стереокамерой (**надо обновить**) 
+
+## How to work on kinect?
+
+- `teb_local_planner` must be checkouted to `kinetic-devel`
 
 ## Some information
 
