@@ -1,18 +1,13 @@
 <?xml version="1.0"?>
 <launch>
    
-    <arg name="lidar" default="true" />
+    <arg name="lidar" default="false" />
     <arg name="camera_s" default="false" />
     <arg name="camera_r" default="false" />
-    <arg name="uc" default="true" />
+    <arg name="uc" default="false" />
     <arg name="solver" default="false" />
     <arg name="gui_server" default="false" />
     <arg name="bag_record" default="false" />
-    <arg name="stereo" default="false" />
-
-    <include if="$(arg stereo)" file="$(find wr8_software)/launch/base/stereo_rtabmap.launch">
-        <!-- All defaults -->
-    </include>
 
     <include if="$(arg uc)" file="$(find wr8_software)/launch/base/serial_uc_link.launch">
         <arg name="device" value="/dev/serial/by-id/usb-STMicroelectronics_ChibiOS_RT_Virtual_COM_Port_404-if00" />
