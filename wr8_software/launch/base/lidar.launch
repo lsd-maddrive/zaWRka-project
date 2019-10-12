@@ -6,7 +6,7 @@
   <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" 
           args="$(arg lidar_x) 0.0 $(arg lidar_z) 0.0 0.0 0.0 /base_link /laser_frame 40" />
 
-  <node name="ydlidar_node"  pkg="ydlidar"  type="ydlidar_node" output="screen" respawn="false" >
+  <node ns="robot" name="ydlidar_node"  pkg="ydlidar"  type="ydlidar_node" output="screen" respawn="false" >
     <param name="port"         type="string" value="/dev/ydlidar"/>  
     <param name="baudrate"     type="int"    value="128000"/>
     <param name="frame_id"     type="string" value="laser_frame"/>

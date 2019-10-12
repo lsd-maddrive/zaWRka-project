@@ -1,29 +1,22 @@
 <?xml version="1.0"?>
 <!-- Test simulation work without navigation stack -->
 <launch>
-  <arg name="enable_robot_model_in_rviz" default="false" doc="[true, false]" />
+  <arg name="gz_gui" default="true" />
 
   <node name="rqt_robot_steering" pkg="rqt_robot_steering" type="rqt_robot_steering">
     <param name="default_topic" value="robot/cmd_vel"/>
     <!-- Limit are connected to wr8_software config + real physics -->
     <param name="default_vx_max" value="0.7"/>
     <param name="default_vx_min" value="-0.5"/>
-    <param name="default_vw_max" value="0.43"/>
-    <param name="default_vw_min" value="-0.43"/>
+    <param name="default_vw_max" value="0.6"/>
+    <param name="default_vw_min" value="-0.6"/>
   </node>
 
   <include file="$(find wr8_description)/launch/gazebo.launch">
-    <arg name="gz_gui" value="true" />
-    <arg name="native_odom" value="true" />
+    <arg name="gz_gui" value="$(arg gz_gui)" />
     <arg name="world_name" value="empty_bullet.world" />
   </include>
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find wr8_description)/rviz/model_view.rviz" />
-
-  <group if="$(arg enable_robot_model_in_rviz)">
-    <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher" >
-      <param name="use_gui" value="false" />
-    </node>
-  </group>
 </launch>
 

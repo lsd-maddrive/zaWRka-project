@@ -9,14 +9,17 @@
     <arg name="global_frame"  value="map"/>
     <arg name="odom_topic"    value="robot/odom" />
     <arg name="cmd_topic"     value="robot/cmd_vel" />
+    <arg name="laser_topic"   value="robot/scan" />
   </include>
 
   <include file="$(find wr8_software)/launch/base/$(arg mapping_algorithm).launch">
     <arg name="base_frame"    value="base_link" />
+    <arg name="odom_frame"    value="odom"/>
     <arg name="map_resol"     value="0.05"/>
+    <arg name="scan_topic"    value="robot/scan" />
   </include>
 
-  <include file="$(find wr8_software)/launch/base/slime.launch">
+  <include file="$(find wr8_software)/launch/base/trajectory.launch">
     <arg name="global_frame"  value="map" />
     <arg name="track_frame"   value="base_link"/>
     <arg name="update_rate"   value="10" />
