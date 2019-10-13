@@ -28,5 +28,6 @@ sudo apt install ros-$ROS_DISTRO-base-local-planner \
 					qt4-default \
 					libsuitesparse-dev 
 
+
 git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
-# git -C elp_stereo_camera pull			|| git clone https://github.com/KaiL4eK/elp_stereo_camera.git
+git -C elp_stereo_camera pull					|| git clone https://github.com/KaiL4eK/elp_stereo_camera.git

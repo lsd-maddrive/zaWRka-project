@@ -64,12 +64,14 @@
 - [wr8_software/launch/gazebo](wr8_software/launch/gazebo) - скрипты для запуска модели с симуляцией для решения задач SLAM и локализации
 - [wr8_software/launch/base](wr8_software/launch/base) - более "базовые" скрипты, которые используются как в симуляции, так и на реальном роботе (по принципу подмены симуляцией)
 - [wr8_software/config](wr8_software/config) - конфигурации [move_base](http://wiki.ros.org/move_base) для стека навигации (более подробно: http://wiki.ros.org/navigation/Tutorials/RobotSetup)
-- [wr8_software/calib](wr8_software/calib) - калибровочные данные камер (**устарело - надо обновить**)
+- [wr8_software/calib](wr8_software/calib) - калибровочные данные камер
 - [wr8_software/maps](wr8_software/maps) - готовые карты, которые использует [map_server](http://wiki.ros.org/map_server) для представления и решения задачи локализации
-- [wr8_software/param](wr8_software/param) - директория с сохраненными параметрами работы (**устарело - надо обновить**)
 - [wr8_software/rviz](wr8_software/rviz) - сохраненные параметры представлений Rviz
 - [wr8_software/scripts](wr8_software/scripts) - папка со скриптами для Python
-- [wr8_software/stereo_config](wr8_software/stereo_config) - конфигурации [move_base](http://wiki.ros.org/move_base) для стека навигации при работе со стереокамерой (**надо обновить**) 
+
+## How to work on kinect?
+
+- `teb_local_planner` must be checkouted to `kinetic-devel`
 
 ## How to work on real robot?
 

@@ -58,7 +58,7 @@
   <arg name="depth_camera_info_topic" default="$(arg camera_info_topic)" />
   
   <!-- stereo related topics -->
-  <arg name="stereo_namespace"        default="/stereo_camera"/>
+  <arg name="stereo_namespace"        default="/stereo"/>
   <arg name="left_image_topic"        default="$(arg stereo_namespace)/left/image_rect_color" />
   <arg name="right_image_topic"       default="$(arg stereo_namespace)/right/image_rect" />      <!-- using grayscale image for efficiency -->
   <arg name="left_camera_info_topic"  default="$(arg stereo_namespace)/left/camera_info" />
@@ -230,9 +230,9 @@
     <!-- Visual SLAM (robot side) -->
     <!-- args: "delete_db_on_start" and "udebug" -->
     <node name="rtabmap" pkg="rtabmap_ros" type="rtabmap" output="$(arg output)" args="$(arg rtabmap_args)" launch-prefix="$(arg launch_prefix)">
-      <rosparam file="$(find wr8_software)/stereo_config/rtabmap_params.yaml" command="load" />
+      <!-- Required for RTABmap private setup -->
+      <rosparam file="$(find wr8_software)/config/rtabmap_params.yaml" command="load" />
       <remap from="grid_map" to="/map" />
-
 
       <param     if="$(arg stereo)" name="subscribe_depth"  type="bool" value="false"/>
       <param unless="$(arg stereo)" name="subscribe_depth"  type="bool" value="true"/>

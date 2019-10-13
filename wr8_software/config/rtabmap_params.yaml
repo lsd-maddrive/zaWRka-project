@@ -1,3 +1,4 @@
+# Loaded inside launch/base/rtabmap.launch
 Grid:
   MaxGroundHeight: 0.2
   MaxObstacleHeight: 1.0
