@@ -203,10 +203,6 @@ static inline void testsRoutines( void )
 
     testOdometryRoutine( );
 
-#elif ( MAIN_PROGRAM_ROUTINE ==PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND)
-
-    testRemoteControlOdometryRoutine( );
-
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_ODOMETRY_RC )
 
     testRCOdodmetry( ); 

@@ -68,9 +68,9 @@ extern "C" {
 #define SPEED_NULL_BACK     1450
 #define SPEED_MIN           1350
 
-#define STEER_MAX           2300
-#define STEER_NULL          1400
-#define STEER_MIN           500
+#define STEER_MAX           1800    // Left
+#define STEER_NULL          1250    // Not used
+#define STEER_MIN           800     // Right
 
 #define CONTROL_MAX         100
 #define CONTROL_NULL        0

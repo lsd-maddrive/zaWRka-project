@@ -3,8 +3,8 @@
 #include <lld_control.h>
 
 #define STEER_FB_TERMINAL
-//#define ADC_CHECK
-#define ANGLE_CHECK
+#define ADC_CHECK
+// #define ANGLE_CHECK
 
 //#define STEER_FB_MATLAB
 
@@ -32,6 +32,8 @@ void testSteerAngleSendData( void )
     lldSteerAngleFBInit( );
     lldControlInit( );
     debug_stream_init( );
+
+    dbgprintf("Hello!\n");
 
 #ifdef ADC_CHECK
     uint16_t                test_raw_steer          = 0;
@@ -99,14 +101,14 @@ void testSteerAngleSendData( void )
         lldControlSetSteerMotorPower( test_steer_cntrl );
 
 #ifdef ADC_CHECK
-        dbgprintf( "C:(%d)\tA_RAW:(%d)\tMEAN_RAW:(%d)\n\r",
+        dbgprintf( "C:(%d)\tA_RAW:(%d)\tMEAN_RAW:(%d)\n",
                   test_steer_cntrl, test_raw_steer, test_filtr_raw_steer );
 
         time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
 #endif
 #ifdef ANGLE_CHECK
 
-        dbgprintf( "CONTROL:(%d)\tRAD:(%d)\tDEG:(%d)\n\r",
+        dbgprintf( "CONTROL:(%d)\tRAD:(%d)\tDEG:(%d)\n",
                   test_steer_cntrl, (int)(test_rad_angle * 10),
                   (int)test_deg_angle );
 
