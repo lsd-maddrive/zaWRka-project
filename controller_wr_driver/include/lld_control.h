@@ -39,4 +39,15 @@ void lldControlSetDrMotorRawPower( rawPwmValue_t dutyCycleSpeed );
  */
 void lldControlSetSteerMotorRawPower( rawPwmValue_t dutyCycleSteer );
 
+
+/**
+ * @brief   Get zero power
+ */
+rawPwmValue_t lldControlGetDrMotorZeroPower( void );
+
+/**
+ * @brief   Get zero power
+ */
+rawPwmValue_t lldControlGetSteerMotorZeroPower( void );
+
 #endif /* INCLUDE_LLD_CONTROL_H_ */

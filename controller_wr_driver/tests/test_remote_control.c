@@ -57,8 +57,8 @@ void testRemoteControlRoutine( void )
         }
         else
         {
-            lldControlSetSteerMotorRawPower( STEER_NULL );
-            lldControlSetDrMotorRawPower( 1510 );
+            lldControlSetSteerMotorRawPower( lldControlGetSteerMotorZeroPower() );
+            lldControlSetDrMotorRawPower( lldControlGetDrMotorZeroPower() );
         }
 
         if( show_counter == 20 )

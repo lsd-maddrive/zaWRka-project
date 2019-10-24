@@ -33,7 +33,7 @@ void testSteerAngleSendData( void )
     lldControlInit( );
     debug_stream_init( );
 
-    dbgprintf("Hello!\n");
+    dbgprintf("Start steering test!\n");
 
 #ifdef ADC_CHECK
     uint16_t                test_raw_steer          = 0;

@@ -46,7 +46,7 @@ extern "C" {
 #define     PROGRAM_ROUTINE_TEST_GUI_SERVER             40
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_MASTER
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND
 
 
 /*============================================================================*/
@@ -60,17 +60,7 @@ extern "C" {
 /* LLD LIMITS 																  */
 /*============================================================================*/
 
-#define SPEED_MAX           1650
-#define SPEED_NULL_FORWARD  1550
 
-#define SPEED_ZERO          1500
-
-#define SPEED_NULL_BACK     1450
-#define SPEED_MIN           1350
-
-#define STEER_MAX           1800    // Left
-#define STEER_NULL          1250    // Not used
-#define STEER_MIN           800     // Right
 
 #define CONTROL_MAX         100
 #define CONTROL_NULL        0
@@ -118,6 +108,38 @@ void mainUnitsInit( void );
  * @brief   Base control system
  */
 void mainControlTask( void );
+
+
+/*** Functions for math ***/
+
+typedef struct range_map
+{
+    float k;
+    float b;
+} range_map_t;
+
+inline static void range_map_init(range_map_t   *ctx, 
+                                  float         in_min, 
+                                  float         in_max, 
+                                  float         out_min, 
+                                  float         out_max)
+{
+    if ( !ctx )
+        return;
+
+    ctx->k = (out_max - out_min)/(in_max - in_min);
+    ctx->b = (out_min - ctx->k * in_min);
+}
+
+inline static float range_map_call(range_map_t   *ctx,
+                                   float         val)
+{
+    if ( !ctx )
+        return 0;
+
+    return (ctx->k * val + ctx->b);
+}
+
 
 #ifdef __cplusplus
 }
