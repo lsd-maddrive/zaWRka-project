@@ -11,7 +11,7 @@ class Point:
         return str(self.x) + " " + str(self.y) + " " + str(self.z) + " 0 0 0"
 
 #Constants
-WALL_WIDTH = float(0.1)
+WALL_WIDTH = float(0.01)
 CELL_SIZE = [int(2), int(2)]
 HEGHT = float(0.5)
 
@@ -122,6 +122,7 @@ class SdfCreator:
         link = box_root.find("link")
         link.find("collision").find("geometry").find("box").find("size").text = box_collision_size_text
         link.find("visual").find("geometry").find("box").find("size").text = box_visual_size_text
+
 
     def __setConfig(self, start, finish, size):
         """ 
