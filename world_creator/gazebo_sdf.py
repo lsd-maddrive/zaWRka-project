@@ -12,8 +12,10 @@ class Point:
 
 #Constants
 WALL_WIDTH = float(0.01)
+WALL_HEGHT = float(0.5)
+WALL_SPAWN_Z = float(0.25)
 CELL_SIZE = [int(2), int(2)]
-HEGHT = float(0.5)
+
 
 
 class SdfCreator:
@@ -53,16 +55,16 @@ class SdfCreator:
         print("wall with pos:", point1, point2)
         center_x = numpy.mean([point1[0], point2[0]]) 
         center_y = numpy.mean([point1[1], point2[1]])
-        center_point = Point(center_x, center_y, HEGHT)
+        center_point = Point(center_x, center_y, WALL_SPAWN_Z)
 
         # vertical
         if point1[0] == point2[0]:
             wall_length = abs(point1[1] - point2[1])
-            wall_size = Point(WALL_WIDTH, wall_length, HEGHT)
+            wall_size = Point(WALL_WIDTH, wall_length, WALL_HEGHT)
         # horizontal
         elif point1[1] == point2[1]:
             wall_length = abs(point1[0] - point2[0])
-            wall_size = Point(wall_length, WALL_WIDTH, HEGHT)
+            wall_size = Point(wall_length, WALL_WIDTH, WALL_HEGHT)
         else:
             return
         self.__spawnBox(center_point, wall_size)
@@ -73,10 +75,10 @@ class SdfCreator:
         @brief Spawn big box with size 2x2 on middle of cell
         @param cellIndexes - index of cell (from 0 to CELLS_AMOUNT - 1)
         """
-        boxSize = Point(CELL_SIZE[0], CELL_SIZE[1], HEGHT)
+        boxSize = Point(CELL_SIZE[0], CELL_SIZE[1], WALL_HEGHT)
         pose_x = cellIndexes[0] * boxSize.x + boxSize.x / 2
         pose_y = cellIndexes[1] * boxSize.y + boxSize.y / 2
-        self.__spawnBox(Point(pose_x, pose_y, HEGHT), boxSize)
+        self.__spawnBox(Point(pose_x, pose_y, WALL_HEGHT), boxSize)
 
 
     def __spawnBox(self, box_position, box_size):
@@ -152,7 +154,7 @@ class SdfCreator:
             self.START_Y = DEFAULT_POSE
 
         print("World settings are:", 
-              "size = [", self.SIZE_X, self.SIZE_Y, HEGHT, "],",
+              "size = [", self.SIZE_X, self.SIZE_Y, WALL_HEGHT, "],",
               "start: [", self.START_X, self.START_Y,  "]")
 
 
