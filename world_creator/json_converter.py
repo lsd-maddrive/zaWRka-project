@@ -9,7 +9,7 @@ from gazebo_sdf import *
 
 # File input-output default settings
 JSON_DEFAULT_NAME = "data_file.json"
-SDF_DEFAULT_NAME = "world.world"
+SDF_DEFAULT_NAME = "../wr8_description/worlds/world.world"
 
 # JSON format settings
 class JsonNames:
@@ -101,6 +101,10 @@ def create_sdf_from_json(jsonFileName=JSON_DEFAULT_NAME, sdfFileName=SDF_DEFAULT
             point1 = obj.get(JsonNames.POINT_1)
             point2 = obj.get(JsonNames.POINT_2)
             sdfCreator.addWall(point1, point2)
+    sdfCreator.addSign([0, 0])
+    sdfCreator.addSign([0, 1])
+    sdfCreator.addSign([1, 0])
+    sdfCreator.addSign([1, 1])
     sdfCreator.writeWorldToFile(sdfFileName)
 
 

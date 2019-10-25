@@ -81,6 +81,14 @@ class SdfCreator:
         self.__spawnBox(Point(pose_x, pose_y, WALL_HEGHT), boxSize)
 
 
+    def addSign(self, position):
+        """ 
+        @param position - array with x and y position
+        @note there are 4 sign direction's:
+        """
+        self.__spawnSign(position)
+
+
     def __spawnBox(self, box_position, box_size):
         """ 
         @brief Spawn box with defined size in defined position
@@ -98,6 +106,47 @@ class SdfCreator:
         box_position.y = - self.START_Y + box_position.y
         self.__setBoxParams(box_root, box_position, box_size)
         self.SDF_ROOT.find("world").insert(0, copy.deepcopy(box_root) )
+
+
+    def __spawnSign(self, position):
+        """ 
+        """
+        print(position[0])
+        print(position[1])
+        if (position[0] % 2 is 0) and (position[1] % 2 is 0):
+            print("left bot")
+            angle = 4.71
+            offset = [0.15, 0.15]
+        elif (position[0] % 2 is 1) and (position[1] % 2 is 0):
+            print("right bot") 
+            angle = 0
+            offset = [0.85, 0.15]
+        elif (position[0] % 2 is 0) and (position[1] % 2 is 1):
+            print("left top")
+            angle = 3.14
+            offset = [0.15, 0.85]
+        elif (position[0] % 2 is 1) and (position[1] % 2 is 1):
+            print("right top")
+            angle = 1.57
+            offset = [0.85, 0.85]
+        self.sign_counter += 1
+        sign_root = etree.parse("media/stop_sign.sdf").getroot()
+        position[0] = self.START_X - position[0] - offset[0]
+        position[1] = - self.START_Y + position[1] + offset[1]
+        self.__setSignParams(sign_root, position, angle)
+        self.SDF_ROOT.find("world").insert(0, copy.deepcopy(sign_root) )
+
+
+    def __setSignParams(self, sign_root, position, angle):
+        """ 
+        @brief Set sign desired parameters
+        """
+        sign_name = "unit_stop_sign_" + str(self.sign_counter)
+        sign_root.set("name", sign_name)
+        sign_root[0][1].text = str(position[0]) + " " + str(position[1]) + \
+                               " 0.35 0 0 0"
+        sign_root[1][1].text = str(position[0]) + " " + str(position[1]) + \
+                               " 0.95 1.57 0 " + str(angle)
 
 
     def __setBoxParams(self, box_root, box_position, box_size):
@@ -166,4 +215,5 @@ class SdfCreator:
 
     # Variables:
     box_counter = 0
+    sign_counter = 0
 
