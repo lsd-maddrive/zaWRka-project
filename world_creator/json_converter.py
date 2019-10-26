@@ -1,28 +1,16 @@
 #!/usr/bin/env python3
 
 """
-This script allow create json file from data and sdf file from json.
+This script allow to create json file from data and sdf file from json.
 """
 
 import json
+from json_constants import *
 from gazebo_sdf import *
 
 # File input-output default settings
 JSON_DEFAULT_NAME = "data_file.json"
 SDF_DEFAULT_NAME = "../wr8_description/worlds/world.world"
-
-# JSON format settings
-class JsonNames:
-    START = "start"
-    FINISH = "finish"
-    SIZE = "size"
-    OBJECTS = "objects"
-    NAME = "name"
-    POSITION = "position"
-    POINT_1 = "point1"
-    POINT_2 = "point2"
-    BOX = "box"
-    WALL = "wall"
 
 # Cheet sheet
 """
@@ -41,6 +29,7 @@ Frontend v.2 data:
 3.  size        meters              list of x and y
 4.  boxes       indexes (cell)      list of x and y
 5.  walls       indexes (node)      list of few 2x2 arrays
+6.  signs       [meters, path]      list([x, y], path)
 
 Json data:
 1.  start       meters              list of x and y
@@ -48,6 +37,7 @@ Json data:
 3.  size        meters              list of x and y
 4.  boxes       meters              list of x and y
 5.  walls       meters              list of few 2x2 arrays
+6.  signs       [meters, type]      list([x, y], type)
 """
 
 
@@ -64,7 +54,7 @@ def __cell_indexes_to_map_pose(cellIndexes):
     return list([ cellIndexes[0] * 2 + 1, cellIndexes[1] * 2 + 1 ])
 
 
-def create_json_from_gui(start, size, boxes, walls):
+def create_json_from_gui(start, size, boxes, walls, signs):
     """ 
     Create json file using frontend data
     """
@@ -75,17 +65,21 @@ def create_json_from_gui(start, size, boxes, walls):
                    (JsonNames.POINT_1, __node_indexes_to_map_pose(wall[0])),
                    (JsonNames.POINT_2, __node_indexes_to_map_pose(wall[1])) ])
         objects.append(wall)
+    for sign in signs:
+        sign = dict([ (JsonNames.NAME, JsonNames.SIGN), 
+                      (JsonNames.POSITION, sign[0]),
+                      (JsonNames.SIGN_TYPE, sign_path_to_sign_type(sign[1])) ])
+        objects.append(sign)
     data = dict([(JsonNames.START, __cell_indexes_to_map_pose(start)),
                  (JsonNames.FINISH, [0, 0]),
                  (JsonNames.SIZE, size),
                  (JsonNames.OBJECTS, objects)])
-    print(data)
     json.dump(data, write_file, indent=2)
 
 
 def create_sdf_from_json(jsonFileName=JSON_DEFAULT_NAME, sdfFileName=SDF_DEFAULT_NAME):
     """ 
-    Create world using json data
+    Create sdf world using json data
     """
     read_file = open(jsonFileName, "r")
     data = json.load(read_file)
@@ -101,22 +95,23 @@ def create_sdf_from_json(jsonFileName=JSON_DEFAULT_NAME, sdfFileName=SDF_DEFAULT
             point1 = obj.get(JsonNames.POINT_1)
             point2 = obj.get(JsonNames.POINT_2)
             sdfCreator.addWall(point1, point2)
-    sdfCreator.addSign([0, 0], "only forward sign")
-    sdfCreator.addSign([0, 1], "only forward sign")
-    sdfCreator.addSign([1, 0], "only left sign")
-    sdfCreator.addSign([1, 1], "only right sign")
-    sdfCreator.addSign([3, 3], "forward or left sign")
-    sdfCreator.addSign([3, 4], "forward or right sign")
-    sdfCreator.addSign([4, 3], "this is no sign")
+        elif obj.get(JsonNames.NAME) == JsonNames.SIGN:
+            position = obj.get(JsonNames.POSITION)
+            imgType = obj.get(JsonNames.SIGN_TYPE)
+            sdfCreator.addSign(position, imgType)
     sdfCreator.writeWorldToFile(sdfFileName)
 
 
 def load_frontend_from_json(fileName = JSON_DEFAULT_NAME):
+    """ 
+    Load fronted data from json file
+    """
     read_file = open(fileName, "r")
     data = json.load(read_file)
 
-    walls = list()
     boxes = list()
+    walls = list()
+    signs = list()
     for obj in data.get(JsonNames.OBJECTS):
         if obj.get(JsonNames.NAME) == JsonNames.BOX:
             position = obj.get(JsonNames.POSITION)
@@ -125,11 +120,16 @@ def load_frontend_from_json(fileName = JSON_DEFAULT_NAME):
             p1 = __map_pose_to_node_indexes(obj.get(JsonNames.POINT_1))
             p2 = __map_pose_to_node_indexes(obj.get(JsonNames.POINT_2))
             walls.append([p1, p2])
+        elif obj.get(JsonNames.NAME) == JsonNames.SIGN:
+            position = obj.get(JsonNames.POSITION)
+            signPath = sign_type_to_sign_path(obj.get(JsonNames.SIGN_TYPE))
+            signs.append([position, signPath])
 
     return list([__map_pose_to_cell_indexes(data.get(JsonNames.START)),
                  __map_pose_to_cell_indexes(data.get(JsonNames.FINISH)),
                  data.get(JsonNames.SIZE),
                  boxes,
-                 walls])
+                 walls,
+                 signs])
 
 

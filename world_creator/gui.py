@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import sys, random
-from PyQt5.QtWidgets import QWidget, QApplication, QPushButton, QGridLayout, QLabel, QDialog, QFileDialog
-from PyQt5.QtGui import QPainter, QColor, QFont, QPen, QBrush
+from PyQt5.QtWidgets import QWidget, QApplication, QPushButton, QGridLayout, QLabel, \
+    QDialog, QFileDialog, QLineEdit, QVBoxLayout
+from PyQt5.QtGui import QPainter, QColor, QFont, QPen, QBrush, QIcon, QPixmap, QImage
 from PyQt5.QtCore import Qt, QSize
 from enum import Enum
 from json_converter import *
+from json_constants import *
 
 # Constants:
 class Mode(Enum):
@@ -25,6 +27,77 @@ class CollorCode(Enum):
     GREEN = str("00FF00")
     RED = str("FF0000")
 
+# Global objects
+Walls = list()
+Signs = list()
+
+class SignChoiceDialog(QDialog):
+    def __init__(self, mainWindow, pos, parent=None):
+        super(SignChoiceDialog, self).__init__(parent)
+        self.pos = pos
+        self.mainWindow = mainWindow
+        self.createDialog()
+    def createDialog(self):
+        self.dialog = QDialog()
+        self.dialog.label = QLabel("Choose the sign:")
+        self.dialog.buttons = list()
+        self.dialog.buttons.append(QPushButton("0. Empty"))
+        self.dialog.buttons.append(QPushButton("1. Stop sign"))
+        self.dialog.buttons.append(QPushButton("2. Only forward sign"))
+        self.dialog.buttons.append(QPushButton("3. Only left sign"))
+        self.dialog.buttons.append(QPushButton("4. Only right sign"))
+        self.dialog.buttons.append(QPushButton("5. Only forward or left sign"))
+        self.dialog.buttons.append(QPushButton("6. Only forward or right sign"))
+
+        self.dialog.buttons[0].clicked.connect(self.setEmpty)
+        self.dialog.buttons[1].clicked.connect(self.setStopSign)
+        self.dialog.buttons[1].setIcon(QIcon(ImagesPaths.STOP))
+        self.dialog.buttons[2].clicked.connect(self.setOnlyForwardSign)
+        self.dialog.buttons[2].setIcon(QIcon(ImagesPaths.ONLY_FORWARD))
+        self.dialog.buttons[3].clicked.connect(self.setOnlyLeftSign)
+        self.dialog.buttons[3].setIcon(QIcon(ImagesPaths.ONLY_LEFT))
+        self.dialog.buttons[4].clicked.connect(self.setOnlyRightSign)
+        self.dialog.buttons[4].setIcon(QIcon(ImagesPaths.ONLY_RIGHT))
+        self.dialog.buttons[5].clicked.connect(self.setForwardOrLeftSign)
+        self.dialog.buttons[5].setIcon(QIcon(ImagesPaths.FORWARD_OR_LEFT))
+        self.dialog.buttons[6].clicked.connect(self.setForwardOrRightSign)
+        self.dialog.buttons[6].setIcon(QIcon(ImagesPaths.FORWARD_OR_RIGHT))
+        layout = QGridLayout()
+        layout.addWidget(self.dialog.label, 0, 0)
+        for i in range(0, len(self.dialog.buttons)):
+            layout.addWidget(self.dialog.buttons[i], i, 0)
+            self.dialog.buttons[i].setIconSize(QSize(24, 24))
+        self.dialog.setLayout(layout)
+        self.dialog.show()
+    def setEmpty(self):
+        self.deleteSign(self.pos)
+    def setStopSign(self):
+        self.addSign(self.pos, ImagesPaths.STOP)
+    def setOnlyForwardSign(self):
+        self.addSign(self.pos, ImagesPaths.ONLY_FORWARD)
+    def setOnlyLeftSign(self):
+        self.addSign(self.pos, ImagesPaths.ONLY_LEFT)
+    def setOnlyRightSign(self):
+        self.addSign(self.pos, ImagesPaths.ONLY_RIGHT)
+    def setForwardOrLeftSign(self):
+        self.addSign(self.pos, ImagesPaths.FORWARD_OR_LEFT)
+    def setForwardOrRightSign(self):
+        self.addSign(self.pos, ImagesPaths.FORWARD_OR_RIGHT)
+
+    def addSign(self, poseIndexes, signImg):
+        print("Sign {1} was added in {0}.".format(poseIndexes, signImg))
+        Signs.append([poseIndexes, signImg])
+        self.dialog.close()
+        self.mainWindow.update()
+    def deleteSign(self, poseIndexes):
+        for sign in Signs:
+            if sign[0] == poseIndexes:
+                print("Sign was deleted: " + str(poseIndexes))
+                Signs.remove(sign)
+        self.dialog.close()
+        self.mainWindow.update()
+
+
 class MainWindow(QWidget):
 # *************** High level methods which allow create window ***************
     def __init__(self, *args, **kwargs):
@@ -44,10 +117,9 @@ class MainWindow(QWidget):
         self.pressedSecondNode = None
 
         self.MAP_SIZE = [map_size_x, map_size_y]
-        self.CELLS_SIZE = [2, 2]
-        self.CELLS_AMOUNT = [ int(self.MAP_SIZE[0]/self.CELLS_SIZE[0]), 
-                              int(self.MAP_SIZE[1]/self.CELLS_SIZE[1]) ]
-        self.walls = list()
+        self.CELLS_SIZE_IN_METERS = [2, 2]
+        self.CELLS_AMOUNT = [ int(self.MAP_SIZE[0]/self.CELLS_SIZE_IN_METERS[0]), 
+                              int(self.MAP_SIZE[1]/self.CELLS_SIZE_IN_METERS[1]) ]
         self.mode = Mode.NO_MODE
 
         self.start = None
@@ -96,7 +168,6 @@ class MainWindow(QWidget):
 
         self.buttons.append(self.createButton('8. Create signs'))
         self.buttons[7].pressed.connect(self.createSignsCallback)
-        self.buttons[7].setEnabled(False)
         self.layout.addWidget(self.buttons[7], 8, 1)
 
         self.buttons.append(self.createButton('9. Create lights'))
@@ -148,9 +219,11 @@ class MainWindow(QWidget):
         self.setMode(Mode.DELETE_WALLS)
     def createSignsCallback(self):
         print(self.buttons[7].text())
+        self.setMode(Mode.CREATE_SIGNS)
     def createLightsCallback(self):
         print(self.buttons[8].text())
     def loadJsonCallback(self):
+        global Walls, Signs
         print(self.buttons[9].text())
         FILE_TYPES = "Json Files (*.json)"
         filePath = QFileDialog.getOpenFileName(self, "", "", FILE_TYPES)[0]
@@ -159,11 +232,26 @@ class MainWindow(QWidget):
         finish = objects[1]
         size = objects[2]
         boxes = objects[3]
-        self.walls = objects[4]
+        Walls = objects[4]
+        Signs = objects[5]
+        print("Loaded from json:")
+        print("start: ", self.start)
+        print("finish: ", finish)
+        print("size: ", size)
+        print("boxes: ", boxes)
+        print("Walls: ", Walls)
+        print("Signs: ", Signs)
         self.update()
     def generateJsonCallback(self):
         print(self.buttons[10].text())
-        create_json_from_gui(self.start, self.MAP_SIZE, None, self.walls)
+        create_json_from_gui(self.start, self.MAP_SIZE, None, Walls, Signs)
+        print("generate json:")
+        print("start: ", self.start)
+        print("finish: ", " ")
+        print("size: ", self.MAP_SIZE)
+        print("boxes: ", " ")
+        print("Walls: ", Walls)
+        print("Signs: ", Signs)
     def createSdfCallback(self):
         print(self.buttons[11].text())
         create_sdf_from_json()
@@ -197,6 +285,10 @@ class MainWindow(QWidget):
         elif self.mode is Mode.DELETE_WALLS:
             pos = self.calculateEdgeIndexes(pos.x(), pos.y())
             self.deleteWall(pos)
+        elif self.mode is Mode.CREATE_SIGNS:
+            pos = self.calculatePositionIndexes(pos.x(), pos.y())
+            self.signChoiceDialog = SignChoiceDialog(self, pos)
+            print(pos)
         else:
             print("Warning: you should choose mode")
         self.update()
@@ -211,7 +303,7 @@ class MainWindow(QWidget):
         """
         if self.isWallPossible(nodesIndexes) is True:
             print("Wall was added: " + str(nodesIndexes))
-            self.walls.append(nodesIndexes)
+            Walls.append(nodesIndexes)
 
     def isWallPossible(self, nodesIndexes):
         """
@@ -236,11 +328,11 @@ class MainWindow(QWidget):
         """
         @brief Delete wall
         """
-        print(self.walls)
+        print(Walls)
         try:
             isVerticalFound = False
             isHorizontalFound = False
-            for wall in self.walls:
+            for wall in Walls:
                 if((wall[0][0] is pos[0]) and (wall[1][0] is pos[0])):
                     if(wall[0][1] <= pos[1] and wall[1][1] >= pos[1]) or \
                       (wall[1][1] <= pos[1] and wall[0][1] >= pos[1]):
@@ -253,10 +345,10 @@ class MainWindow(QWidget):
                         break
             if isVerticalFound == True:
                 print("delete vertical: " + str(wall) + " and " + str(pos))
-                self.walls.remove(wall)
+                Walls.remove(wall)
             elif isHorizontalFound == True:
                 print("delete horizontal: " + str(wall) + " and " + str(pos))
-                self.walls.remove(wall)
+                Walls.remove(wall)
             self.update()
         except:
             print("Warning: it's not wall")
@@ -287,11 +379,14 @@ class MainWindow(QWidget):
         qp = QPainter()
         qp.begin(self)
         self.drawPoints(qp)
-        for wall in self.walls:
+        for wall in Walls:
             self.drawWall(qp, wall[0], wall[1])
         self.drawTable(qp)
         if self.start is not None:
             self.drawBox(qp, self.start)
+        for sign in Signs:
+            self.drawSign(qp, sign[0], sign[1])
+
         qp.end()
 
 
@@ -300,11 +395,8 @@ class MainWindow(QWidget):
         @brief Draw box on table
         @param cellIndexes - x and y indexes from 0 to CELLS_AMOUNT - 1
         """
-        try:
-            centerPos = self.calculateRealPositionByCellIndexes(cellIndexes)
-            self.drawRectangle(qp, centerPos, self.cellsSize)
-        except:
-            print("Error")
+        centerPos = self.calculateRealPositionByCellIndexes(cellIndexes)
+        self.drawRectangle(qp, centerPos, self.cellsSize)
 
 
     def drawWall(self, qp, indexesOfNode1, indexesOfNode2):
@@ -317,6 +409,14 @@ class MainWindow(QWidget):
         posOfNode2 = self.calculateRealPositionByNodeIndexes(indexesOfNode2)
         self.drawLine(qp, posOfNode1, posOfNode2)
 
+
+    def drawSign(self, qp, poseIndexes, imgPath):
+        """
+        @brief Draw sign on table
+        @param indexesOfNode1 - x and y indexes from 0 to CELLS_AMOUNT - 1
+        """
+        centerPos = self.calculateRealPositionByPoseIndexes(poseIndexes)
+        self.drawImg(qp, centerPos, imgPath)
 
 # *************** Low level methods: raw draw and calculations ***************
 # *************** Basicaly methods below work with real window positions *****
@@ -372,6 +472,25 @@ class MainWindow(QWidget):
         return None
       
 
+    def calculatePositionIndexes(self, point_x, point_y):
+        """
+        @brief Calculate position coordinate using real mouse position on window
+        @note pose indexes will be out of rate if point coordinate out of rate
+        """
+        tablePose = [point_x - self.tableLeft, point_y - self.tableTop]
+        pose = [int()] * 2
+
+        for axe in range(0, 2):
+            meterSize = self.cellsSize[axe] / self.CELLS_SIZE_IN_METERS[axe]
+            pose[axe] = int(tablePose[axe] / meterSize)
+            # Line below is needed because of unexpected work of division of
+            # negative nubmers  
+            if tablePose[axe] < 0: pose[axe] -= 1 
+            if tablePose[axe] % meterSize > meterSize / 2:
+                pose[axe] += 1
+        return pose
+
+
     def calculateRealPositionByCellIndexes(self, cellIndexes):
         """
         @brief Calculate real node coordinate using node indexes
@@ -379,6 +498,13 @@ class MainWindow(QWidget):
         return [self.tableLeft + (cellIndexes[0] + 1) * self.cellsSize[0],
                 self.tableTop + (cellIndexes[1] + 1) * self.cellsSize[1]]
       
+    def calculateRealPositionByPoseIndexes(self, poseIndexes):
+        """
+        @brief Calculate real node coordinate using node indexes
+        """
+        return [self.tableLeft + (poseIndexes[0] + 1) * self.cellsSize[0]/2,
+                self.tableTop + (poseIndexes[1] + 1) * self.cellsSize[1]/2]
+
 
     def calculateRealPositionByNodeIndexes(self, nodeIndexes):
         """
@@ -419,6 +545,18 @@ class MainWindow(QWidget):
         left = centerPosition[0] - self.cellsSize[0]
         top = centerPosition[1] - self.cellsSize[1]
         qp.drawRect(left, top, self.cellsSize[0], self.cellsSize[1])
+
+
+    def drawImg(self, qp, centerPosition, imgPath = ImagesPaths.STOP):
+        """ 
+        @brief Draw a sign
+        @note it uses real window coordinates 
+        """
+        halfCellsSizes = [self.cellsSize[0]/2, self.cellsSize[1]/2]
+        left = centerPosition[0] - halfCellsSizes[0]
+        top = centerPosition[1] - halfCellsSizes[1]
+        img = QImage(imgPath).scaled(QSize(halfCellsSizes[0], halfCellsSizes[1]))
+        qp.drawImage(left, top, img)
 
 
     def drawTable(self, qp):

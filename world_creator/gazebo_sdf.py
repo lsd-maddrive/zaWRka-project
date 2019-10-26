@@ -2,6 +2,7 @@
 from lxml import etree
 import copy, numpy
 from enum import Enum
+from json_converter import *
 
 class Point:
     def __init__(self, pos_x, pos_y, pos_z):
@@ -29,15 +30,6 @@ SIGN_PATH = "media/stop_sign.sdf"
 BOX_PATH = "box.world"
 EMPTY_WORLD_PATH = "empty_world.world"
 
-# Signs types
-class SignsTypes(Enum):
-    STOP = "stop sign"
-    ONLY_FORWARD = "only forward sign"
-    ONLY_RIGHT = "only right sign"
-    ONLY_LEFT = "only left sign"
-    FORWARD_OR_RIGHT = "forward or right sign"
-    FORWARD_OR_LEFT = "forward or left sign"
-
 # Signs materials
 class SignsImages(Enum):
     STOP = "SignsImages/Stop"
@@ -46,7 +38,6 @@ class SignsImages(Enum):
     ONLY_LEFT = "SignsImages/OnlyLeft"
     FORWARD_OR_RIGHT = "SignsImages/ForwardOrRight"
     FORWARD_OR_LEFT = "SignsImages/ForwardOrLeft"
-
 
 
 class SdfCreator:
@@ -209,7 +200,7 @@ class SdfCreator:
 
         # Set sign position
         signName = "unit_stop_sign_" + str(self.sign_counter)
-        columnPos = "{0} {1} 0.35 0.00 0.00 0.0".format(position[0], position[1])
+        columnPos = "{0} {1} 0.35 0.00 0.0 0.0".format(position[0], position[1])
         signPos =   "{0} {1} 0.95 1.57 {2} {3}".format(position[0], position[1], yaw, roll)
         fondPos =   "{0} {1} 0.95 1.57 {2} {3}".format(imagePos[0], imagePos[1], yaw, roll)
         imagePos =  "{0} {1} 0.95 1.57 {2} {3}".format(imagePos[0], imagePos[1], yaw, roll)
@@ -231,9 +222,7 @@ class SdfCreator:
             other, the collision length will reduce on WALL width size
         """
         box_name = "unit_box_" + str(self.box_counter)
-
         box_position_text = box_position.getString()
-
         box_visual_size_text = box_size.getString()
 
         collision_size = box_size
