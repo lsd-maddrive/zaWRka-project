@@ -6,9 +6,9 @@
 #define pwm1Period      10000           // 100 Hz
 
 /* These values are only for driver, must be closed! */
-#define STEER_PWM_MAX           1800    // Left
-#define STEER_PWM_NULL          1250
-#define STEER_PWM_MIN           800     // Right
+#define STEER_PWM_MAX           1650    // Left
+#define STEER_PWM_NULL          1200
+#define STEER_PWM_MIN           650     // Right
 
 #define SPEED_MAX               1650
 #define SPEED_NULL_FORWARD      1550
