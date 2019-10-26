@@ -101,10 +101,13 @@ def create_sdf_from_json(jsonFileName=JSON_DEFAULT_NAME, sdfFileName=SDF_DEFAULT
             point1 = obj.get(JsonNames.POINT_1)
             point2 = obj.get(JsonNames.POINT_2)
             sdfCreator.addWall(point1, point2)
-    sdfCreator.addSign([0, 0])
-    sdfCreator.addSign([0, 1])
-    sdfCreator.addSign([1, 0])
-    sdfCreator.addSign([1, 1])
+    sdfCreator.addSign([0, 0], "only forward sign")
+    sdfCreator.addSign([0, 1], "only forward sign")
+    sdfCreator.addSign([1, 0], "only left sign")
+    sdfCreator.addSign([1, 1], "only right sign")
+    sdfCreator.addSign([3, 3], "forward or left sign")
+    sdfCreator.addSign([3, 4], "forward or right sign")
+    sdfCreator.addSign([4, 3], "this is no sign")
     sdfCreator.writeWorldToFile(sdfFileName)
 
 

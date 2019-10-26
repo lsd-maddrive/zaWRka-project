@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from lxml import etree
 import copy, numpy
+from enum import Enum
 
 class Point:
     def __init__(self, pos_x, pos_y, pos_z):
@@ -10,11 +11,41 @@ class Point:
     def getString(self):
         return str(self.x) + " " + str(self.y) + " " + str(self.z) + " 0 0 0"
 
-#Constants
+class SignOrientation(Enum):
+    RIGHT_TOP = 0
+    RIGHT_BOT = 1
+    LEFT_TOP = 2
+    LEFT_BOT = 3
+
+# Constants
 WALL_WIDTH = float(0.01)
 WALL_HEGHT = float(0.5)
 WALL_SPAWN_Z = float(0.25)
 CELL_SIZE = [int(2), int(2)]
+
+# Files pathes
+# For correct use, you should run export GAZEBO_RESOURCE_PATH=path/to/media
+SIGN_PATH = "media/stop_sign.sdf"
+BOX_PATH = "box.world"
+EMPTY_WORLD_PATH = "empty_world.world"
+
+# Signs types
+class SignsTypes(Enum):
+    STOP = "stop sign"
+    ONLY_FORWARD = "only forward sign"
+    ONLY_RIGHT = "only right sign"
+    ONLY_LEFT = "only left sign"
+    FORWARD_OR_RIGHT = "forward or right sign"
+    FORWARD_OR_LEFT = "forward or left sign"
+
+# Signs materials
+class SignsImages(Enum):
+    STOP = "SignsImages/Stop"
+    ONLY_FORWARD = "SignsImages/OnlyForward"
+    ONLY_RIGHT = "SignsImages/OnlyRight"
+    ONLY_LEFT = "SignsImages/OnlyLeft"
+    FORWARD_OR_RIGHT = "SignsImages/ForwardOrRight"
+    FORWARD_OR_LEFT = "SignsImages/ForwardOrLeft"
 
 
 
@@ -81,12 +112,28 @@ class SdfCreator:
         self.__spawnBox(Point(pose_x, pose_y, WALL_HEGHT), boxSize)
 
 
-    def addSign(self, position):
+    def addSign(self, position, signType):
         """ 
-        @param position - array with x and y position
-        @note there are 4 sign direction's:
+        @param position - array with x and y position on map
+        @param signType - string with value from SignsTypes class
+        @note we can figure out orientation from position
         """
-        self.__spawnSign(position)
+        if signType == SignsTypes.STOP.value:
+            signImage = SignsImages.STOP
+        elif signType == SignsTypes.ONLY_FORWARD.value:
+            signImage = SignsImages.ONLY_FORWARD
+        elif signType == SignsTypes.ONLY_LEFT.value:
+            signImage = SignsImages.ONLY_LEFT
+        elif signType == SignsTypes.ONLY_RIGHT.value:
+            signImage = SignsImages.ONLY_RIGHT
+        elif signType == SignsTypes.FORWARD_OR_LEFT.value:
+            signImage = SignsImages.FORWARD_OR_LEFT
+        elif signType == SignsTypes.FORWARD_OR_RIGHT.value:
+            signImage = SignsImages.FORWARD_OR_RIGHT
+        else:
+            print("Error: sign type is ", signType)
+            return
+        self.__spawnSign(position, signImage)
 
 
     def __spawnBox(self, box_position, box_size):
@@ -101,52 +148,80 @@ class SdfCreator:
             words, start offset is not taken into account.
         """
         self.box_counter += 1
-        box_root = etree.parse("box.world").getroot()
+        box_root = etree.parse(BOX_PATH).getroot()
         box_position.x = self.START_X - box_position.x
         box_position.y = - self.START_Y + box_position.y
         self.__setBoxParams(box_root, box_position, box_size)
         self.SDF_ROOT.find("world").insert(0, copy.deepcopy(box_root) )
 
 
-    def __spawnSign(self, position):
+    def __spawnSign(self, position, signImage):
         """ 
+        @brief Spawn box in defined position
+        @param position - array with x and y position on map (high level 
+            abstraction), in other words, start offset is not taken into 
+            account.
+        @param signImage - object of SignsImages class
+        @note You can spawn it in 4 variants (see SignOrientation)
         """
-        print(position[0])
-        print(position[1])
         if (position[0] % 2 is 0) and (position[1] % 2 is 0):
-            print("left bot")
-            angle = 4.71
-            offset = [0.15, 0.15]
+            orientation = SignOrientation.LEFT_BOT
+            posOffset = [0.15, 0.15]
         elif (position[0] % 2 is 1) and (position[1] % 2 is 0):
-            print("right bot") 
-            angle = 0
-            offset = [0.85, 0.15]
+            orientation = SignOrientation.RIGHT_BOT
+            posOffset = [0.85, 0.15]
         elif (position[0] % 2 is 0) and (position[1] % 2 is 1):
-            print("left top")
-            angle = 3.14
-            offset = [0.15, 0.85]
+            orientation = SignOrientation.LEFT_TOP
+            posOffset = [0.15, 0.85]
         elif (position[0] % 2 is 1) and (position[1] % 2 is 1):
-            print("right top")
-            angle = 1.57
-            offset = [0.85, 0.85]
+            orientation = SignOrientation.RIGHT_TOP
+            posOffset = [0.85, 0.85]
+        print("sign stop with pos:", position, orientation, signImage)
         self.sign_counter += 1
-        sign_root = etree.parse("media/stop_sign.sdf").getroot()
-        position[0] = self.START_X - position[0] - offset[0]
-        position[1] = - self.START_Y + position[1] + offset[1]
-        self.__setSignParams(sign_root, position, angle)
+        sign_root = etree.parse(SIGN_PATH).getroot()
+        position[0] = self.START_X - position[0] - posOffset[0]
+        position[1] = - self.START_Y + position[1] + posOffset[1]
+        self.__setSignParams(sign_root, position, orientation, signImage)
         self.SDF_ROOT.find("world").insert(0, copy.deepcopy(sign_root) )
 
 
-    def __setSignParams(self, sign_root, position, angle):
+    def __setSignParams(self, sign_root, position, orientation, signImage):
         """ 
         @brief Set sign desired parameters
         """
-        sign_name = "unit_stop_sign_" + str(self.sign_counter)
-        sign_root.set("name", sign_name)
-        sign_root[0][1].text = str(position[0]) + " " + str(position[1]) + \
-                               " 0.35 0 0 0"
-        sign_root[1][1].text = str(position[0]) + " " + str(position[1]) + \
-                               " 0.95 1.57 0 " + str(angle)
+        # Calculate sign position
+        if orientation is SignOrientation.LEFT_BOT:
+            roll = 1.57
+            yaw = 1.57
+            imagePos = [position[0] - 0.025, position[1] - 0.00]
+        elif orientation is SignOrientation.RIGHT_BOT:
+            roll = 0
+            yaw = 1.57
+            imagePos = [position[0] + 0.00, position[1] + 0.025]
+        elif orientation is SignOrientation.LEFT_TOP:
+            roll = 0
+            yaw = -1.57
+            imagePos = [position[0] + 0.00, position[1] - 0.025]
+        elif orientation is SignOrientation.RIGHT_TOP:
+            roll = 1.57
+            yaw = -1.57
+            imagePos = [position[0] + 0.025, position[1] - 0.00]
+
+        # Set sign position
+        signName = "unit_stop_sign_" + str(self.sign_counter)
+        columnPos = "{0} {1} 0.35 0.00 0.00 0.0".format(position[0], position[1])
+        signPos =   "{0} {1} 0.95 1.57 {2} {3}".format(position[0], position[1], yaw, roll)
+        fondPos =   "{0} {1} 0.95 1.57 {2} {3}".format(imagePos[0], imagePos[1], yaw, roll)
+        imagePos =  "{0} {1} 0.95 1.57 {2} {3}".format(imagePos[0], imagePos[1], yaw, roll)
+        sign_root.set("name", signName)
+        sign_root[0][1].text = columnPos
+        sign_root[1][1].text = signPos
+        sign_root[2][1].text = fondPos
+        sign_root[3][1].text = imagePos
+
+        # Set sign image
+        sign_root[2].find("visual").find("material").find("script").find("name").text = "Gazebo/White"
+        sign_root[3].find("visual").find("material").find("script").find("name").text = signImage.value
 
 
     def __setBoxParams(self, box_root, box_position, box_size):
@@ -211,7 +286,7 @@ class SdfCreator:
         """ 
         @brief Create sdf tree for empty world from file
         """
-        self.SDF_ROOT = etree.parse("empty_world.world").getroot()
+        self.SDF_ROOT = etree.parse(EMPTY_WORLD_PATH).getroot()
 
     # Variables:
     box_counter = 0
