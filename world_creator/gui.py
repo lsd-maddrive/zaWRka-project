@@ -244,14 +244,17 @@ class MainWindow(QWidget):
         self.update()
     def generateJsonCallback(self):
         print(self.buttons[10].text())
-        create_json_from_gui(self.start, self.MAP_SIZE, None, Walls, Signs)
-        print("generate json:")
-        print("start: ", self.start)
-        print("finish: ", " ")
-        print("size: ", self.MAP_SIZE)
-        print("boxes: ", " ")
-        print("Walls: ", Walls)
-        print("Signs: ", Signs)
+        if self.start is not None:
+            create_json_from_gui(self.start, self.MAP_SIZE, None, Walls, Signs)
+            print("generate json:")
+            print("start: ", self.start)
+            print("finish: ", " ")
+            print("size: ", self.MAP_SIZE)
+            print("boxes: ", " ")
+            print("Walls: ", Walls)
+            print("Signs: ", Signs)
+        else:
+            print("Warning: firstly, you should set start position.")
     def createSdfCallback(self):
         print(self.buttons[11].text())
         create_sdf_from_json()
