@@ -291,7 +291,6 @@ class MainWindow(QWidget):
         elif self.mode is Mode.CREATE_SIGNS:
             pos = self.calculatePositionIndexes(pos.x(), pos.y())
             self.signChoiceDialog = SignChoiceDialog(self, pos)
-            print(pos)
         else:
             print("Warning: you should choose mode")
         self.update()
@@ -489,8 +488,6 @@ class MainWindow(QWidget):
             # Line below is needed because of unexpected work of division of
             # negative nubmers  
             if tablePose[axe] < 0: pose[axe] -= 1 
-            if tablePose[axe] % meterSize > meterSize / 2:
-                pose[axe] += 1
         return pose
 
 
