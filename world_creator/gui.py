@@ -101,19 +101,128 @@ class SignChoiceDialog(QDialog):
 class AbstactFeature():
     def __init__(self, button):
         self.button = button
-        #button.pressed.connect(self.processPressingButton)
-    def processPressingButton(self):
-        print("processPressingButton nothing")
-    def processMouseEvent(self):
-        print("processMouseEvent nothing")
+        self.button.setEnabled(False)
+    def processButtonPressing(self):
+        pass
+    def processMousePressing(self):
+        pass
     def draw(self):
-        print("draw nothing")
+        pass
 
 
 class StartPosition(AbstactFeature):
     def __init__(self, button):
-        super().__init__(button)
+        self.button = button
+        button.pressed.connect(self.processButtonPressing)
         self.start = None
+    def processButtonPressing(self):
+        ControlPanel.SetMode(Mode.CHOOSE_START_POSITION)
+    def processMousePressing(self, e):
+        self.start = MainWindow.calculateCellIndexes(e.pos().x(), e.pos().y())
+        print("start pose was setted using mouse: " + str(self.start))
+
+
+class Wall(AbstactFeature):
+    def __init__(self, button):
+        self.button = button
+        button.pressed.connect(self.processButtonPressing)
+        self.lastClickNumber = 0
+        self.pressedFirstNode = None
+        self.pressedSecondNode = None
+    def processButtonPressing(self):
+        ControlPanel.SetMode(Mode.CREATE_WALLS)
+    def processMousePressing(self, e):
+        pos = MainWindow.calculateNodeIndexes(e.pos().x(), e.pos().y())
+        if self.lastClickNumber is 1:
+            self.lastClickNumber = 2
+            self.pressedSecondNode = pos
+            self.addWall([self.pressedFirstNode, self.pressedSecondNode])
+        else:
+            self.lastClickNumber = 1
+            self.pressedFirstNode = pos
+    def addWall(self, nodesIndexes):
+        """
+        @brief Try to add new wall
+        """
+        if self.isWallPossible(nodesIndexes) is True:
+            print("Wall was added: " + str(nodesIndexes))
+            Walls.append(nodesIndexes)
+    def isWallPossible(self, nodesIndexes):
+        """
+        @brief Check if the wall is possible
+        @note print the reason if wall is not possible
+        """
+        if self.isWallOutOfRange(nodesIndexes) is True:
+            print("Warning: wall out of map: " + str(nodesIndexes))
+        elif self.isThisWallPoint(nodesIndexes) is True:
+            print("Warning: wall can't be point: " + str(nodesIndexes))
+        elif self.isThisWallDiagonal(nodesIndexes) is True:
+            print("Warning: wall can't be diagonal: " + str(nodesIndexes))
+        elif self.isThereConflictBetweenWalls(nodesIndexes) is True:
+            print("Warning: there is conflict between existing walls \
+            and this: " + str(nodesIndexes))
+        else:
+            return True
+        return False
+    def isThisWallPoint(self, nodesIndexes):
+        return nodesIndexes[0] == nodesIndexes[1]
+    def isWallOutOfRange(self, nodesIndexes):
+        return  nodesIndexes[0][0] > Map.CELLS_AMOUNT[0] or \
+                nodesIndexes[0][0] < 0 or \
+                nodesIndexes[1][0] > Map.CELLS_AMOUNT[0] or \
+                nodesIndexes[1][0] < 0 or \
+                nodesIndexes[0][1] > Map.CELLS_AMOUNT[1] or \
+                nodesIndexes[0][1] < 0 or \
+                nodesIndexes[1][1] > Map.CELLS_AMOUNT[1] or \
+                nodesIndexes[1][1] < 0
+    def isThisWallDiagonal(self, nodesIndexes):
+        return ((self.isThisWallVertical(nodesIndexes) is False) and \
+                (self.isThisWallHorizontal(nodesIndexes) is False))
+    def isThisWallVertical(self, nodesIndexes):
+        return nodesIndexes[0][0] == nodesIndexes[1][0]
+    def isThisWallHorizontal(self, nodesIndexes):
+        return nodesIndexes[0][1] == nodesIndexes[1][1]
+    def isThereConflictBetweenWalls(self, nodesIndexes):
+        return False
+
+
+class DeleteWall(AbstactFeature):
+    def __init__(self, button):
+        self.button = button
+        button.pressed.connect(self.processButtonPressing)
+    def processButtonPressing(self):
+        ControlPanel.SetMode(Mode.DELETE_WALLS)
+    def processMousePressing(self, e):
+        pos = MainWindow.calculateEdgeIndexes(e.pos().x(), e.pos().y())
+        self.deleteWall(pos)
+    def deleteWall(self, pos):
+        """
+        @brief Delete wall
+        """
+        print(Walls)
+        try:
+            isVerticalFound = False
+            isHorizontalFound = False
+            for wall in Walls:
+                if((wall[0][0] is pos[0]) and (wall[1][0] is pos[0])):
+                    if(wall[0][1] <= pos[1] and wall[1][1] >= pos[1]) or \
+                      (wall[1][1] <= pos[1] and wall[0][1] >= pos[1]):
+                        isVerticalFound = True
+                        break
+                if(wall[0][1] is pos[1]) and (wall[1][1] is pos[1]):
+                    if(wall[0][0] <= pos[0] and wall[1][0] >= pos[0]) or \
+                      (wall[1][0] <= pos[0] and wall[0][0] >= pos[0]):
+                        isHorizontalFound = True
+                        break
+            if isVerticalFound == True:
+                print("delete vertical: " + str(wall) + " and " + str(pos))
+                Walls.remove(wall)
+            elif isHorizontalFound == True:
+                print("delete horizontal: " + str(wall) + " and " + str(pos))
+                Walls.remove(wall)
+            ControlPanel.window.update()
+        except:
+            print("Warning: it's not wall")
 
 
 class Map:
@@ -134,44 +243,48 @@ class ControlPanel():
         ControlPanel.mode = Mode.NO_MODE
         ControlPanel.window = window
 
+        ControlPanel.Right = int()
+        ControlPanel.Left = int()
+        ControlPanel.Bot = int()
+        ControlPanel.Top = int()
+        ControlPanel.CellsSize = list()
+
         window.layout = QGridLayout()
         window.setLayout(window.layout)
         label = QLabel(' ', window)
         window.layout.addWidget(label, 0, 0)
         window.layout.setSpacing(1)
 
+        features = list()
+
         ControlPanel.buttons = list()
 
         ControlPanel.buttons.append(ControlPanel.createButton('1. Choose map size'))
-        ControlPanel.buttons[0].pressed.connect(window.chooseMapSizeCallback)
-        ControlPanel.buttons[0].setEnabled(False)
+        features.append(AbstactFeature(ControlPanel.buttons[0]))
         window.layout.addWidget(ControlPanel.buttons[0], 1, 1)
 
         ControlPanel.buttons.append(ControlPanel.createButton('2. Choose cells size'))
-        ControlPanel.buttons[1].pressed.connect(window.chooseCellsSizeCallback)
-        ControlPanel.buttons[1].setEnabled(False)
+        features.append(AbstactFeature(ControlPanel.buttons[1]))
         window.layout.addWidget(ControlPanel.buttons[1], 2, 1)
 
         ControlPanel.buttons.append(ControlPanel.createButton('3. Choose start pose'))
-        ControlPanel.buttons[2].pressed.connect(window.chooseStartPoseCallback)
+        features.append(StartPosition(ControlPanel.buttons[2]))
         window.layout.addWidget(ControlPanel.buttons[2], 3, 1)
 
         ControlPanel.buttons.append(ControlPanel.createButton('4. Choose end pose'))
-        ControlPanel.buttons[3].pressed.connect(window.chooseEndPoseCallback)
-        ControlPanel.buttons[3].setEnabled(False)
+        features.append(AbstactFeature(ControlPanel.buttons[3]))
         window.layout.addWidget(ControlPanel.buttons[3], 4, 1)
 
         ControlPanel.buttons.append(ControlPanel.createButton('5. Create boxes'))
-        ControlPanel.buttons[4].pressed.connect(window.createBoxesCallback)
-        ControlPanel.buttons[4].setEnabled(False)
+        features.append(AbstactFeature(ControlPanel.buttons[4]))
         window.layout.addWidget(ControlPanel.buttons[4], 5, 1)
 
         ControlPanel.buttons.append(ControlPanel.createButton('6. Create walls'))
-        ControlPanel.buttons[5].pressed.connect(window.createWallsCallback)
+        features.append(Wall(ControlPanel.buttons[5]))
         window.layout.addWidget(ControlPanel.buttons[5], 6, 1)
 
         ControlPanel.buttons.append(ControlPanel.createButton('7. Delete walls'))
-        ControlPanel.buttons[6].pressed.connect(window.deleteWallsCallback)
+        features.append(DeleteWall(ControlPanel.buttons[6]))
         window.layout.addWidget(ControlPanel.buttons[6], 7, 1)
 
         ControlPanel.buttons.append(ControlPanel.createButton('8. Create signs'))
@@ -198,6 +311,8 @@ class ControlPanel():
         window.layout.addWidget(QLabel('To create the world:', window), 0, 1)
         window.layout.addWidget(QLabel('Or use these features:', window), 10, 1)
         window.layout.addWidget(QLabel('Then press buttons below:',window), 12, 1)
+
+        return features
 
     @staticmethod
     def SetMode(mode):
@@ -230,7 +345,10 @@ class MainWindow(QWidget):
         self.initUI()
         Map.Init([18, 18])
         self.initFeatures()
-        ControlPanel.Init(self)
+        features = ControlPanel.Init(self)
+        self.startPosition = features[2]
+        self.wall = features[5]
+        self.deleteWall = features[6]
 
     def initUI(self):
         self.setGeometry(300, 300, 710, 320)
@@ -238,28 +356,9 @@ class MainWindow(QWidget):
         self.show()
 
     def initFeatures(self):
-        self.lastClickNumber = 0
-        self.pressedFirstNode = None
-        self.pressedSecondNode = None
-
-        self.startPosition = StartPosition("kek")
         self.end = None
 
 # ************** Control methods which allow to choose mode ******************
-    def chooseMapSizeCallback(self):
-        pass
-    def chooseCellsSizeCallback(self):
-        pass
-    def chooseStartPoseCallback(self):
-        ControlPanel.SetMode(Mode.CHOOSE_START_POSITION)
-    def chooseEndPoseCallback(self):
-        pass
-    def createBoxesCallback(self):
-        pass
-    def createWallsCallback(self):
-        ControlPanel.SetMode(Mode.CREATE_WALLS)
-    def deleteWallsCallback(self):
-        ControlPanel.SetMode(Mode.DELETE_WALLS)
     def createSignsCallback(self):
         ControlPanel.SetMode(Mode.CREATE_SIGNS)
     def createLightsCallback(self):
@@ -302,20 +401,11 @@ class MainWindow(QWidget):
     def mousePressEvent(self, e):
         pos = e.pos()
         if ControlPanel.mode is Mode.CHOOSE_START_POSITION:
-            self.startPosition.start = self.calculateCellIndexes(pos.x(), pos.y())
-            print("start pose was setted using mouse: " + str(self.startPosition.start))
+            self.startPosition.processMousePressing(e)
         elif ControlPanel.mode is Mode.CREATE_WALLS:
-            pos = self.calculateNodeIndexes(pos.x(), pos.y())
-            if self.lastClickNumber is 1:
-                self.lastClickNumber = 2
-                self.pressedSecondNode = pos
-                self.addWall([self.pressedFirstNode, self.pressedSecondNode])
-            else:
-                self.lastClickNumber = 1
-                self.pressedFirstNode = pos
+            self.wall.processMousePressing(e)
         elif ControlPanel.mode is Mode.DELETE_WALLS:
-            pos = self.calculateEdgeIndexes(pos.x(), pos.y())
-            self.deleteWall(pos)
+            self.deleteWall.processMousePressing(e)
         elif ControlPanel.mode is Mode.CREATE_SIGNS:
             pos = self.calculatePositionIndexes(pos.x(), pos.y())
             self.signChoiceDialog = SignChoiceDialog(self, pos)
@@ -326,84 +416,6 @@ class MainWindow(QWidget):
     def addBox(self, pos):
         pass
 
-
-    def addWall(self, nodesIndexes):
-        """
-        @brief Try to add new wall
-        """
-        if self.isWallPossible(nodesIndexes) is True:
-            print("Wall was added: " + str(nodesIndexes))
-            Walls.append(nodesIndexes)
-
-    def isWallPossible(self, nodesIndexes):
-        """
-        @brief Check if the wall is possible
-        @note print the reason if wall is not possible
-        """
-        if self.isWallOutOfRange(nodesIndexes) is True:
-            print("Warning: wall out of map: " + str(nodesIndexes))
-        elif self.isThisWallPoint(nodesIndexes) is True:
-            print("Warning: wall can't be point: " + str(nodesIndexes))
-        elif self.isThisWallDiagonal(nodesIndexes) is True:
-            print("Warning: wall can't be diagonal: " + str(nodesIndexes))
-        elif self.isThereConflictBetweenWalls(nodesIndexes) is True:
-            print("Warning: there is conflict between existing walls \
-            and this: " + str(nodesIndexes))
-        else:
-            return True
-        return False
-
-
-    def deleteWall(self, pos):
-        """
-        @brief Delete wall
-        """
-        print(Walls)
-        try:
-            isVerticalFound = False
-            isHorizontalFound = False
-            for wall in Walls:
-                if((wall[0][0] is pos[0]) and (wall[1][0] is pos[0])):
-                    if(wall[0][1] <= pos[1] and wall[1][1] >= pos[1]) or \
-                      (wall[1][1] <= pos[1] and wall[0][1] >= pos[1]):
-                        isVerticalFound = True
-                        break
-                if(wall[0][1] is pos[1]) and (wall[1][1] is pos[1]):
-                    if(wall[0][0] <= pos[0] and wall[1][0] >= pos[0]) or \
-                      (wall[1][0] <= pos[0] and wall[0][0] >= pos[0]):
-                        isHorizontalFound = True
-                        break
-            if isVerticalFound == True:
-                print("delete vertical: " + str(wall) + " and " + str(pos))
-                Walls.remove(wall)
-            elif isHorizontalFound == True:
-                print("delete horizontal: " + str(wall) + " and " + str(pos))
-                Walls.remove(wall)
-            self.update()
-        except:
-            print("Warning: it's not wall")
-
-
-    def isThisWallPoint(self, nodesIndexes):
-        return nodesIndexes[0] == nodesIndexes[1]
-    def isWallOutOfRange(self, nodesIndexes):
-        return  nodesIndexes[0][0] > Map.CELLS_AMOUNT[0] or \
-                nodesIndexes[0][0] < 0 or \
-                nodesIndexes[1][0] > Map.CELLS_AMOUNT[0] or \
-                nodesIndexes[1][0] < 0 or \
-                nodesIndexes[0][1] > Map.CELLS_AMOUNT[1] or \
-                nodesIndexes[0][1] < 0 or \
-                nodesIndexes[1][1] > Map.CELLS_AMOUNT[1] or \
-                nodesIndexes[1][1] < 0
-    def isThisWallDiagonal(self, nodesIndexes):
-        return ((self.isThisWallVertical(nodesIndexes) is False) and \
-                (self.isThisWallHorizontal(nodesIndexes) is False))
-    def isThisWallVertical(self, nodesIndexes):
-        return nodesIndexes[0][0] == nodesIndexes[1][0]
-    def isThisWallHorizontal(self, nodesIndexes):
-        return nodesIndexes[0][1] == nodesIndexes[1][1]
-    def isThereConflictBetweenWalls(self, nodesIndexes):
-        return False
 
     def paintEvent(self, event=None):
         qp = QPainter()
@@ -426,7 +438,7 @@ class MainWindow(QWidget):
         @param cellIndexes - x and y indexes from 0 to Map.CELLS_AMOUNT - 1
         """
         centerPos = self.calculateRealPositionByCellIndexes(cellIndexes)
-        self.drawRectangle(qp, centerPos, self.cellsSize)
+        self.drawRectangle(qp, centerPos, ControlPanel.CellsSize)
 
 
     def drawWall(self, qp, indexesOfNode1, indexesOfNode2):
@@ -450,48 +462,51 @@ class MainWindow(QWidget):
 
 # *************** Low level methods: raw draw and calculations ***************
 # *************** Basicaly methods below work with real window positions *****
-    def calculateCellIndexes(self, point_x, point_y):
+    @staticmethod
+    def calculateCellIndexes(point_x, point_y):
         """
         @brief Calculate cell coordinate using real mouse position on window
         """
-        tablePose = [point_x - self.tableLeft, point_y - self.tableTop]
+        tablePose = [point_x - ControlPanel.Left, point_y - ControlPanel.Top]
         node = [int()] * 2
 
         for axe in range(0, 2):
-            node[axe] = int(tablePose[axe] / self.cellsSize[axe])
+            node[axe] = int(tablePose[axe] / ControlPanel.CellsSize[axe])
             if node[axe] > (Map.CELLS_AMOUNT[axe] + 1) or (node[axe] < 0):
                 return None
         return node
 
-    def calculateNodeIndexes(self, point_x, point_y):
+    @staticmethod
+    def calculateNodeIndexes(point_x, point_y):
         """
         @brief Calculate node coordinate using real mouse position on window
         @note node indexes will be out of rate if point coordinate out of rate
         """
-        tablePose = [point_x - self.tableLeft, point_y - self.tableTop]
+        tablePose = [point_x - ControlPanel.Left, point_y - ControlPanel.Top]
         node = [int()] * 2
 
         for axe in range(0, 2):
-            node[axe] = int(tablePose[axe] / self.cellsSize[axe])
+            node[axe] = int(tablePose[axe] / ControlPanel.CellsSize[axe])
             # Line below is needed because of unexpected work of division of
             # negative nubmers  
             if tablePose[axe] < 0: node[axe] -= 1 
-            if tablePose[axe] % self.cellsSize[axe] > self.cellsSize[axe] / 2:
+            if tablePose[axe] % ControlPanel.CellsSize[axe] > ControlPanel.CellsSize[axe] / 2:
                 node[axe] += 1
         return node
 
-    def calculateEdgeIndexes(self, point_x, point_y):
+    @staticmethod
+    def calculateEdgeIndexes(point_x, point_y):
         """
         @brief Calculate edge coordinate using real mouse position on window
         @note edge indexes will be out of rate if point coordinate out of rate
         """
-        tablePose = [point_x - self.tableLeft, point_y - self.tableTop]
+        tablePose = [point_x - ControlPanel.Left, point_y - ControlPanel.Top]
         node = [int()] * 2
 
         for axe in range(0, 2):
-            node[axe] = int(tablePose[axe] / self.cellsSize[axe])
-            fourthNode = self.cellsSize[axe]/4
-            remnant = tablePose[axe] % self.cellsSize[axe]
+            node[axe] = int(tablePose[axe] / ControlPanel.CellsSize[axe])
+            fourthNode = ControlPanel.CellsSize[axe]/4
+            remnant = tablePose[axe] % ControlPanel.CellsSize[axe]
             if (remnant >= fourthNode) and (remnant <= 3*fourthNode):
                 node[axe] += 0.5
             elif remnant > 3*fourthNode:
@@ -507,11 +522,11 @@ class MainWindow(QWidget):
         @brief Calculate position coordinate using real mouse position on window
         @note pose indexes will be out of rate if point coordinate out of rate
         """
-        tablePose = [point_x - self.tableLeft, point_y - self.tableTop]
+        tablePose = [point_x - ControlPanel.Left, point_y - ControlPanel.Top]
         pose = [int()] * 2
 
         for axe in range(0, 2):
-            meterSize = self.cellsSize[axe] / Map.CELLS_SIZE_IN_METERS[axe]
+            meterSize = ControlPanel.CellsSize[axe] / Map.CELLS_SIZE_IN_METERS[axe]
             pose[axe] = int(tablePose[axe] / meterSize)
             # Line below is needed because of unexpected work of division of
             # negative nubmers  
@@ -523,23 +538,23 @@ class MainWindow(QWidget):
         """
         @brief Calculate real node coordinate using node indexes
         """
-        return [self.tableLeft + (cellIndexes[0] + 1) * self.cellsSize[0],
-                self.tableTop + (cellIndexes[1] + 1) * self.cellsSize[1]]
+        return [ControlPanel.Left + (cellIndexes[0] + 1) * ControlPanel.CellsSize[0],
+                ControlPanel.Top + (cellIndexes[1] + 1) * ControlPanel.CellsSize[1]]
       
     def calculateRealPositionByPoseIndexes(self, poseIndexes):
         """
         @brief Calculate real node coordinate using node indexes
         """
-        return [self.tableLeft + (poseIndexes[0] + 1) * self.cellsSize[0]/2,
-                self.tableTop + (poseIndexes[1] + 1) * self.cellsSize[1]/2]
+        return [ControlPanel.Left + (poseIndexes[0] + 1) * ControlPanel.CellsSize[0]/2,
+                ControlPanel.Top + (poseIndexes[1] + 1) * ControlPanel.CellsSize[1]/2]
 
 
     def calculateRealPositionByNodeIndexes(self, nodeIndexes):
         """
         @brief Calculate real node coordinate using node indexes
         """
-        return [ self.tableLeft + nodeIndexes[0] * self.cellsSize[0],
-                 self.tableTop + nodeIndexes[1] * self.cellsSize[1] ]
+        return [ ControlPanel.Left + nodeIndexes[0] * ControlPanel.CellsSize[0],
+                 ControlPanel.Top + nodeIndexes[1] * ControlPanel.CellsSize[1] ]
 
     def drawPoints(self, qp):
         """ 
@@ -570,9 +585,9 @@ class MainWindow(QWidget):
         """
         brush = QBrush(collor)
         qp.setBrush(brush)
-        left = centerPosition[0] - self.cellsSize[0]
-        top = centerPosition[1] - self.cellsSize[1]
-        qp.drawRect(left, top, self.cellsSize[0], self.cellsSize[1])
+        left = centerPosition[0] - ControlPanel.CellsSize[0]
+        top = centerPosition[1] - ControlPanel.CellsSize[1]
+        qp.drawRect(left, top, ControlPanel.CellsSize[0], ControlPanel.CellsSize[1])
 
 
     def drawImg(self, qp, centerPosition, imgPath = ImagesPaths.STOP):
@@ -580,7 +595,7 @@ class MainWindow(QWidget):
         @brief Draw a sign
         @note it uses real window coordinates 
         """
-        halfCellsSizes = [self.cellsSize[0]/2, self.cellsSize[1]/2]
+        halfCellsSizes = [ControlPanel.CellsSize[0]/2, ControlPanel.CellsSize[1]/2]
         left = centerPosition[0] - halfCellsSizes[0]
         top = centerPosition[1] - halfCellsSizes[1]
         img = QImage(imgPath).scaled(QSize(halfCellsSizes[0], halfCellsSizes[1]))
@@ -597,23 +612,24 @@ class MainWindow(QWidget):
         windowWidth = self.frameGeometry().width()
         windowHeight = self.frameGeometry().height()
 
-        self.tableRight = int(0.70 * windowWidth)
-        self.tableLeft = int(0.05 * windowWidth)
-        self.tableBot = int(0.9 * windowHeight)
-        self.tableTop = int(0.05 * windowHeight)
+        ControlPanel.Right = int(0.70 * windowWidth)
+        ControlPanel.Left = int(0.05 * windowWidth)
+        ControlPanel.Bot = int(0.9 * windowHeight)
+        ControlPanel.Top = int(0.05 * windowHeight)
 
         # It is important that table sizes must divided on cell size (or 
         # amount) without remainder
-        self.tableLeft = self.tableLeft - ((self.tableLeft - self.tableRight) % Map.CELLS_AMOUNT[0])
-        self.tableTop = self.tableTop - ((self.tableTop - self.tableBot) % Map.CELLS_AMOUNT[1])
+        ControlPanel.Left = ControlPanel.Left - ((ControlPanel.Left - ControlPanel.Right) % Map.CELLS_AMOUNT[0])
+        ControlPanel.Top = ControlPanel.Top - ((ControlPanel.Top - ControlPanel.Bot) % Map.CELLS_AMOUNT[1])
 
-        self.tableWidth = self.tableRight - self.tableLeft
-        self.tableHeight = self.tableBot - self.tableTop
-        self.cellsSize = [ int(self.tableWidth/Map.CELLS_AMOUNT[0]), int(self.tableHeight/Map.CELLS_AMOUNT[1]) ]
+        self.tableWidth = ControlPanel.Right - ControlPanel.Left
+        self.tableHeight = ControlPanel.Bot - ControlPanel.Top
+        ControlPanel.CellsSize = [ int(self.tableWidth/Map.CELLS_AMOUNT[0]), 
+                                   int(self.tableHeight/Map.CELLS_AMOUNT[1]) ]
 
-        for row in range(self.tableTop, self.tableBot + 1, self.cellsSize[1]):
-            qp.drawLine(self.tableLeft, row, self.tableRight, row)
-        for col in range(self.tableLeft, self.tableRight + 1, self.cellsSize[0]):
-            qp.drawLine(col, self.tableTop, col, self.tableBot)
+        for row in range(ControlPanel.Top, ControlPanel.Bot + 1, ControlPanel.CellsSize[1]):
+            qp.drawLine(ControlPanel.Left, row, ControlPanel.Right, row)
+        for col in range(ControlPanel.Left, ControlPanel.Right + 1, ControlPanel.CellsSize[0]):
+            qp.drawLine(col, ControlPanel.Top, col, ControlPanel.Bot)
 
 
