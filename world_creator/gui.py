@@ -98,144 +98,185 @@ class SignChoiceDialog(QDialog):
         self.mainWindow.update()
 
 
+class AbstactFeature():
+    def __init__(self, button):
+        self.button = button
+        #button.pressed.connect(self.processPressingButton)
+    def processPressingButton(self):
+        print("processPressingButton nothing")
+    def processMouseEvent(self):
+        print("processMouseEvent nothing")
+    def draw(self):
+        print("draw nothing")
+
+
+class StartPosition(AbstactFeature):
+    def __init__(self, button):
+        super().__init__(button)
+        self.start = None
+
+
+class Map:
+    """
+    Static class with map settings
+    """
+    @staticmethod
+    def Init(mapSize):
+        Map.SIZE = mapSize
+        Map.CELLS_SIZE_IN_METERS = [2, 2]
+        Map.CELLS_AMOUNT = [ int(Map.SIZE[0]/Map.CELLS_SIZE_IN_METERS[0]), 
+                              int(Map.SIZE[1]/Map.CELLS_SIZE_IN_METERS[1]) ]
+
+
+class ControlPanel():
+    @staticmethod
+    def Init(window):
+        ControlPanel.mode = Mode.NO_MODE
+        ControlPanel.window = window
+
+        window.layout = QGridLayout()
+        window.setLayout(window.layout)
+        label = QLabel(' ', window)
+        window.layout.addWidget(label, 0, 0)
+        window.layout.setSpacing(1)
+
+        ControlPanel.buttons = list()
+
+        ControlPanel.buttons.append(ControlPanel.createButton('1. Choose map size'))
+        ControlPanel.buttons[0].pressed.connect(window.chooseMapSizeCallback)
+        ControlPanel.buttons[0].setEnabled(False)
+        window.layout.addWidget(ControlPanel.buttons[0], 1, 1)
+
+        ControlPanel.buttons.append(ControlPanel.createButton('2. Choose cells size'))
+        ControlPanel.buttons[1].pressed.connect(window.chooseCellsSizeCallback)
+        ControlPanel.buttons[1].setEnabled(False)
+        window.layout.addWidget(ControlPanel.buttons[1], 2, 1)
+
+        ControlPanel.buttons.append(ControlPanel.createButton('3. Choose start pose'))
+        ControlPanel.buttons[2].pressed.connect(window.chooseStartPoseCallback)
+        window.layout.addWidget(ControlPanel.buttons[2], 3, 1)
+
+        ControlPanel.buttons.append(ControlPanel.createButton('4. Choose end pose'))
+        ControlPanel.buttons[3].pressed.connect(window.chooseEndPoseCallback)
+        ControlPanel.buttons[3].setEnabled(False)
+        window.layout.addWidget(ControlPanel.buttons[3], 4, 1)
+
+        ControlPanel.buttons.append(ControlPanel.createButton('5. Create boxes'))
+        ControlPanel.buttons[4].pressed.connect(window.createBoxesCallback)
+        ControlPanel.buttons[4].setEnabled(False)
+        window.layout.addWidget(ControlPanel.buttons[4], 5, 1)
+
+        ControlPanel.buttons.append(ControlPanel.createButton('6. Create walls'))
+        ControlPanel.buttons[5].pressed.connect(window.createWallsCallback)
+        window.layout.addWidget(ControlPanel.buttons[5], 6, 1)
+
+        ControlPanel.buttons.append(ControlPanel.createButton('7. Delete walls'))
+        ControlPanel.buttons[6].pressed.connect(window.deleteWallsCallback)
+        window.layout.addWidget(ControlPanel.buttons[6], 7, 1)
+
+        ControlPanel.buttons.append(ControlPanel.createButton('8. Create signs'))
+        ControlPanel.buttons[7].pressed.connect(window.createSignsCallback)
+        window.layout.addWidget(ControlPanel.buttons[7], 8, 1)
+
+        ControlPanel.buttons.append(ControlPanel.createButton('9. Create lights'))
+        ControlPanel.buttons[8].pressed.connect(window.createLightsCallback)
+        ControlPanel.buttons[8].setEnabled(False)
+        window.layout.addWidget(ControlPanel.buttons[8], 9, 1)
+
+        ControlPanel.buttons.append(ControlPanel.createButton('Load json'))
+        ControlPanel.buttons[9].pressed.connect(window.loadJsonCallback)
+        window.layout.addWidget(ControlPanel.buttons[9], 11, 1)
+
+        ControlPanel.buttons.append(ControlPanel.createButton('Generate json'))
+        ControlPanel.buttons[10].pressed.connect(window.generateJsonCallback)
+        window.layout.addWidget(ControlPanel.buttons[10], 13, 1)
+
+        ControlPanel.buttons.append(ControlPanel.createButton('Create sdf world from json'))
+        ControlPanel.buttons[11].pressed.connect(window.createSdfCallback)
+        window.layout.addWidget(ControlPanel.buttons[11], 14, 1)
+
+        window.layout.addWidget(QLabel('To create the world:', window), 0, 1)
+        window.layout.addWidget(QLabel('Or use these features:', window), 10, 1)
+        window.layout.addWidget(QLabel('Then press buttons below:',window), 12, 1)
+
+    @staticmethod
+    def SetMode(mode):
+        """
+        @brief set mode from class Mode(enum)
+        """
+        try:
+            for i in range(0, 10):
+                ControlPanel.setButtonCollor(ControlPanel.buttons[i], CollorCode.WHITE)
+            ControlPanel.setButtonCollor(ControlPanel.buttons[mode.value], CollorCode.RED)
+            ControlPanel.mode = mode
+        except:
+            print("Error: mode must be Enum")
+
+    @staticmethod
+    def createButton(name):
+        but = QPushButton(name, ControlPanel.window)
+        but.setFixedSize(QSize(200, 25))
+        return but
+
+    @staticmethod
+    def setButtonCollor(but, collor = CollorCode.WHITE):
+        but.setStyleSheet("QPushButton {background-color: #" + \
+                          collor.value + "}")
+
 class MainWindow(QWidget):
 # *************** High level methods which allow create window ***************
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.initUI()
-        self.initMap(18, 18)
-        self.initControlButtons()
+        Map.Init([18, 18])
+        self.initFeatures()
+        ControlPanel.Init(self)
 
     def initUI(self):
         self.setGeometry(300, 300, 710, 320)
         self.setWindowTitle('World creator v.2')
         self.show()
 
-    def initMap(self, map_size_x, map_size_y):
+    def initFeatures(self):
         self.lastClickNumber = 0
         self.pressedFirstNode = None
         self.pressedSecondNode = None
 
-        self.MAP_SIZE = [map_size_x, map_size_y]
-        self.CELLS_SIZE_IN_METERS = [2, 2]
-        self.CELLS_AMOUNT = [ int(self.MAP_SIZE[0]/self.CELLS_SIZE_IN_METERS[0]), 
-                              int(self.MAP_SIZE[1]/self.CELLS_SIZE_IN_METERS[1]) ]
-        self.mode = Mode.NO_MODE
-
-        self.start = None
+        self.startPosition = StartPosition("kek")
         self.end = None
-
-    def initControlButtons(self):
-        self.layout = QGridLayout()
-        self.setLayout(self.layout)
-        label = QLabel(' ', self)
-        self.layout.addWidget(label, 0, 0)
-        self.layout.setSpacing(1)
-
-        self.buttons = list()
-
-        self.buttons.append(self.createButton('1. Choose map size'))
-        self.buttons[0].pressed.connect(self.chooseMapSizeCallback)
-        self.buttons[0].setEnabled(False)
-        self.layout.addWidget(self.buttons[0], 1, 1)
-
-        self.buttons.append(self.createButton('2. Choose cells size'))
-        self.buttons[1].pressed.connect(self.chooseCellsSizeCallback)
-        self.buttons[1].setEnabled(False)
-        self.layout.addWidget(self.buttons[1], 2, 1)
-
-        self.buttons.append(self.createButton('3. Choose start pose'))
-        self.buttons[2].pressed.connect(self.chooseStartPoseCallback)
-        self.layout.addWidget(self.buttons[2], 3, 1)
-
-        self.buttons.append(self.createButton('4. Choose end pose'))
-        self.buttons[3].pressed.connect(self.chooseEndPoseCallback)
-        self.buttons[3].setEnabled(False)
-        self.layout.addWidget(self.buttons[3], 4, 1)
-
-        self.buttons.append(self.createButton('5. Create boxes'))
-        self.buttons[4].pressed.connect(self.createBoxesCallback)
-        self.buttons[4].setEnabled(False)
-        self.layout.addWidget(self.buttons[4], 5, 1)
-
-        self.buttons.append(self.createButton('6. Create walls'))
-        self.buttons[5].pressed.connect(self.createWallsCallback)
-        self.layout.addWidget(self.buttons[5], 6, 1)
-
-        self.buttons.append(self.createButton('7. Delete walls'))
-        self.buttons[6].pressed.connect(self.deleteWallsCallback)
-        self.layout.addWidget(self.buttons[6], 7, 1)
-
-        self.buttons.append(self.createButton('8. Create signs'))
-        self.buttons[7].pressed.connect(self.createSignsCallback)
-        self.layout.addWidget(self.buttons[7], 8, 1)
-
-        self.buttons.append(self.createButton('9. Create lights'))
-        self.buttons[8].pressed.connect(self.createLightsCallback)
-        self.buttons[8].setEnabled(False)
-        self.layout.addWidget(self.buttons[8], 9, 1)
-
-        self.buttons.append(self.createButton('Load json'))
-        self.buttons[9].pressed.connect(self.loadJsonCallback)
-        self.layout.addWidget(self.buttons[9], 11, 1)
-
-        self.buttons.append(self.createButton('Generate json'))
-        self.buttons[10].pressed.connect(self.generateJsonCallback)
-        self.layout.addWidget(self.buttons[10], 13, 1)
-
-        self.buttons.append(self.createButton('Create sdf world from json'))
-        self.buttons[11].pressed.connect(self.createSdfCallback)
-        self.layout.addWidget(self.buttons[11], 14, 1)
-
-        self.layout.addWidget(QLabel('To create the world:', self), 0, 1)
-        self.layout.addWidget(QLabel('Or use these features:', self), 10, 1)
-        self.layout.addWidget(QLabel('Then press buttons below:',self), 12, 1)
-
-    def createButton(self, name):
-        but = QPushButton(name, self)
-        but.setFixedSize(QSize(200, 25))
-        return but
-    def setButtonCollor(self, but, collor = CollorCode.WHITE):
-        but.setStyleSheet("QPushButton {background-color: #" + \
-                          collor.value + "}")
 
 # ************** Control methods which allow to choose mode ******************
     def chooseMapSizeCallback(self):
-        print(self.buttons[0].text())
+        pass
     def chooseCellsSizeCallback(self):
-        print(self.buttons[1].text())
+        pass
     def chooseStartPoseCallback(self):
-        print(self.buttons[Mode.CHOOSE_START_POSITION.value].text())
-        self.setMode(Mode.CHOOSE_START_POSITION)
+        ControlPanel.SetMode(Mode.CHOOSE_START_POSITION)
     def chooseEndPoseCallback(self):
-        print(self.buttons[3].text())
+        pass
     def createBoxesCallback(self):
-        print(self.buttons[4].text())
+        pass
     def createWallsCallback(self):
-        print(self.buttons[Mode.CREATE_WALLS.value].text())
-        self.setMode(Mode.CREATE_WALLS)
+        ControlPanel.SetMode(Mode.CREATE_WALLS)
     def deleteWallsCallback(self):
-        print(self.buttons[Mode.DELETE_WALLS.value].text())
-        self.setMode(Mode.DELETE_WALLS)
+        ControlPanel.SetMode(Mode.DELETE_WALLS)
     def createSignsCallback(self):
-        print(self.buttons[7].text())
-        self.setMode(Mode.CREATE_SIGNS)
+        ControlPanel.SetMode(Mode.CREATE_SIGNS)
     def createLightsCallback(self):
-        print(self.buttons[8].text())
+        pass
     def loadJsonCallback(self):
         global Walls, Signs
-        print(self.buttons[9].text())
         FILE_TYPES = "Json Files (*.json)"
         filePath = QFileDialog.getOpenFileName(self, "", "", FILE_TYPES)[0]
         objects = load_frontend_from_json(filePath)
-        self.start = objects[0]
+        self.startPosition.start = objects[0]
         finish = objects[1]
         size = objects[2]
         boxes = objects[3]
         Walls = objects[4]
         Signs = objects[5]
         print("Loaded from json:")
-        print("start: ", self.start)
+        print("start: ", self.startPosition.start)
         print("finish: ", finish)
         print("size: ", size)
         print("boxes: ", boxes)
@@ -243,40 +284,27 @@ class MainWindow(QWidget):
         print("Signs: ", Signs)
         self.update()
     def generateJsonCallback(self):
-        print(self.buttons[10].text())
-        if self.start is not None:
-            create_json_from_gui(self.start, self.MAP_SIZE, None, Walls, Signs)
+        if self.startPosition.start is not None:
+            create_json_from_gui(self.startPosition.start, Map.SIZE, None, Walls, Signs)
             print("generate json:")
-            print("start: ", self.start)
+            print("start: ", self.startPosition.start)
             print("finish: ", " ")
-            print("size: ", self.MAP_SIZE)
+            print("size: ", Map.SIZE)
             print("boxes: ", " ")
             print("Walls: ", Walls)
             print("Signs: ", Signs)
         else:
             print("Warning: firstly, you should set start position.")
     def createSdfCallback(self):
-        print(self.buttons[11].text())
         create_sdf_from_json()
-    def setMode(self, mode):
-        """
-        @brief set mode from class Mode(enum)
-        """
-        try:
-            for i in range(0, 10):
-                self.setButtonCollor(self.buttons[i], CollorCode.WHITE)
-            self.setButtonCollor(self.buttons[mode.value], CollorCode.RED)
-            self.mode = mode
-        except:
-            print("Error: mode must be Enum")
 
 # ************ Methods which allow to create and delete walls ****************
     def mousePressEvent(self, e):
         pos = e.pos()
-        if self.mode is Mode.CHOOSE_START_POSITION:
-            self.start = self.calculateCellIndexes(pos.x(), pos.y())
-            print("start pose was setted using mouse: " + str(self.start))
-        elif self.mode is Mode.CREATE_WALLS:
+        if ControlPanel.mode is Mode.CHOOSE_START_POSITION:
+            self.startPosition.start = self.calculateCellIndexes(pos.x(), pos.y())
+            print("start pose was setted using mouse: " + str(self.startPosition.start))
+        elif ControlPanel.mode is Mode.CREATE_WALLS:
             pos = self.calculateNodeIndexes(pos.x(), pos.y())
             if self.lastClickNumber is 1:
                 self.lastClickNumber = 2
@@ -285,10 +313,10 @@ class MainWindow(QWidget):
             else:
                 self.lastClickNumber = 1
                 self.pressedFirstNode = pos
-        elif self.mode is Mode.DELETE_WALLS:
+        elif ControlPanel.mode is Mode.DELETE_WALLS:
             pos = self.calculateEdgeIndexes(pos.x(), pos.y())
             self.deleteWall(pos)
-        elif self.mode is Mode.CREATE_SIGNS:
+        elif ControlPanel.mode is Mode.CREATE_SIGNS:
             pos = self.calculatePositionIndexes(pos.x(), pos.y())
             self.signChoiceDialog = SignChoiceDialog(self, pos)
         else:
@@ -359,13 +387,13 @@ class MainWindow(QWidget):
     def isThisWallPoint(self, nodesIndexes):
         return nodesIndexes[0] == nodesIndexes[1]
     def isWallOutOfRange(self, nodesIndexes):
-        return  nodesIndexes[0][0] > self.CELLS_AMOUNT[0] or \
+        return  nodesIndexes[0][0] > Map.CELLS_AMOUNT[0] or \
                 nodesIndexes[0][0] < 0 or \
-                nodesIndexes[1][0] > self.CELLS_AMOUNT[0] or \
+                nodesIndexes[1][0] > Map.CELLS_AMOUNT[0] or \
                 nodesIndexes[1][0] < 0 or \
-                nodesIndexes[0][1] > self.CELLS_AMOUNT[1] or \
+                nodesIndexes[0][1] > Map.CELLS_AMOUNT[1] or \
                 nodesIndexes[0][1] < 0 or \
-                nodesIndexes[1][1] > self.CELLS_AMOUNT[1] or \
+                nodesIndexes[1][1] > Map.CELLS_AMOUNT[1] or \
                 nodesIndexes[1][1] < 0
     def isThisWallDiagonal(self, nodesIndexes):
         return ((self.isThisWallVertical(nodesIndexes) is False) and \
@@ -384,8 +412,8 @@ class MainWindow(QWidget):
         for wall in Walls:
             self.drawWall(qp, wall[0], wall[1])
         self.drawTable(qp)
-        if self.start is not None:
-            self.drawBox(qp, self.start)
+        if self.startPosition.start is not None:
+            self.drawBox(qp, self.startPosition.start)
         for sign in Signs:
             self.drawSign(qp, sign[0], sign[1])
 
@@ -395,7 +423,7 @@ class MainWindow(QWidget):
     def drawBox(self, qp, cellIndexes):
         """
         @brief Draw box on table
-        @param cellIndexes - x and y indexes from 0 to CELLS_AMOUNT - 1
+        @param cellIndexes - x and y indexes from 0 to Map.CELLS_AMOUNT - 1
         """
         centerPos = self.calculateRealPositionByCellIndexes(cellIndexes)
         self.drawRectangle(qp, centerPos, self.cellsSize)
@@ -404,8 +432,8 @@ class MainWindow(QWidget):
     def drawWall(self, qp, indexesOfNode1, indexesOfNode2):
         """
         @brief Draw wall on table
-        @param indexesOfNode1 - x and y indexes from 0 to CELLS_AMOUNT - 1
-        @param indexesOfNode2 - x and y indexes from 0 to CELLS_AMOUNT - 1
+        @param indexesOfNode1 - x and y indexes from 0 to Map.CELLS_AMOUNT - 1
+        @param indexesOfNode2 - x and y indexes from 0 to Map.CELLS_AMOUNT - 1
         """
         posOfNode1 = self.calculateRealPositionByNodeIndexes(indexesOfNode1)
         posOfNode2 = self.calculateRealPositionByNodeIndexes(indexesOfNode2)
@@ -415,7 +443,7 @@ class MainWindow(QWidget):
     def drawSign(self, qp, poseIndexes, imgPath):
         """
         @brief Draw sign on table
-        @param indexesOfNode1 - x and y indexes from 0 to CELLS_AMOUNT - 1
+        @param indexesOfNode1 - x and y indexes from 0 to Map.CELLS_AMOUNT - 1
         """
         centerPos = self.calculateRealPositionByPoseIndexes(poseIndexes)
         self.drawImg(qp, centerPos, imgPath)
@@ -431,7 +459,7 @@ class MainWindow(QWidget):
 
         for axe in range(0, 2):
             node[axe] = int(tablePose[axe] / self.cellsSize[axe])
-            if node[axe] > (self.CELLS_AMOUNT[axe] + 1) or (node[axe] < 0):
+            if node[axe] > (Map.CELLS_AMOUNT[axe] + 1) or (node[axe] < 0):
                 return None
         return node
 
@@ -483,7 +511,7 @@ class MainWindow(QWidget):
         pose = [int()] * 2
 
         for axe in range(0, 2):
-            meterSize = self.cellsSize[axe] / self.CELLS_SIZE_IN_METERS[axe]
+            meterSize = self.cellsSize[axe] / Map.CELLS_SIZE_IN_METERS[axe]
             pose[axe] = int(tablePose[axe] / meterSize)
             # Line below is needed because of unexpected work of division of
             # negative nubmers  
@@ -576,12 +604,12 @@ class MainWindow(QWidget):
 
         # It is important that table sizes must divided on cell size (or 
         # amount) without remainder
-        self.tableLeft = self.tableLeft - ((self.tableLeft - self.tableRight) % self.CELLS_AMOUNT[0])
-        self.tableTop = self.tableTop - ((self.tableTop - self.tableBot) % self.CELLS_AMOUNT[1])
+        self.tableLeft = self.tableLeft - ((self.tableLeft - self.tableRight) % Map.CELLS_AMOUNT[0])
+        self.tableTop = self.tableTop - ((self.tableTop - self.tableBot) % Map.CELLS_AMOUNT[1])
 
         self.tableWidth = self.tableRight - self.tableLeft
         self.tableHeight = self.tableBot - self.tableTop
-        self.cellsSize = [ int(self.tableWidth/self.CELLS_AMOUNT[0]), int(self.tableHeight/self.CELLS_AMOUNT[1]) ]
+        self.cellsSize = [ int(self.tableWidth/Map.CELLS_AMOUNT[0]), int(self.tableHeight/Map.CELLS_AMOUNT[1]) ]
 
         for row in range(self.tableTop, self.tableBot + 1, self.cellsSize[1]):
             qp.drawLine(self.tableLeft, row, self.tableRight, row)
