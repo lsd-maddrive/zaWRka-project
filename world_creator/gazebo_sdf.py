@@ -24,6 +24,11 @@ WALL_HEGHT = float(0.5)
 WALL_SPAWN_Z = float(0.25)
 CELL_SIZE = [int(2), int(2)]
 
+SIGN_LEFT_OFFSET = 0.15
+SIGN_RIGHT_OFFSET = 0.85
+SIGN_BOT_OFFSET = 0.15
+SIGN_TOP_OFFSET = 0.85
+
 # Files pathes
 # For correct use, you should run export GAZEBO_RESOURCE_PATH=path/to/media
 SIGN_PATH = "media/stop_sign.sdf"
@@ -94,7 +99,7 @@ class SdfCreator:
 
     def addBox(self, cellIndexes):
         """ 
-        @brief Spawn big box with size 2x2 on middle of cell
+        @brief Spawn box with cell size in middle of cell
         @param cellIndexes - index of cell (from 0 to CELLS_AMOUNT - 1)
         """
         boxSize = Point(CELL_SIZE[0], CELL_SIZE[1], WALL_HEGHT)
@@ -157,16 +162,16 @@ class SdfCreator:
         """
         if (position[0] % 2 is 0) and (position[1] % 2 is 0):
             orientation = SignOrientation.LEFT_BOT
-            posOffset = [0.15, 0.15]
+            posOffset = [SIGN_LEFT_OFFSET, SIGN_BOT_OFFSET]
         elif (position[0] % 2 is 1) and (position[1] % 2 is 0):
             orientation = SignOrientation.RIGHT_BOT
-            posOffset = [0.85, 0.15]
+            posOffset = [SIGN_RIGHT_OFFSET, SIGN_BOT_OFFSET]
         elif (position[0] % 2 is 0) and (position[1] % 2 is 1):
             orientation = SignOrientation.LEFT_TOP
-            posOffset = [0.15, 0.85]
+            posOffset = [SIGN_LEFT_OFFSET, SIGN_TOP_OFFSET]
         elif (position[0] % 2 is 1) and (position[1] % 2 is 1):
             orientation = SignOrientation.RIGHT_TOP
-            posOffset = [0.85, 0.85]
+            posOffset = [SIGN_RIGHT_OFFSET, SIGN_TOP_OFFSET]
         print("sign stop with pos:", position, orientation, signImage)
         self.sign_counter += 1
         sign_root = etree.parse(SIGN_PATH).getroot()

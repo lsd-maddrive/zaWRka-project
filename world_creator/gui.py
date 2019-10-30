@@ -36,7 +36,7 @@ class MainWindow(QWidget):
         self.setWindowTitle('World creator v.2')
         self.show()
 
-        Map.Init([18, 18])
+        Map.Init([9, 9], [2, 2])
         self.__features = ControlPanel.Init(self)
 
 
@@ -142,11 +142,11 @@ class Map:
     Static class with map settings
     """
     @staticmethod
-    def Init(mapSize):
-        Map.SIZE = mapSize
-        Map.CELLS_SIZE_IN_METERS = [2, 2]
-        Map.CELLS_AMOUNT = [ int(Map.SIZE[0]/Map.CELLS_SIZE_IN_METERS[0]), 
-                              int(Map.SIZE[1]/Map.CELLS_SIZE_IN_METERS[1]) ]
+    def Init(cellsAmount, cellsSize):
+        Map.CELLS_AMOUNT = cellsAmount
+        Map.CELLS_SIZE_IN_METERS = cellsSize
+        Map.SIZE = [ Map.CELLS_AMOUNT[0] * Map.CELLS_SIZE_IN_METERS[0],
+                     Map.CELLS_AMOUNT[1] * Map.CELLS_SIZE_IN_METERS[1]]
 
 
 
