@@ -172,6 +172,9 @@ class SdfCreator:
         elif (position[0] % 2 is 1) and (position[1] % 2 is 1):
             orientation = SignOrientation.RIGHT_TOP
             posOffset = [SIGN_RIGHT_OFFSET, SIGN_TOP_OFFSET]
+        else:
+            orientation = SignOrientation.RIGHT_TOP
+            posOffset = [SIGN_RIGHT_OFFSET, SIGN_TOP_OFFSET]
         print("sign stop with pos:", position, orientation, signImage)
         self.sign_counter += 1
         sign_root = etree.parse(SIGN_PATH).getroot()

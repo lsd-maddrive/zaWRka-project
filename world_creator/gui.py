@@ -14,7 +14,7 @@ class Mode(Enum):
     MAP_SIZE = int(0)
     CELL_SIZE = int(1)
     START = int(2)
-    END = int(3)
+    FINISH = int(3)
     BOXES = int(4)
     WALLS = int(5)
     SIGNS = int(6)
@@ -35,8 +35,6 @@ class MainWindow(QWidget):
         self.setGeometry(300, 300, 710, 320)
         self.setWindowTitle('World creator v.2')
         self.show()
-
-        Map.Init([9, 9], [2, 2])
         self.__features = ControlPanel.Init(self)
 
 
@@ -144,9 +142,11 @@ class Map:
     @staticmethod
     def Init(cellsAmount, cellsSize):
         Map.CELLS_AMOUNT = cellsAmount
-        Map.CELLS_SIZE_IN_METERS = cellsSize
-        Map.SIZE = [ Map.CELLS_AMOUNT[0] * Map.CELLS_SIZE_IN_METERS[0],
-                     Map.CELLS_AMOUNT[1] * Map.CELLS_SIZE_IN_METERS[1]]
+        Map.CELLS_SIZE = cellsSize
+        Map.SIZE = [ Map.CELLS_AMOUNT[0] * Map.CELLS_SIZE[0],
+                     Map.CELLS_AMOUNT[1] * Map.CELLS_SIZE[1]]
+        print("Init world with cells_amount =", str(Map.CELLS_AMOUNT),
+              "and cells_size =", str(Map.CELLS_SIZE))
 
 
 
@@ -170,14 +170,14 @@ class ControlPanel():
         window.layout.setSpacing(1)
 
         ControlPanel.features = list()
-        ControlPanel.features.append(Feature('1. Choose map size', False))
-        ControlPanel.features.append(Feature('2. Choose cells size', False))
+        ControlPanel.features.append(BaseObject('1. Choose map size', False))
+        ControlPanel.features.append(BaseObject('2. Choose cells size', False))
         ControlPanel.features.append(StartPosition('3. Choose start pose'))
-        ControlPanel.features.append(Feature('4. Choose end pose', False))
-        ControlPanel.features.append(Feature('5. Create boxes', False))
+        ControlPanel.features.append(FinishPosition('4. Choose end pose', False))
+        ControlPanel.features.append(BaseObject('5. Create boxes', False))
         ControlPanel.features.append(Wall('6. Create walls'))
         ControlPanel.features.append(Sign('7. Create signs'))
-        ControlPanel.features.append(Feature('8. Create lights', False))
+        ControlPanel.features.append(BaseObject('8. Create lights', False))
         ControlPanel.features.append(LoadJson('Load json'))
         ControlPanel.features.append(GenerateJson('Generate json'))
         ControlPanel.features.append(CreateSdf('Create sdf world from json'))
@@ -229,8 +229,8 @@ class ControlPanel():
         print("Signs: ", ControlPanel.features[Mode.SIGNS.value].Signs)
 
 
-# ******************************* Features ***********************************
-class Feature():
+# ****************************** BaseObject **********************************
+class BaseObject():
     """ @brief Interface for button features """
     def __init__(self, buttonText, isItEnable=True):
         """ @brief Init button, you shouldn't override this constuctor """
@@ -293,8 +293,8 @@ class Feature():
         tablePose = [point_x - ControlPanel.Left, point_y - ControlPanel.Top]
         pose = [int()] * 2
         for axe in range(0, 2):
-            meterSize = ControlPanel.CellsSize[axe] / Map.CELLS_SIZE_IN_METERS[axe]
-            pose[axe] = int(tablePose[axe] / meterSize)
+            halfCellSize = ControlPanel.CellsSize[axe] / 2
+            pose[axe] = int(tablePose[axe] / halfCellSize)
             # Line below is needed because of division of negative nubmers  
             if tablePose[axe] < 0: pose[axe] -= 1 
         return pose
@@ -316,24 +316,29 @@ class Feature():
 
 
 
-class StartPosition(Feature):
+class StartPosition(BaseObject):
     def _initOtherParameters(self):
         self.start = None
     def processButtonPressing(self):
         ControlPanel.SetMode(Mode.START)
     def processMousePressing(self, e):
-        self.start = Feature._mousePoseToCellIndexes(e.pos().x(), e.pos().y())
+        self.start = BaseObject._mousePoseToCellIndexes(e.pos().x(), e.pos().y())
         print("start pose was setted using mouse: " + str(self.start))
     def processPaint(self, qp):
         if self.start is not None:
             self.__draw(qp, self.start)
     @staticmethod
     def __draw(qp, cellIndexes):
-        centerPos = Feature._cellIndexesToMousePose(cellIndexes)
+        centerPos = BaseObject._cellIndexesToMousePose(cellIndexes)
         MainWindow.drawRectangle(qp, centerPos, ControlPanel.CellsSize)
 
 
-class Wall(Feature):
+class FinishPosition(BaseObject):
+    def _initOtherParameters(self):
+        self.finish = [0, 0]
+
+
+class Wall(BaseObject):
     def _initOtherParameters(self):
         self.__lastClickNumber = 0
         self.__pressedFirstNode = None
@@ -344,7 +349,7 @@ class Wall(Feature):
     def processMousePressing(self, e):
         pos = e.pos()
         if(e.button() == 1):
-            pos = Feature._mousePoseToNodeIndexes(pos.x(), pos.y())
+            pos = BaseObject._mousePoseToNodeIndexes(pos.x(), pos.y())
             if self.__lastClickNumber is 1:
                 self.__lastClickNumber = 2
                 self.__pressedSecondNode = pos
@@ -353,7 +358,7 @@ class Wall(Feature):
                 self.__lastClickNumber = 1
                 self.__pressedFirstNode = pos
         else:
-            pos = Feature._mousePoseToEdgeIndexes(pos.x(), pos.y())
+            pos = BaseObject._mousePoseToEdgeIndexes(pos.x(), pos.y())
             self.__deleteWall(pos)
             self.__lastClickNumber = 0
     def processPaint(self, qp):
@@ -361,7 +366,7 @@ class Wall(Feature):
             Wall.__draw(qp, wall[0], wall[1])
     def __addWall(self, nodesIndexes):
         if self.__isWallPossible(nodesIndexes) is True:
-            print("Wall was added: " + str(nodesIndexes))
+            print("Add object: wall with pose " + str(nodesIndexes))
             self.Walls.append(nodesIndexes)
     def __isWallPossible(self, nodesIndexes):
         if self.__isWallOutOfRange(nodesIndexes) is True:
@@ -397,7 +402,7 @@ class Wall(Feature):
     def __isThereConflictBetweenWalls(self, nodesIndexes):
         return False
     def __deleteWall(self, pos):
-        print("wall with pose: ", pos)
+        print("Delete object: wall with pose", pos)
         try:
             isVerticalFound = False
             isHorizontalFound = False
@@ -423,25 +428,25 @@ class Wall(Feature):
             print("Warning: it's not wall")
     @staticmethod
     def __draw(qp, indexesOfNode1, indexesOfNode2):
-        posOfNode1 = Feature._nodeIndexesToMousePose(indexesOfNode1)
-        posOfNode2 = Feature._nodeIndexesToMousePose(indexesOfNode2)
+        posOfNode1 = BaseObject._nodeIndexesToMousePose(indexesOfNode1)
+        posOfNode2 = BaseObject._nodeIndexesToMousePose(indexesOfNode2)
         MainWindow.drawLine(qp, posOfNode1, posOfNode2)
 
 
-class Sign(Feature):
+class Sign(BaseObject):
     def _initOtherParameters(self):
         self.Signs = list()
     def processButtonPressing(self):
         ControlPanel.SetMode(Mode.SIGNS)
     def processMousePressing(self, e):
-        pos = Feature._mousePoseToPositionIndexes(e.pos().x(), e.pos().y())
+        pos = BaseObject._mousePoseToPositionIndexes(e.pos().x(), e.pos().y())
         self.signChoiceDialog = SignChoiceDialog(pos)
     def processPaint(self, qp):
         for sign in self.Signs:
             Sign.__draw(qp, sign[0], sign[1])
     @staticmethod
     def __draw(qp, poseIndexes, imgPath):
-        centerPos = Feature._positionIndexesToMousePose(poseIndexes)
+        centerPos = BaseObject._positionIndexesToMousePose(poseIndexes)
         MainWindow.drawImg(qp, centerPos, imgPath)
 
 class SignChoiceDialog(QDialog):
@@ -479,20 +484,20 @@ class SignChoiceDialog(QDialog):
         self.__dialog.setLayout(layout)
         self.__dialog.show()
     def __addSign(self, poseIndexes, signImg):
-        print("Sign {1} was added in {0}.".format(poseIndexes, signImg))
+        print("Add object: sign {1} with pose {0}.".format(poseIndexes, signImg))
         self.__signs.append([poseIndexes, signImg])
         self.__dialog.close()
         self.__window.update()
     def __deleteSign(self, poseIndexes):
         for sign in self.__signs:
             if sign[0] == poseIndexes:
-                print("Sign was deleted: " + str(poseIndexes))
+                print("Delete object: sign with pose" + str(poseIndexes))
                 self.__signs.remove(sign)
         self.__dialog.close()
         self.__window.update()
 
 
-class LoadJson(Feature):
+class LoadJson(BaseObject):
     def processButtonPressing(self):
         FILE_TYPES = "Json Files (*.json)"
         filePath = QFileDialog.getOpenFileName(ControlPanel.window, "", "", FILE_TYPES)[0]
@@ -503,24 +508,26 @@ class LoadJson(Feature):
         boxes = objects[3]
         ControlPanel.features[Mode.WALLS.value].Walls = objects[4]
         ControlPanel.features[Mode.SIGNS.value].Signs = objects[5]
-        print("Load json:")
+        print("\nLoad json:")
         ControlPanel.PrintObjects()
         ControlPanel.window.update()
 
 
-class GenerateJson(Feature):
+class GenerateJson(BaseObject):
     def processButtonPressing(self):
         start = ControlPanel.features[Mode.START.value].start
+        finish = ControlPanel.features[Mode.FINISH.value].finish
         self.__walls = ControlPanel.features[Mode.WALLS.value].Walls
         self.__signs = ControlPanel.features[Mode.SIGNS.value].Signs
         if start is not None:
-            create_json_from_gui(start, Map.SIZE, None, self.__walls, self.__signs)
-            print("Generate json:")
+            create_json_from_gui(start, finish, Map.CELLS_AMOUNT, Map.CELLS_SIZE, 
+                                 Map.SIZE, None, self.__walls, self.__signs)
+            print("\nGenerate json:")
             ControlPanel.PrintObjects()
         else:
             print("Warning: firstly, you should set start position.")
 
 
-class CreateSdf(Feature):
+class CreateSdf(BaseObject):
     def processButtonPressing(self):
         create_sdf_from_json()

@@ -8,6 +8,8 @@ This script containts json contants
 class JsonNames:
     START = "start"
     FINISH = "finish"
+    CELLS_AMOUNT = "cells amount"
+    CELLS_SIZE = "cells size"
     SIZE = "size"
     OBJECTS = "objects"
     NAME = "name"

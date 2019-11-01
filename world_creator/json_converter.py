@@ -40,24 +40,41 @@ Json data:
 6.  signs       [meters, type]      list([x, y], type)
 """
 
+# Global variables:
+CellsSize = [float(2), float(2)]
+
 
 # Wall position transformation:
 def __map_pose_to_node_indexes(mapPose):
-    return list([ int(mapPose[0] / 2), int(mapPose[1] / 2) ])
+    return list([ int(mapPose[0] / CellsSize[0]), 
+                  int(mapPose[1] / CellsSize[1]) ])
 def __node_indexes_to_map_pose(nodeIndexes):
-    return list([ nodeIndexes[0] * 2, nodeIndexes[1] * 2 ])
+    return list([ nodeIndexes[0] * CellsSize[0], 
+                  nodeIndexes[1] * CellsSize[1] ])
 
 # Start/End pose transformation:
 def __map_pose_to_cell_indexes(mapPose):
-    return list([ int((mapPose[0] - 1) / 2), int((mapPose[1] - 1) / 2) ])
+    return list([ int((mapPose[0] - 1) / CellsSize[0]), 
+                  int((mapPose[1] - 1) / CellsSize[1]) ])
 def __cell_indexes_to_map_pose(cellIndexes):
-    return list([ cellIndexes[0] * 2 + 1, cellIndexes[1] * 2 + 1 ])
+    return list([ cellIndexes[0] * CellsSize[0] + 1, 
+                  cellIndexes[1] * CellsSize[1] + 1 ])
 
+# Sign transformation:
+def __map_pose_to_half_cell_indexes(mapPose):
+    return list([ int((mapPose[0] - 1) / CellsSize[0] * 2), 
+                  int((mapPose[1] - 1) / CellsSize[1]) * 2])
+def __half_cell_indexes_to_map_pose(cellIndexes):
+    return list([ cellIndexes[0] * CellsSize[0] / 2 + 1, 
+                  cellIndexes[1] * CellsSize[1] / 2 + 1 ])
 
-def create_json_from_gui(start, size, boxes, walls, signs):
+def create_json_from_gui(start, finish, cellsAmount, cellsSize, mapSize,
+                         boxes, walls, signs):
     """ 
     Create json file using frontend data
     """
+    global CellsSize
+    CellsSize = cellsSize
     write_file = open(JSON_DEFAULT_NAME, "w")
     objects = list()
     for wall in walls:
@@ -67,12 +84,14 @@ def create_json_from_gui(start, size, boxes, walls, signs):
         objects.append(wall)
     for sign in signs:
         sign = dict([ (JsonNames.NAME, JsonNames.SIGN), 
-                      (JsonNames.POSITION, sign[0]),
+                      (JsonNames.POSITION, __half_cell_indexes_to_map_pose(sign[0])),
                       (JsonNames.SIGN_TYPE, sign_path_to_sign_type(sign[1])) ])
         objects.append(sign)
     data = dict([(JsonNames.START, __cell_indexes_to_map_pose(start)),
-                 (JsonNames.FINISH, [0, 0]),
-                 (JsonNames.SIZE, size),
+                 (JsonNames.FINISH, __cell_indexes_to_map_pose(finish)),
+                 (JsonNames.CELLS_AMOUNT, cellsAmount),
+                 (JsonNames.CELLS_SIZE, cellsSize),
+                 (JsonNames.SIZE, mapSize),
                  (JsonNames.OBJECTS, objects)])
     json.dump(data, write_file, indent=2)
 
@@ -108,7 +127,8 @@ def load_frontend_from_json(fileName = JSON_DEFAULT_NAME):
     """
     read_file = open(fileName, "r")
     data = json.load(read_file)
-
+    global CellsSize
+    CellsSize = data.get(JsonNames.CELLS_SIZE)
     boxes = list()
     walls = list()
     signs = list()
@@ -121,7 +141,7 @@ def load_frontend_from_json(fileName = JSON_DEFAULT_NAME):
             p2 = __map_pose_to_node_indexes(obj.get(JsonNames.POINT_2))
             walls.append([p1, p2])
         elif obj.get(JsonNames.NAME) == JsonNames.SIGN:
-            position = obj.get(JsonNames.POSITION)
+            position = __map_pose_to_half_cell_indexes(obj.get(JsonNames.POSITION))
             signPath = sign_type_to_sign_path(obj.get(JsonNames.SIGN_TYPE))
             signs.append([position, signPath])
 
