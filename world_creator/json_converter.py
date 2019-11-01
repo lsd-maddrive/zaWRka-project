@@ -62,11 +62,11 @@ def __cell_indexes_to_map_pose(cellIndexes):
 
 # Sign transformation:
 def __map_pose_to_half_cell_indexes(mapPose):
-    return list([ int((mapPose[0] - 1) / CellsSize[0] * 2), 
-                  int((mapPose[1] - 1) / CellsSize[1]) * 2])
+    return list([ (mapPose[0] - CellsSize[0]/4) / CellsSize[0] * 2, 
+                  (mapPose[1] - CellsSize[1]/4) / CellsSize[1] * 2 ])
 def __half_cell_indexes_to_map_pose(cellIndexes):
-    return list([ cellIndexes[0] * CellsSize[0] / 2 + 1, 
-                  cellIndexes[1] * CellsSize[1] / 2 + 1 ])
+    return list([ CellsSize[0]/4 + cellIndexes[0]*CellsSize[0]/2, 
+                  CellsSize[1]/4 + cellIndexes[1]*CellsSize[1]/2 ])
 
 def create_json_from_gui(start, finish, cellsAmount, cellsSize, mapSize,
                          boxes, walls, signs):
@@ -105,6 +105,8 @@ def create_sdf_from_json(jsonFileName=JSON_DEFAULT_NAME, sdfFileName=SDF_DEFAULT
 
     sdfCreator = SdfCreator(data.get(JsonNames.START),
                             data.get(JsonNames.FINISH),
+                            data.get(JsonNames.CELLS_AMOUNT),
+                            data.get(JsonNames.CELLS_SIZE),
                             data.get(JsonNames.SIZE))
     for obj in data.get(JsonNames.OBJECTS):
         if obj.get(JsonNames.NAME) == JsonNames.BOX:

@@ -22,12 +22,6 @@ class SignOrientation(Enum):
 WALL_WIDTH = float(0.01)
 WALL_HEGHT = float(0.5)
 WALL_SPAWN_Z = float(0.25)
-CELL_SIZE = [int(2), int(2)]
-
-SIGN_LEFT_OFFSET = 0.15
-SIGN_RIGHT_OFFSET = 0.85
-SIGN_BOT_OFFSET = 0.15
-SIGN_TOP_OFFSET = 0.85
 
 # Files pathes
 # For correct use, you should run export GAZEBO_RESOURCE_PATH=path/to/media
@@ -46,11 +40,11 @@ class SignsImages(Enum):
 
 
 class SdfCreator:
-    def __init__(self, start, finish, size):
+    def __init__(self, start, finish, cellsAmount, cellsSize, mapSize):
         """ 
         @brief Constructor that create empty world with defined config 
         """
-        self.__setConfig(start, finish, size)
+        self.__setConfig(start, finish, cellsAmount, cellsSize, mapSize)
         self.__create_empty_world()
 
 
@@ -102,7 +96,7 @@ class SdfCreator:
         @brief Spawn box with cell size in middle of cell
         @param cellIndexes - index of cell (from 0 to CELLS_AMOUNT - 1)
         """
-        boxSize = Point(CELL_SIZE[0], CELL_SIZE[1], WALL_HEGHT)
+        boxSize = Point(self.CELLS_SIZE[0], self.CELLS_SIZE[1], WALL_HEGHT)
         pose_x = cellIndexes[0] * boxSize.x + boxSize.x / 2
         pose_y = cellIndexes[1] * boxSize.y + boxSize.y / 2
         self.__spawnBox(Point(pose_x, pose_y, WALL_HEGHT), boxSize)
@@ -160,26 +154,23 @@ class SdfCreator:
         @param signImage - object of SignsImages class
         @note You can spawn it in 4 variants (see SignOrientation)
         """
-        if (position[0] % 2 is 0) and (position[1] % 2 is 0):
+        if (position[0] % self.CELLS_SIZE[0] <= self.CELLS_SIZE[0]/2) and \
+           (position[1] % self.CELLS_SIZE[1] <= self.CELLS_SIZE[1]/2):
             orientation = SignOrientation.LEFT_BOT
-            posOffset = [SIGN_LEFT_OFFSET, SIGN_BOT_OFFSET]
-        elif (position[0] % 2 is 1) and (position[1] % 2 is 0):
+        elif (position[0] % self.CELLS_SIZE[0] >= self.CELLS_SIZE[0]/2) and \
+             (position[1] % self.CELLS_SIZE[1] <= self.CELLS_SIZE[1]/2):
             orientation = SignOrientation.RIGHT_BOT
-            posOffset = [SIGN_RIGHT_OFFSET, SIGN_BOT_OFFSET]
-        elif (position[0] % 2 is 0) and (position[1] % 2 is 1):
+        elif (position[0] % self.CELLS_SIZE[0] <= self.CELLS_SIZE[0]/2) and \
+             (position[1] % self.CELLS_SIZE[1] >= self.CELLS_SIZE[1]/2):
             orientation = SignOrientation.LEFT_TOP
-            posOffset = [SIGN_LEFT_OFFSET, SIGN_TOP_OFFSET]
-        elif (position[0] % 2 is 1) and (position[1] % 2 is 1):
+        elif (position[0] % self.CELLS_SIZE[0] >= self.CELLS_SIZE[0]/2) and \
+             (position[1] % self.CELLS_SIZE[1] >= self.CELLS_SIZE[1]/2):
             orientation = SignOrientation.RIGHT_TOP
-            posOffset = [SIGN_RIGHT_OFFSET, SIGN_TOP_OFFSET]
-        else:
-            orientation = SignOrientation.RIGHT_TOP
-            posOffset = [SIGN_RIGHT_OFFSET, SIGN_TOP_OFFSET]
         print("sign stop with pos:", position, orientation, signImage)
         self.sign_counter += 1
         sign_root = etree.parse(SIGN_PATH).getroot()
-        position[0] = self.START_X - position[0] - posOffset[0]
-        position[1] = - self.START_Y + position[1] + posOffset[1]
+        position[0] = self.START_X - position[0]
+        position[1] = - self.START_Y + position[1]
         self.__setSignParams(sign_root, position, orientation, signImage)
         self.SDF_ROOT.find("world").insert(0, copy.deepcopy(sign_root) )
 
@@ -247,21 +238,32 @@ class SdfCreator:
         link.find("visual").find("geometry").find("box").find("size").text = box_visual_size_text
 
 
-    def __setConfig(self, start, finish, size):
+    def __setConfig(self, start, finish, cellsAmount, cellsSize, mapSize):
         """ 
         @brief Set config from inputs
         """
         MIN_MAP_SIZE = 4
         MAX_MAP_SIZE = 40
+        MIN_CELL_SIZE = 0.1
+        MAX_CELL_SIZE = 10
+
         DEFAULT_MAP_SIZE = 18
         DEFAULT_POSE = 17
+        DEFAULT_CELL_SIZE = 2
 
-        if ((size[0] >= MIN_MAP_SIZE) and (size[0] <= MAX_MAP_SIZE)):
-            self.SIZE_X = size[0]
+        self.CELLS_SIZE = list()
+        for axe in range(0, 2):
+            if( (cellsSize[axe] >= MIN_CELL_SIZE) and (cellsSize[axe] <= MAX_CELL_SIZE)):
+                self.CELLS_SIZE.append(cellsSize[axe])
+            else:
+                self.CELLS_SIZE.append(DEFAULT_CELL_SIZE)
+
+        if ((mapSize[0] >= MIN_MAP_SIZE) and (mapSize[0] <= MAX_MAP_SIZE)):
+            self.SIZE_X = mapSize[0]
         else:
             self.SIZE_X = DEFAULT_MAP_SIZE
-        if ((size[1] >= MIN_MAP_SIZE) and (size[1] <= MAX_MAP_SIZE)):
-            self.SIZE_Y = size[1]
+        if ((mapSize[1] >= MIN_MAP_SIZE) and (mapSize[1] <= MAX_MAP_SIZE)):
+            self.SIZE_Y = mapSize[1]
         else:
             self.SIZE_Y = DEFAULT_MAP_SIZE
 
@@ -274,9 +276,12 @@ class SdfCreator:
         else:
             self.START_Y = DEFAULT_POSE
 
-        print("World settings are:", 
-              "size = [", self.SIZE_X, self.SIZE_Y, WALL_HEGHT, "],",
-              "start: [", self.START_X, self.START_Y,  "]")
+        print("World settings are:") 
+        print("- start: [", self.START_X, self.START_Y,  "]")
+        print("- finish: [ don't work now]")
+        print("- cells amount: [ don't work now]")
+        print("- cells size: [", self.CELLS_SIZE[0], self.CELLS_SIZE[1], "]")
+        print("- map size: [", self.SIZE_X, self.SIZE_Y, WALL_HEGHT, "]")
 
 
     def __create_empty_world(self):
