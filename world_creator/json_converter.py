@@ -7,6 +7,7 @@ This script allow to create json file from data and sdf file from json.
 import json
 from json_constants import *
 from gazebo_sdf import *
+from objects import *
 
 # File input-output default settings
 JSON_DEFAULT_NAME = "data_file.json"
@@ -103,23 +104,25 @@ def create_sdf_from_json(jsonFileName=JSON_DEFAULT_NAME, sdfFileName=SDF_DEFAULT
     read_file = open(jsonFileName, "r")
     data = json.load(read_file)
 
-    sdfCreator = SdfCreator(data.get(JsonNames.START),
-                            data.get(JsonNames.FINISH),
-                            data.get(JsonNames.CELLS_AMOUNT),
-                            data.get(JsonNames.CELLS_SIZE),
-                            data.get(JsonNames.SIZE))
+    sdfCreator = SdfCreator(Point2D(*data.get(JsonNames.START)),
+                            Point2D(*data.get(JsonNames.FINISH)),
+                            Point2D(*data.get(JsonNames.CELLS_AMOUNT)),
+                            Size2D(*data.get(JsonNames.CELLS_SIZE)),
+                            Size2D(*data.get(JsonNames.SIZE)))
     for obj in data.get(JsonNames.OBJECTS):
         if obj.get(JsonNames.NAME) == JsonNames.BOX:
-            position = obj.get(JsonNames.POSITION)
+            position = Point2D(*obj.get(JsonNames.POSITION))
             sdfCreator.addBox(position)
         elif obj.get(JsonNames.NAME) == JsonNames.WALL:
             point1 = obj.get(JsonNames.POINT_1)
             point2 = obj.get(JsonNames.POINT_2)
-            sdfCreator.addWall(point1, point2)
+            wall = Wall(Point2D(*point1), Point2D(*point2))
+            sdfCreator.addWall(wall)
         elif obj.get(JsonNames.NAME) == JsonNames.SIGN:
             position = obj.get(JsonNames.POSITION)
             imgType = obj.get(JsonNames.SIGN_TYPE)
-            sdfCreator.addSign(position, imgType)
+            sign = Sign(Point2D(*position), imgType, "")
+            sdfCreator.addSign(sign)
     sdfCreator.writeWorldToFile(sdfFileName)
 
 
