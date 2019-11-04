@@ -19,6 +19,7 @@ class Mode(Enum):
     WALLS = int(5)
     SIGNS = int(6)
     LIGHTS = int(7)
+    LOAD_JSON = int(8)
 
 class CollorCode(Enum):
     WHITE = str("FFFFFF")
@@ -30,12 +31,21 @@ class CollorCode(Enum):
 
 # ***************************** Main window *********************************
 class MainWindow(QWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, filePath):
         super().__init__()
-        self.setGeometry(300, 300, 710, 320)
-        self.setWindowTitle('World creator v.2')
+        LEFT_EDGE_POS = 300
+        TOP_EDGE_POS = 300
+        WIDTH = 710
+        HEIGHT = 300
+        WINDOW_TITLE = 'World creator v.2'
+        self.setGeometry(LEFT_EDGE_POS, TOP_EDGE_POS, WIDTH, HEIGHT)
+        self.setWindowTitle(WINDOW_TITLE)
         self.show()
         self.__features = ControlPanel.Init(self)
+        if filePath is not None:
+            print("\nTry to load file {0}:".format(filePath))
+            self.__features[Mode.LOAD_JSON.value].loadJson(filePath)
+            print("")
 
 
     def mousePressEvent(self, e):
@@ -47,7 +57,6 @@ class MainWindow(QWidget):
 
 
     def paintEvent(self, event=None):
-        startPose = self.__features[Mode.START.value].start
         qp = QPainter()
         qp.begin(self)
         self.drawPoints(qp)
@@ -119,13 +128,13 @@ class MainWindow(QWidget):
         ControlPanel.Top = int(0.05 * windowHeight)
 
         # Table sizes must divided on cell size amount without remainder
-        ControlPanel.Left -= (ControlPanel.Left - ControlPanel.Right) % Map.CELLS_AMOUNT[0]
-        ControlPanel.Top -= (ControlPanel.Top - ControlPanel.Bot) % Map.CELLS_AMOUNT[1]
+        ControlPanel.Left -= (ControlPanel.Left - ControlPanel.Right) % Map.CELLS_AMOUNT.x
+        ControlPanel.Top -= (ControlPanel.Top - ControlPanel.Bot) % Map.CELLS_AMOUNT.y
 
         self.tableWidth = ControlPanel.Right - ControlPanel.Left
         self.tableHeight = ControlPanel.Bot - ControlPanel.Top
-        ControlPanel.CellsSize = [ int(self.tableWidth/Map.CELLS_AMOUNT[0]), 
-                                   int(self.tableHeight/Map.CELLS_AMOUNT[1]) ]
+        ControlPanel.CellsSize = [ int(self.tableWidth/Map.CELLS_AMOUNT.x), 
+                                   int(self.tableHeight/Map.CELLS_AMOUNT.y) ]
 
         for row in range(ControlPanel.Top, ControlPanel.Bot + 1, ControlPanel.CellsSize[1]):
             qp.drawLine(ControlPanel.Left, row, ControlPanel.Right, row)
@@ -141,12 +150,12 @@ class Map:
     """
     @staticmethod
     def Init(cellsAmount, cellsSize):
-        Map.CELLS_AMOUNT = cellsAmount
-        Map.CELLS_SIZE = cellsSize
-        Map.SIZE = [ Map.CELLS_AMOUNT[0] * Map.CELLS_SIZE[0],
-                     Map.CELLS_AMOUNT[1] * Map.CELLS_SIZE[1]]
-        print("Init world with cells_amount =", str(Map.CELLS_AMOUNT),
-              "and cells_size =", str(Map.CELLS_SIZE))
+        Map.CELLS_AMOUNT = Size2D(cellsAmount)
+        Map.CELLS_SIZE = Size2D(cellsSize)
+        Map.SIZE = Size2D([ Map.CELLS_AMOUNT.x * Map.CELLS_SIZE.x,
+                            Map.CELLS_AMOUNT.y * Map.CELLS_SIZE.y])
+        print("Init world with cells_amount =", Map.CELLS_AMOUNT.getStringData(),
+              "and cells_size =", Map.CELLS_SIZE.getStringData())
 
 
 
@@ -170,14 +179,14 @@ class ControlPanel():
         window.layout.setSpacing(1)
 
         ControlPanel.features = list()
-        ControlPanel.features.append(BaseObject('1. Choose map size', False))
-        ControlPanel.features.append(BaseObject('2. Choose cells size', False))
-        ControlPanel.features.append(StartPosition('3. Choose start pose'))
-        ControlPanel.features.append(FinishPosition('4. Choose end pose', False))
-        ControlPanel.features.append(BaseObject('5. Create boxes', False))
-        ControlPanel.features.append(Wall('6. Create walls'))
+        ControlPanel.features.append(BaseGuiObject('1. Choose map size', False))
+        ControlPanel.features.append(BaseGuiObject('2. Choose cells size', False))
+        ControlPanel.features.append(GuiStart('3. Choose start pose'))
+        ControlPanel.features.append(GuiFinish('4. Choose end pose', False))
+        ControlPanel.features.append(BaseGuiObject('5. Create boxes', False))
+        ControlPanel.features.append(GuiWalls('6. Create walls'))
         ControlPanel.features.append(Sign('7. Create signs'))
-        ControlPanel.features.append(BaseObject('8. Create lights', False))
+        ControlPanel.features.append(BaseGuiObject('8. Create lights', False))
         ControlPanel.features.append(LoadJson('Load json'))
         ControlPanel.features.append(GenerateJson('Generate json'))
         ControlPanel.features.append(CreateSdf('Create sdf world from json'))
@@ -221,16 +230,18 @@ class ControlPanel():
     @staticmethod
     def PrintObjects():
         print("Objects are:")
-        print("start: ", ControlPanel.features[Mode.START.value].start)
-        print("finish: ", " ")
-        print("size: ", Map.SIZE)
+        print("start: ", ControlPanel.features[Mode.START.value].start.getListData())
+        print("finish: ", ControlPanel.features[Mode.FINISH.value].finish.getListData())
+        print("cellsAmount: ", Map.CELLS_AMOUNT.getStringData())
+        print("cellsSize: ", Map.CELLS_SIZE.getStringData())
+        print("mapSize: ", Map.SIZE.getStringData())
         print("boxes: ", " ")
-        print("Walls: ", ControlPanel.features[Mode.WALLS.value].Walls)
+        print("Walls: ", ControlPanel.features[Mode.WALLS.value].walls.toString())
         print("Signs: ", ControlPanel.features[Mode.SIGNS.value].Signs)
 
 
-# ****************************** BaseObject **********************************
-class BaseObject():
+# ***************************** BaseGuiObject ********************************
+class BaseGuiObject():
     """ @brief Interface for button features """
     def __init__(self, buttonText, isItEnable=True):
         """ @brief Init button, you shouldn't override this constuctor """
@@ -248,205 +259,241 @@ class BaseObject():
     def processPaint(self, qp):
         pass
 
+    # for start
     @staticmethod
     def _mousePoseToCellIndexes(point_x, point_y):
         tablePose = [point_x - ControlPanel.Left, point_y - ControlPanel.Top]
-        node = [int()] * 2
-        for axe in range(0, 2):
-            node[axe] = int(tablePose[axe] / ControlPanel.CellsSize[axe])
-            if node[axe] > (Map.CELLS_AMOUNT[axe] + 1) or (node[axe] < 0):
-                return None
+        node = Point2D()
+        node.x = int(tablePose[0] / ControlPanel.CellsSize[0])
+        if node.x > (Map.CELLS_AMOUNT.x + 1) or (node.x < 0):
+            return None
+        node.y = int(tablePose[1] / ControlPanel.CellsSize[1])
+        if node.y > (Map.CELLS_AMOUNT.y + 1) or (node.y < 0):
+            return None
+
         return node
 
+    # for wall
     @staticmethod
     def _mousePoseToNodeIndexes(point_x, point_y):
         tablePose = [point_x - ControlPanel.Left, point_y - ControlPanel.Top]
         node = [int()] * 2
-        for axe in range(0, 2):
-            node[axe] = int(tablePose[axe] / ControlPanel.CellsSize[axe])
-            # Line below is needed because of unexpected work of division of
-            # negative nubmers  
-            if tablePose[axe] < 0: node[axe] -= 1 
-            if tablePose[axe] % ControlPanel.CellsSize[axe] > ControlPanel.CellsSize[axe] / 2:
-                node[axe] += 1
+
+        node[0] = int(tablePose[0] / ControlPanel.CellsSize[0])
+        # Line below is needed because of negative nubmers division
+        if tablePose[0] < 0: node[0] -= 1 
+        if tablePose[0] % ControlPanel.CellsSize[0] > ControlPanel.CellsSize[0] / 2:
+            node[0] += 1
+
+        node[1] = int(tablePose[1] / ControlPanel.CellsSize[1])
+        # Line below is needed because of negative nubmers division
+        if tablePose[1] < 0: node[1] -= 1 
+        if tablePose[1] % ControlPanel.CellsSize[1] > ControlPanel.CellsSize[1] / 2:
+            node[1] += 1
         return node
 
+    # for wall
     @staticmethod
     def _mousePoseToEdgeIndexes(point_x, point_y):
         tablePose = [point_x - ControlPanel.Left, point_y - ControlPanel.Top]
         node = [int()] * 2
-        for axe in range(0, 2):
-            node[axe] = int(tablePose[axe] / ControlPanel.CellsSize[axe])
-            fourthNode = ControlPanel.CellsSize[axe]/4
-            remnant = tablePose[axe] % ControlPanel.CellsSize[axe]
-            if (remnant >= fourthNode) and (remnant <= 3*fourthNode):
-                node[axe] += 0.5
-            elif remnant > 3*fourthNode:
-                node[axe] += 1
+
+        node[0] = int(tablePose[0] / ControlPanel.CellsSize[0])
+        fourthNode = ControlPanel.CellsSize[0]/4
+        remnant = tablePose[0] % ControlPanel.CellsSize[0]
+        if (remnant >= fourthNode) and (remnant <= 3*fourthNode):
+            node[0] += 0.5
+        elif remnant > 3*fourthNode:
+            node[0] += 1
+
+        node[1] = int(tablePose[1] / ControlPanel.CellsSize[1])
+        fourthNode = ControlPanel.CellsSize[1]/4
+        remnant = tablePose[1] % ControlPanel.CellsSize[1]
+        if (remnant >= fourthNode) and (remnant <= 3*fourthNode):
+            node[1] += 0.5
+        elif remnant > 3*fourthNode:
+            node[1] += 1
+
         if(((node[0] % 1) is 0) and ((node[1] % 1) is not 0)) or \
           (((node[0] % 1) is not 0) and ((node[1] % 1) is 0)):
             return node
         return None
 
+    # for sign
     @staticmethod
     def _mousePoseToPositionIndexes(point_x, point_y):
         tablePose = [point_x - ControlPanel.Left, point_y - ControlPanel.Top]
         pose = [int()] * 2
-        for axe in range(0, 2):
-            halfCellSize = ControlPanel.CellsSize[axe] / 2
-            pose[axe] = int(tablePose[axe] / halfCellSize)
-            # Line below is needed because of division of negative nubmers  
-            if tablePose[axe] < 0: pose[axe] -= 1 
+
+        halfCellSize = ControlPanel.CellsSize[0] / 2
+        pose[0] = int(tablePose[0] / halfCellSize)
+        # Line below is needed because of division of negative nubmers  
+        if tablePose[0] < 0: pose[0] -= 1 
+
+        halfCellSize = ControlPanel.CellsSize[1] / 2
+        pose[1] = int(tablePose[1] / halfCellSize)
+        # Line below is needed because of division of negative nubmers  
+        if tablePose[1] < 0: pose[1] -= 1 
+
         return pose
 
+    # for start
     @staticmethod
     def _cellIndexesToMousePose(cellIndexes):
-        return [ControlPanel.Left + (cellIndexes[0] + 1) * ControlPanel.CellsSize[0],
-                ControlPanel.Top + (cellIndexes[1] + 1) * ControlPanel.CellsSize[1]]
+        return [ControlPanel.Left + (cellIndexes.x + 1) * ControlPanel.CellsSize[0],
+                ControlPanel.Top + (cellIndexes.y + 1) * ControlPanel.CellsSize[1]]
     
+    # for wall
+    @staticmethod
+    def _nodeIndexesToMousePose(nodeIndexes):
+        return [ ControlPanel.Left + nodeIndexes.x * ControlPanel.CellsSize[0],
+                 ControlPanel.Top + nodeIndexes.y * ControlPanel.CellsSize[1] ]
+
+    # for sign
     @staticmethod
     def _positionIndexesToMousePose(poseIndexes):
         return [ControlPanel.Left + (poseIndexes[0] + 1) * ControlPanel.CellsSize[0]/2,
                 ControlPanel.Top + (poseIndexes[1] + 1) * ControlPanel.CellsSize[1]/2]
 
-    @staticmethod
-    def _nodeIndexesToMousePose(nodeIndexes):
-        return [ ControlPanel.Left + nodeIndexes[0] * ControlPanel.CellsSize[0],
-                 ControlPanel.Top + nodeIndexes[1] * ControlPanel.CellsSize[1] ]
 
 
-
-class StartPosition(BaseObject):
+class GuiStart(BaseGuiObject):
     def _initOtherParameters(self):
-        self.start = None
+        self.start = Start()
     def processButtonPressing(self):
         ControlPanel.SetMode(Mode.START)
     def processMousePressing(self, e):
-        self.start = BaseObject._mousePoseToCellIndexes(e.pos().x(), e.pos().y())
-        print("start pose was setted using mouse: " + str(self.start))
+        start = BaseGuiObject._mousePoseToCellIndexes(e.pos().x(), e.pos().y())
+        self.start = Start(start)
+        print("start pose was setted using mouse:", self.start.getData().getStringData())
     def processPaint(self, qp):
-        if self.start is not None:
-            self.__draw(qp, self.start)
+        if self.start.getData() is not None:
+            self.__draw(qp, self.start.getData())
     @staticmethod
     def __draw(qp, cellIndexes):
-        centerPos = BaseObject._cellIndexesToMousePose(cellIndexes)
+        centerPos = BaseGuiObject._cellIndexesToMousePose(cellIndexes)
         MainWindow.drawRectangle(qp, centerPos, ControlPanel.CellsSize)
 
 
-class FinishPosition(BaseObject):
+class GuiFinish(BaseGuiObject):
     def _initOtherParameters(self):
-        self.finish = [0, 0]
+        self.finish = Finish()
 
-
-class Wall(BaseObject):
+class GuiWalls(BaseGuiObject):
     def _initOtherParameters(self):
         self.__lastClickNumber = 0
         self.__pressedFirstNode = None
         self.__pressedSecondNode = None
-        self.Walls = list()
+        self.walls = Walls()
     def processButtonPressing(self):
         ControlPanel.SetMode(Mode.WALLS)
     def processMousePressing(self, e):
         pos = e.pos()
         if(e.button() == 1):
-            pos = BaseObject._mousePoseToNodeIndexes(pos.x(), pos.y())
+            pos = BaseGuiObject._mousePoseToNodeIndexes(pos.x(), pos.y())
             if self.__lastClickNumber is 1:
                 self.__lastClickNumber = 2
                 self.__pressedSecondNode = pos
-                self.__addWall([self.__pressedFirstNode, self.__pressedSecondNode])
+                wall = Wall(Point2D(self.__pressedFirstNode),
+                            Point2D(self.__pressedSecondNode))
+                self.__addWall(wall)
             else:
                 self.__lastClickNumber = 1
                 self.__pressedFirstNode = pos
         else:
-            pos = BaseObject._mousePoseToEdgeIndexes(pos.x(), pos.y())
+            pos = BaseGuiObject._mousePoseToEdgeIndexes(pos.x(), pos.y())
             self.__deleteWall(pos)
             self.__lastClickNumber = 0
     def processPaint(self, qp):
-        for wall in self.Walls:
-            Wall.__draw(qp, wall[0], wall[1])
-    def __addWall(self, nodesIndexes):
-        if self.__isWallPossible(nodesIndexes) is True:
-            print("Add object: wall with pose " + str(nodesIndexes))
-            self.Walls.append(nodesIndexes)
-    def __isWallPossible(self, nodesIndexes):
-        if self.__isWallOutOfRange(nodesIndexes) is True:
-            print("Warning: wall out of map: " + str(nodesIndexes))
-        elif self.__isThisWallPoint(nodesIndexes) is True:
-            print("Warning: wall can't be point: " + str(nodesIndexes))
-        elif self.__isThisWallDiagonal(nodesIndexes) is True:
-            print("Warning: wall can't be diagonal: " + str(nodesIndexes))
-        elif self.__isThereConflictBetweenWalls(nodesIndexes) is True:
+        for wall in self.walls:
+            GuiWalls.__draw(qp, wall)
+    def __addWall(self, wall):
+        if self.__isWallPossible(wall) is True:
+            print("Add object: wall with pose " + wall.getStringData())
+            self.walls.add(wall)
+    def __isWallPossible(self, wall):
+        if self.__isWallOutOfRange(wall) is True:
+            print("Warning: wall out of map: " + wall.getStringData())
+        elif self.__isThisWallPoint(wall) is True:
+            print("Warning: wall can't be point: " + wall.getStringData())
+        elif self.__isThisWallDiagonal(wall) is True:
+            print("Warning: wall can't be diagonal: " + wall.getStringData())
+        elif self.__isThereConflictBetweenWalls(wall) is True:
             print("Warning: there is conflict between existing walls \
-            and this: " + str(nodesIndexes))
+            and this: " + wall.getStringData())
         else:
             return True
         return False
-    def __isThisWallPoint(self, nodesIndexes):
-        return nodesIndexes[0] == nodesIndexes[1]
-    def __isWallOutOfRange(self, nodesIndexes):
-        return  nodesIndexes[0][0] > Map.CELLS_AMOUNT[0] or \
-                nodesIndexes[0][0] < 0 or \
-                nodesIndexes[1][0] > Map.CELLS_AMOUNT[0] or \
-                nodesIndexes[1][0] < 0 or \
-                nodesIndexes[0][1] > Map.CELLS_AMOUNT[1] or \
-                nodesIndexes[0][1] < 0 or \
-                nodesIndexes[1][1] > Map.CELLS_AMOUNT[1] or \
-                nodesIndexes[1][1] < 0
-    def __isThisWallDiagonal(self, nodesIndexes):
-        return ((self.__isThisWallVertical(nodesIndexes) is False) and \
-                (self.__isThisWallHorizontal(nodesIndexes) is False))
-    def __isThisWallVertical(self, nodesIndexes):
-        return nodesIndexes[0][0] == nodesIndexes[1][0]
-    def __isThisWallHorizontal(self, nodesIndexes):
-        return nodesIndexes[0][1] == nodesIndexes[1][1]
-    def __isThereConflictBetweenWalls(self, nodesIndexes):
+    def __isThisWallPoint(self, wall):
+        return wall.point1 == wall.point2
+    def __isWallOutOfRange(self, wall):
+        return  wall.point1.x > Map.CELLS_AMOUNT.x or \
+                wall.point1.x < 0 or \
+                wall.point2.x > Map.CELLS_AMOUNT.x or \
+                wall.point2.x < 0 or \
+                wall.point1.y > Map.CELLS_AMOUNT.y or \
+                wall.point1.y < 0 or \
+                wall.point2.y > Map.CELLS_AMOUNT.y or \
+                wall.point2.y < 0
+    def __isThisWallDiagonal(self, wall):
+        return ((self.__isThisWallVertical(wall) is False) and \
+                (self.__isThisWallHorizontal(wall) is False))
+    def __isThisWallVertical(self, wall):
+        return wall.point1.x == wall.point2.x
+    def __isThisWallHorizontal(self, wall):
+        return wall.point1.y == wall.point2.y
+    def __isThereConflictBetweenWalls(self, wall):
         return False
     def __deleteWall(self, pos):
-        print("Delete object: wall with pose", pos)
-        try:
-            isVerticalFound = False
-            isHorizontalFound = False
-            for wall in self.Walls:
-                if((wall[0][0] is pos[0]) and (wall[1][0] is pos[0])):
-                    if(wall[0][1] <= pos[1] and wall[1][1] >= pos[1]) or \
-                      (wall[1][1] <= pos[1] and wall[0][1] >= pos[1]):
-                        isVerticalFound = True
-                        break
-                if(wall[0][1] is pos[1]) and (wall[1][1] is pos[1]):
-                    if(wall[0][0] <= pos[0] and wall[1][0] >= pos[0]) or \
-                      (wall[1][0] <= pos[0] and wall[0][0] >= pos[0]):
-                        isHorizontalFound = True
-                        break
-            if isVerticalFound == True:
-                print("delete vertical: " + str(wall) + " and " + str(pos))
-                self.Walls.remove(wall)
-            elif isHorizontalFound == True:
-                print("delete horizontal: " + str(wall) + " and " + str(pos))
-                self.Walls.remove(wall)
-            ControlPanel.window.update()
-        except:
-            print("Warning: it's not wall")
+        if pos is None:
+            print("Note: you should choose middle of cell edge")
+            return
+        isVerticalFound = False
+        isHorizontalFound = False
+        for wall in self.walls:
+            if((wall.point1.x is pos[0]) and (wall.point2.x is pos[0])):
+                if(wall.point1.y <= pos[1] and wall.point2.y >= pos[1]) or \
+                  (wall.point2.y <= pos[1] and wall.point1.y >= pos[1]):
+                    isVerticalFound = True
+                    break
+            if(wall.point1.y is pos[1]) and (wall.point2.y is pos[1]):
+                if(wall.point1.x <= pos[0] and wall.point2.x >= pos[0]) or \
+                  (wall.point2.x <= pos[0] and wall.point1.x >= pos[0]):
+                    isHorizontalFound = True
+                    break
+        if isVerticalFound == True:
+            wallType = "vertical"
+            self.walls.remove(wall)
+        elif isHorizontalFound == True:
+            wallType = "horizontal"
+            self.walls.remove(wall)
+        else:
+            print("Note: there is no wall here")
+            return
+        print("Delete object: {0} wall with pose {1}".format(wallType, pos))
+        ControlPanel.window.update()
+
     @staticmethod
-    def __draw(qp, indexesOfNode1, indexesOfNode2):
-        posOfNode1 = BaseObject._nodeIndexesToMousePose(indexesOfNode1)
-        posOfNode2 = BaseObject._nodeIndexesToMousePose(indexesOfNode2)
+    def __draw(qp, wall):
+        posOfNode1 = BaseGuiObject._nodeIndexesToMousePose(wall.point1)
+        posOfNode2 = BaseGuiObject._nodeIndexesToMousePose(wall.point2)
         MainWindow.drawLine(qp, posOfNode1, posOfNode2)
 
 
-class Sign(BaseObject):
+class Sign(BaseGuiObject):
     def _initOtherParameters(self):
         self.Signs = list()
     def processButtonPressing(self):
         ControlPanel.SetMode(Mode.SIGNS)
     def processMousePressing(self, e):
-        pos = BaseObject._mousePoseToPositionIndexes(e.pos().x(), e.pos().y())
+        pos = BaseGuiObject._mousePoseToPositionIndexes(e.pos().x(), e.pos().y())
         self.signChoiceDialog = SignChoiceDialog(pos)
     def processPaint(self, qp):
         for sign in self.Signs:
             Sign.__draw(qp, sign[0], sign[1])
     @staticmethod
     def __draw(qp, poseIndexes, imgPath):
-        centerPos = BaseObject._positionIndexesToMousePose(poseIndexes)
+        centerPos = BaseGuiObject._positionIndexesToMousePose(poseIndexes)
         MainWindow.drawImg(qp, centerPos, imgPath)
 
 class SignChoiceDialog(QDialog):
@@ -497,37 +544,47 @@ class SignChoiceDialog(QDialog):
         self.__window.update()
 
 
-class LoadJson(BaseObject):
+class LoadJson(BaseGuiObject):
     def processButtonPressing(self):
+        print("\nLoad json:")
         FILE_TYPES = "Json Files (*.json)"
         filePath = QFileDialog.getOpenFileName(ControlPanel.window, "", "", FILE_TYPES)[0]
-        objects = load_frontend_from_json(filePath)
-        ControlPanel.features[Mode.START.value].start = objects[0]
-        finish = objects[1]
-        size = objects[2]
-        boxes = objects[3]
-        ControlPanel.features[Mode.WALLS.value].Walls = objects[4]
-        ControlPanel.features[Mode.SIGNS.value].Signs = objects[5]
-        print("\nLoad json:")
-        ControlPanel.PrintObjects()
-        ControlPanel.window.update()
+        print(filePath)
+        self.loadJson(filePath)
+        print("")
+    def loadJson(self, filePath):
+        try:
+            objects = load_frontend_from_json(filePath)
+            ControlPanel.features[Mode.START.value].start = objects[0]
+            ControlPanel.features[Mode.FINISH.value].finish = objects[1]
+            size = objects[2]
+            boxes = objects[3]
+            ControlPanel.features[Mode.WALLS.value].walls = objects[4]
+            ControlPanel.features[Mode.SIGNS.value].Signs = objects[5]
+            ControlPanel.PrintObjects()
+            ControlPanel.window.update()
+        except:
+            print("Error: is file {0} exist?".format(filePath))
 
 
-class GenerateJson(BaseObject):
+class GenerateJson(BaseGuiObject):
     def processButtonPressing(self):
+        print("\nGenerate json:")
         start = ControlPanel.features[Mode.START.value].start
         finish = ControlPanel.features[Mode.FINISH.value].finish
-        self.__walls = ControlPanel.features[Mode.WALLS.value].Walls
+        self.__walls = ControlPanel.features[Mode.WALLS.value].walls
         self.__signs = ControlPanel.features[Mode.SIGNS.value].Signs
         if start is not None:
             create_json_from_gui(start, finish, Map.CELLS_AMOUNT, Map.CELLS_SIZE, 
                                  Map.SIZE, None, self.__walls, self.__signs)
-            print("\nGenerate json:")
             ControlPanel.PrintObjects()
         else:
             print("Warning: firstly, you should set start position.")
+        print("")
 
 
-class CreateSdf(BaseObject):
+class CreateSdf(BaseGuiObject):
     def processButtonPressing(self):
+        print("\nCreate sdf:")
         create_sdf_from_json()
+        print("")
