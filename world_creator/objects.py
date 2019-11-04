@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 from data_structures import *
+import copy
 
 class Object:
     def getData(self):
         return self.data
     def getListData(self):
-        return self.data.getArrayData()
+        return self.data.getListData()
     def convertFromJsonToGui(self, cellsSize):
-        pass
+        return None
     def convertFromGuiToJson(self, cellsSize):
-        pass
+        return None
 
 class Start(Object):
     def __init__(self, point=None):
@@ -20,7 +21,11 @@ class Start(Object):
     def convertFromJsonToGui(self, cellsSize):
         self.__map_pose_to_cell_indexes(cellsSize)
     def convertFromGuiToJson(self, cellsSize):
-        self.__cell_indexes_to_map_pose(cellsSize)
+        data = copy.deepcopy(self)
+        data.__cell_indexes_to_map_pose(cellsSize)
+        return data
+    def __str__(self):
+        return str(self.data)
     def __map_pose_to_cell_indexes(self, cellsSize):
         self.data = Point2D(int((self.data.x - 1) / cellsSize.x), 
                              int((self.data.y - 1) / cellsSize.y) )
@@ -37,7 +42,11 @@ class Finish(Object):
     def convertFromJsonToGui(self, cellsSize):
         self.__map_pose_to_cell_indexes(cellsSize)
     def convertFromGuiToJson(self, cellsSize):
-        self.__cell_indexes_to_map_pose(cellsSize)
+        data = copy.deepcopy(self)
+        data.__cell_indexes_to_map_pose(cellsSize)
+        return data
+    def __str__(self):
+        return str(self.data)
     def getData(self):
         return self.data
     def __map_pose_to_cell_indexes(self, cellsSize):
@@ -58,6 +67,9 @@ class Wall():
     def getStringData(self):
         return "[{0}, {1}], [{2}, {3}]".format(self.point1.x, self.point1.y, 
                                                self.point2.x, self.point2.y)
+    def __str__(self):
+        return "[{0}, {1}], [{2}, {3}]".format(self.point1.x, self.point1.y, 
+                                               self.point2.x, self.point2.y)
     def getListData(self):
         print("from Wall")
         return list([self.data.point1.getArrayData(),
@@ -65,7 +77,9 @@ class Wall():
     def convertFromJsonToGui(self, cellsSize):
         self.__map_pose_to_node_indexes(cellsSize)
     def convertFromGuiToJson(self, cellsSize):
-        self.__node_indexes_to_map_pose(cellsSize)
+        data = copy.deepcopy(self)
+        data.__node_indexes_to_map_pose(cellsSize)
+        return data
     def __map_pose_to_node_indexes(self, cellsSize):
         self.point1 = Point2D(int(self.point1.x / cellsSize.x), 
                               int(self.point1.y / cellsSize.y))
@@ -87,10 +101,10 @@ class Walls(Object):
         self.data.append(wall)
     def remove(self, wall):
         self.data.remove(wall)
-    def toString(self):
+    def __str__(self):
         text = str()
         for wall in self.data:
-            text += "\n" + wall.getStringData()
+            text += "\n" + str(wall)
         return text
     def __getitem__(self, i):
         return self.data[i]

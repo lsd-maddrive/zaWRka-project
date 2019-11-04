@@ -64,7 +64,7 @@ class SdfCreator:
         @note wall must be horizontal or vertical (too lazy to work with
         rotation angles)
         """
-        print("wall with pos:", wall.getStringData())
+        print("wall with pos:", wall)
         center_x = numpy.mean([wall.point1.x, wall.point2.x]) 
         center_y = numpy.mean([wall.point1.y, wall.point2.y])
         center_point = Point3D(center_x, center_y, WALL_SPAWN_Z)
@@ -155,7 +155,7 @@ class SdfCreator:
         elif (position.x % self.CELLS_SIZE.x >= self.CELLS_SIZE.x/2) and \
              (position.y % self.CELLS_SIZE.y >= self.CELLS_SIZE.y/2):
             orientation = SignOrientation.RIGHT_TOP
-        print("sign stop with pos:", position.getStringData(), orientation, signImage)
+        print("sign stop with pos:", position, orientation, signImage)
         self.sign_counter += 1
         sign_root = etree.parse(SIGN_PATH).getroot()
         position.x = self.START.x - position.x
@@ -267,11 +267,11 @@ class SdfCreator:
         self.START = Size2D(x, y)
 
         print("World settings are:") 
-        print("- start:", self.START.getStringData())
+        print("- start:", self.START)
         print("- finish: [ don't support now]")
         print("- cells amount: [ don't support now]")
-        print("- cells size:", self.CELLS_SIZE.getStringData())
-        print("- map size:", self.MAP_SIZE.getStringData())
+        print("- cells size:", self.CELLS_SIZE)
+        print("- map size:", self.MAP_SIZE)
 
 
     def __create_empty_world(self):

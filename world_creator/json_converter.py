@@ -8,7 +8,6 @@ import json
 from json_constants import *
 from gazebo_sdf import *
 from objects import *
-import copy
 
 # File input-output default settings
 JSON_DEFAULT_NAME = "data_file.json"
@@ -50,8 +49,8 @@ def __map_pose_to_half_cell_indexes(mapPose):
     return list([ (mapPose[0] - CellsSize.x/4) / CellsSize.x * 2, 
                   (mapPose[1] - CellsSize.y/4) / CellsSize.y * 2 ])
 def __half_cell_indexes_to_map_pose(cellIndexes):
-    return list([ CellsSize.x/4 + cellIndexes[0]*CellsSize.x/2, 
-                  CellsSize.y/4 + cellIndexes[1]*CellsSize.y/2 ])
+    return list([ CellsSize.x/4 + cellIndexes.x*CellsSize.x/2, 
+                  CellsSize.y/4 + cellIndexes.y*CellsSize.y/2 ])
 
 def create_json_from_gui(start, finish, cellsAmount, cellsSize, mapSize,
                          boxes, walls, signs):
@@ -64,16 +63,13 @@ def create_json_from_gui(start, finish, cellsAmount, cellsSize, mapSize,
     global CellsSize
     CellsSize = cellsSize
     objects = list()
-    start = copy.deepcopy(start)
-    start.convertFromGuiToJson(CellsSize)
-    finish = copy.deepcopy(finish)
-    finish.convertFromGuiToJson(CellsSize)
+    start = start.convertFromGuiToJson(CellsSize)
+    finish = finish.convertFromGuiToJson(CellsSize)
     for wall in walls:
-        wall = copy.deepcopy(wall)
-        wall.convertFromGuiToJson(CellsSize)
+        wall = wall.convertFromGuiToJson(CellsSize)
         wall = dict([ (JsonNames.NAME, JsonNames.WALL), 
-                   (JsonNames.POINT_1, wall.point1.getArrayData()),
-                   (JsonNames.POINT_2, wall.point2.getArrayData()) ])
+                   (JsonNames.POINT_1, wall.point1.getListData()),
+                   (JsonNames.POINT_2, wall.point2.getListData()) ])
         objects.append(wall)
     for sign in signs:
         sign = dict([ (JsonNames.NAME, JsonNames.SIGN), 
@@ -82,9 +78,9 @@ def create_json_from_gui(start, finish, cellsAmount, cellsSize, mapSize,
         objects.append(sign)
     data = dict([(JsonNames.START, start.getListData()),
                  (JsonNames.FINISH, finish.getListData()),
-                 (JsonNames.CELLS_AMOUNT, cellsAmount.getArrayData()),
-                 (JsonNames.CELLS_SIZE, cellsSize.getArrayData()),
-                 (JsonNames.SIZE, mapSize.getArrayData()),
+                 (JsonNames.CELLS_AMOUNT, cellsAmount.getListData()),
+                 (JsonNames.CELLS_SIZE, cellsSize.getListData()),
+                 (JsonNames.SIZE, mapSize.getListData()),
                  (JsonNames.OBJECTS, objects)])
     write_file = open(JSON_DEFAULT_NAME, "w")
     json.dump(data, write_file, indent=2)
@@ -149,6 +145,9 @@ def load_frontend_from_json(fileName = JSON_DEFAULT_NAME):
             walls.add(wall)
         elif obj.get(JsonNames.NAME) == JsonNames.SIGN:
             position = __map_pose_to_half_cell_indexes(obj.get(JsonNames.POSITION))
+            position = Point2D(position)
+            position.x = int(position.x)
+            position.y = int(position.y)
             signPath = sign_type_to_sign_path(obj.get(JsonNames.SIGN_TYPE))
             signs.append([position, signPath])
     return list([start,

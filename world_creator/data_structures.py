@@ -7,9 +7,12 @@ class Vector2D:
             self.BuildFromArray(arg1)
         else:
             self.BuildFromVeriables(arg1, arg2)
-        def __truediv__(self, other):
-            self.x /= other
-            self.y /= other
+    def __truediv__(self, other):
+        return Point2D(self.x / other, self.y / other)
+    def __sub__(self, other):
+        return Point2D(self.x - other.x, self.y - other.y)
+    def __str__(self):
+        return "[{0}, {1}]".format(self.x, self.y)
     def BuildEmpty(self):
         self.x = 0
         self.y = 0
@@ -19,9 +22,7 @@ class Vector2D:
     def BuildFromArray(self, arr):
         self.x = arr[0]
         self.y = arr[1]
-    def getStringData(self):
-        return "[{0}, {1}]".format(self.x, self.y)
-    def getArrayData(self):
+    def getListData(self):
         return list([self.x, self.y])
 
 class Vector3D:
@@ -32,10 +33,12 @@ class Vector3D:
             self.BuildFromArray(arg1)
         else:
             self.BuildFromVeriables(arg1, arg2, arg3)
-        def __truediv__(self, other):
-            self.x /= other
-            self.y /= other
-            self.z /= other
+    def __truediv__(self, other):
+        self.x /= other
+        self.y /= other
+        self.z /= other
+    def __str__(self):
+        return "[{0}, {1}, {2}]".format(self.x, self.y, self.z)
     def BuildEmpty(self):
         self.x = 0
         self.y = 0
@@ -48,9 +51,7 @@ class Vector3D:
         self.x = arr[0]
         self.y = arr[1]
         self.z = arr[2]
-    def getStringData(self):
-        return "[{0}, {1}, {2}]".format(self.x, self.y, self.z)
-    def getArrayData(self):
+    def getListData(self):
         return list([self.x, self.y, self.z])
 
 class Point3D(Vector3D):
