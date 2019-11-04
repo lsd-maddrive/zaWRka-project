@@ -150,12 +150,12 @@ class Map:
     """
     @staticmethod
     def Init(cellsAmount, cellsSize):
-        Map.CELLS_AMOUNT = Size2D(cellsAmount)
-        Map.CELLS_SIZE = Size2D(cellsSize)
-        Map.SIZE = Size2D([ Map.CELLS_AMOUNT.x * Map.CELLS_SIZE.x,
-                            Map.CELLS_AMOUNT.y * Map.CELLS_SIZE.y])
-        print("Init world with cells_amount =", Map.CELLS_AMOUNT.getStringData(),
-              "and cells_size =", Map.CELLS_SIZE.getStringData())
+        Map.CELLS_AMOUNT = cellsAmount
+        Map.CELLS_SIZE = cellsSize
+        Map.SIZE = Size2D(cellsAmount.x * cellsSize.x, 
+                          cellsAmount.y * cellsSize.y)
+        print("Init world with cells_amount =", cellsAmount.getStringData(),
+              "and cells_size =", cellsSize.getStringData())
 
 
 
