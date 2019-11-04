@@ -184,7 +184,7 @@ class ControlPanel():
         ControlPanel.features.append(GuiFinish('4. Choose end pose', False))
         ControlPanel.features.append(BaseGuiObject('5. Create boxes', False))
         ControlPanel.features.append(GuiWalls('6. Create walls'))
-        ControlPanel.features.append(Sign('7. Create signs'))
+        ControlPanel.features.append(GuiSigns('7. Create signs'))
         ControlPanel.features.append(BaseGuiObject('8. Create lights', False))
         ControlPanel.features.append(LoadJson('Load json'))
         ControlPanel.features.append(GenerateJson('Generate json'))
@@ -465,9 +465,9 @@ class GuiWalls(BaseGuiObject):
         MainWindow.drawLine(qp, posOfNode1, posOfNode2)
 
 
-class Sign(BaseGuiObject):
+class GuiSigns(BaseGuiObject):
     def _initOtherParameters(self):
-        self.Signs = list()
+        self.Signs = Signs()
     def processButtonPressing(self):
         ControlPanel.SetMode(Mode.SIGNS)
     def processMousePressing(self, e):
@@ -476,7 +476,7 @@ class Sign(BaseGuiObject):
         self.signChoiceDialog = SignChoiceDialog(positionIndexes)
     def processPaint(self, qp):
         for sign in self.Signs:
-            Sign.__draw(qp, sign[0], sign[1])
+            GuiSigns.__draw(qp, sign.point, sign.type)
     @staticmethod
     def __draw(qp, poseIndexes, imgPath):
         centerPos = BaseGuiObject._positionIndexesToMousePose(poseIndexes)
@@ -518,12 +518,12 @@ class SignChoiceDialog(QDialog):
         self.__dialog.show()
     def __addSign(self, poseIndexes, signImg):
         print("Add object: sign {1} with pose {0}.".format(poseIndexes, signImg))
-        self.__signs.append([poseIndexes, signImg])
+        self.__signs.add(Sign(poseIndexes, signImg))
         self.__dialog.close()
         self.__window.update()
     def __deleteSign(self, poseIndexes):
         for sign in self.__signs:
-            if sign[0].x == poseIndexes.x and sign[0].y == poseIndexes.y:
+            if sign.point.x == poseIndexes.x and sign.point.y == poseIndexes.y:
                 print("Delete object: sign with pose" + str(poseIndexes))
                 self.__signs.remove(sign)
         self.__dialog.close()

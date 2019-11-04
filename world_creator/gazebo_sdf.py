@@ -155,7 +155,7 @@ class SdfCreator:
         elif (position.x % self.CELLS_SIZE.x >= self.CELLS_SIZE.x/2) and \
              (position.y % self.CELLS_SIZE.y >= self.CELLS_SIZE.y/2):
             orientation = SignOrientation.RIGHT_TOP
-        print("sign stop with pos:", position, orientation, signImage)
+        print("sign with pos:", position, orientation, signImage)
         self.sign_counter += 1
         sign_root = etree.parse(SIGN_PATH).getroot()
         position.x = self.START.x - position.x
