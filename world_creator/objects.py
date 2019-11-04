@@ -25,11 +25,11 @@ class Start(Object):
         data.__cell_indexes_to_map_pose(cellsSize)
         return data
     def __map_pose_to_cell_indexes(self, cellsSize):
-        self.data = Point2D(int((self.data.x - 1) / cellsSize.x), 
-                             int((self.data.y - 1) / cellsSize.y) )
+        self.data = Point2D(int((self.data.x - cellsSize.x) / cellsSize.x), 
+                             int((self.data.y - cellsSize.y) / cellsSize.y) )
     def __cell_indexes_to_map_pose(self, cellsSize):
-        self.data = Point2D(self.data.x * cellsSize.x + 1, 
-                             self.data.y * cellsSize.y + 1 )
+        self.data = Point2D(self.data.x * cellsSize.x + cellsSize.x, 
+                             self.data.y * cellsSize.y + cellsSize.y )
 
 class Finish(Object):
     def __init__(self, point=None):
@@ -44,11 +44,11 @@ class Finish(Object):
         data.__cell_indexes_to_map_pose(cellsSize)
         return data
     def __map_pose_to_cell_indexes(self, cellsSize):
-        self.data = Point2D(int((self.data.x - 1) / cellsSize.x), 
-                             int((self.data.y - 1) / cellsSize.y) )
+        self.data = Point2D(int((self.data.x - cellsSize.x) / cellsSize.x), 
+                             int((self.data.y - cellsSize.y) / cellsSize.y) )
     def __cell_indexes_to_map_pose(self, cellsSize):
-        self.data = Point2D(self.data.x * cellsSize.x + 1, 
-                             self.data.y * cellsSize.y + 1 )
+        self.data = Point2D(self.data.x * cellsSize.x + cellsSize.x, 
+                             self.data.y * cellsSize.y + cellsSize.y )
 
 class Wall():
     def __init__(self, point1=None, point2=None):

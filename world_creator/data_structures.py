@@ -13,6 +13,8 @@ class Vector2D:
         return Point2D(self.x - other.x, self.y - other.y)
     def __str__(self):
         return "[{0}, {1}]".format(self.x, self.y)
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
     def BuildEmpty(self):
         self.x = 0
         self.y = 0
@@ -39,6 +41,8 @@ class Vector3D:
         self.z /= other
     def __str__(self):
         return "[{0}, {1}, {2}]".format(self.x, self.y, self.z)
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y and self.z == other.z
     def BuildEmpty(self):
         self.x = 0
         self.y = 0

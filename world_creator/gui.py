@@ -20,6 +20,8 @@ class Mode(Enum):
     SIGNS = int(6)
     LIGHTS = int(7)
     LOAD_JSON = int(8)
+    GENERATE_JSON = int(9)
+    GENERATE_SDF = int(10)
 
 class CollorCode(Enum):
     WHITE = str("FFFFFF")
@@ -27,7 +29,9 @@ class CollorCode(Enum):
     GREEN = str("00FF00")
     RED = str("FF0000")
 
-
+WORLD_FILE_TYPES = "world files (*.world)"
+JSON_FILE_TYPES = "Json Files (*.json)"
+TEMP_JSON_FILE = ".temp.json"
 
 # ***************************** Main window *********************************
 class MainWindow(QWidget):
@@ -128,17 +132,18 @@ class MainWindow(QWidget):
         ControlPanel.Top = int(0.05 * windowHeight)
 
         # Table sizes must divided on cell size amount without remainder
-        ControlPanel.Left -= (ControlPanel.Left - ControlPanel.Right) % Map.CELLS_AMOUNT.x
-        ControlPanel.Top -= (ControlPanel.Top - ControlPanel.Bot) % Map.CELLS_AMOUNT.y
+        width = ControlPanel.Right - ControlPanel.Left
+        height = ControlPanel.Bot - ControlPanel.Top
+        ControlPanel.Left -= (-width) % Map.CELLS_AMOUNT.x
+        ControlPanel.Top -= (-height) % Map.CELLS_AMOUNT.y
+        cellsSizeX = (ControlPanel.Right-ControlPanel.Left)/Map.CELLS_AMOUNT.x
+        cellsSizeY = (ControlPanel.Bot-ControlPanel.Top)/Map.CELLS_AMOUNT.y
+        height = ControlPanel.Bot - ControlPanel.Top
+        ControlPanel.CellsSize = Size2D(int(cellsSizeX), int(cellsSizeY))
 
-        table = Point2D(ControlPanel.Right - ControlPanel.Left, 
-                        ControlPanel.Bot - ControlPanel.Top)
-        ControlPanel.CellsSize = Size2D(int(table.x/Map.CELLS_AMOUNT.x), 
-                                         int(table.y/Map.CELLS_AMOUNT.y))
-
-        for row in range(ControlPanel.Top, ControlPanel.Bot + 1, ControlPanel.CellsSize.y):
+        for row in range(ControlPanel.Top, ControlPanel.Bot+1, int(cellsSizeY)):
             qp.drawLine(ControlPanel.Left, row, ControlPanel.Right, row)
-        for col in range(ControlPanel.Left, ControlPanel.Right + 1, ControlPanel.CellsSize.x):
+        for col in range(ControlPanel.Left, ControlPanel.Right + 1, int(cellsSizeX)):
             qp.drawLine(col, ControlPanel.Top, col, ControlPanel.Bot)
 
 
@@ -154,8 +159,7 @@ class Map:
         Map.CELLS_SIZE = cellsSize
         Map.SIZE = Size2D(cellsAmount.x * cellsSize.x, 
                           cellsAmount.y * cellsSize.y)
-        print("Init world with cells_amount =", cellsAmount,
-              "and cells_size =", cellsSize)
+        print("World cells: amount={0},size={1}".format(cellsAmount,cellsSize))
 
 
 # ***************************** Control panel ********************************
@@ -398,14 +402,14 @@ class GuiWalls(BaseGuiObject):
             self.walls.add(wall)
     def __isWallPossible(self, wall):
         if self.__isWallOutOfRange(wall) is True:
-            print("Warning: wall out of map: " + wall)
+            print("Warning: wall out of map: ", wall)
         elif self.__isThisWallPoint(wall) is True:
-            print("Warning: wall can't be point: " + wall)
+            print("Warning: wall can't be point: ", wall)
         elif self.__isThisWallDiagonal(wall) is True:
-            print("Warning: wall can't be diagonal: " + wall)
+            print("Warning: wall can't be diagonal: ", wall)
         elif self.__isThereConflictBetweenWalls(wall) is True:
             print("Warning: there is conflict between existing walls \
-            and this: " + wall)
+            and this: ", wall)
         else:
             return True
         return False
@@ -523,7 +527,7 @@ class SignChoiceDialog(QDialog):
         self.__window.update()
     def __deleteSign(self, poseIndexes):
         for sign in self.__signs:
-            if sign.point.x == poseIndexes.x and sign.point.y == poseIndexes.y:
+            if sign.point == poseIndexes:
                 print("Delete object: sign with pose" + str(poseIndexes))
                 self.__signs.remove(sign)
         self.__dialog.close()
@@ -534,23 +538,27 @@ class LoadJson(BaseGuiObject):
     def processButtonPressing(self):
         print("\nLoad json:")
         FILE_TYPES = "Json Files (*.json)"
-        filePath = QFileDialog.getOpenFileName(ControlPanel.window, "", "", FILE_TYPES)[0]
+        filePath = QFileDialog.getOpenFileName(ControlPanel.window, "", " ",
+                                               FILE_TYPES)[0]
         print(filePath)
         self.loadJson(filePath)
         print("")
     def loadJson(self, filePath):
-        try:
-            objects = load_frontend_from_json(filePath)
-            ControlPanel.features[Mode.START.value].start = objects[0]
-            ControlPanel.features[Mode.FINISH.value].finish = objects[1]
-            size = objects[2]
-            boxes = objects[3]
-            ControlPanel.features[Mode.WALLS.value].walls = objects[4]
-            ControlPanel.features[Mode.SIGNS.value].Signs = objects[5]
-            ControlPanel.PrintObjects()
-            ControlPanel.window.update()
-        except:
-            print("Error: is file {0} exist?".format(filePath))
+        if filePath == "":
+            print("User don't choose the file to save.")
+        else:
+            try:
+                objects = load_frontend_from_json(filePath)
+                ControlPanel.features[Mode.START.value].start = objects[0]
+                ControlPanel.features[Mode.FINISH.value].finish = objects[1]
+                size = objects[2]
+                boxes = objects[3]
+                ControlPanel.features[Mode.WALLS.value].walls = objects[4]
+                ControlPanel.features[Mode.SIGNS.value].Signs = objects[5]
+                ControlPanel.PrintObjects()
+                ControlPanel.window.update()
+            except:
+                print("Error: file {0} is incorrect!".format(filePath))
 
 
 class GenerateJson(BaseGuiObject):
@@ -561,8 +569,10 @@ class GenerateJson(BaseGuiObject):
         self.__walls = ControlPanel.features[Mode.WALLS.value].walls
         self.__signs = ControlPanel.features[Mode.SIGNS.value].Signs
         if start is not None:
-            create_json_from_gui(start, finish, Map.CELLS_AMOUNT, Map.CELLS_SIZE, 
-                                 Map.SIZE, None, self.__walls, self.__signs)
+            filePath = QFileDialog.getSaveFileName(ControlPanel.window, "", 
+                " ", JSON_FILE_TYPES)[0]
+            create_json_from_gui(start,finish,Map.CELLS_AMOUNT,Map.CELLS_SIZE,
+                Map.SIZE, None, self.__walls, self.__signs, filePath)
             ControlPanel.PrintObjects()
         else:
             print("Warning: firstly, you should set start position.")
@@ -572,5 +582,14 @@ class GenerateJson(BaseGuiObject):
 class CreateSdf(BaseGuiObject):
     def processButtonPressing(self):
         print("\nCreate sdf:")
-        create_sdf_from_json()
+        start = ControlPanel.features[Mode.START.value].start
+        finish = ControlPanel.features[Mode.FINISH.value].finish
+        self.__walls = ControlPanel.features[Mode.WALLS.value].walls
+        self.__signs = ControlPanel.features[Mode.SIGNS.value].Signs
+        if start is not None:
+            create_json_from_gui(start,finish,Map.CELLS_AMOUNT,Map.CELLS_SIZE,
+                Map.SIZE, None, self.__walls, self.__signs, TEMP_JSON_FILE)
+            filePath = QFileDialog.getSaveFileName(ControlPanel.window, "", 
+                "../wr8_description/worlds", WORLD_FILE_TYPES)[0]
+            create_sdf_from_json(TEMP_JSON_FILE, filePath)
         print("")

@@ -10,7 +10,6 @@ from gazebo_sdf import *
 from objects import *
 
 # File input-output default settings
-JSON_DEFAULT_NAME = "data_file.json"
 SDF_DEFAULT_NAME = "../wr8_description/worlds/world.world"
 
 # Cheet sheet
@@ -42,7 +41,7 @@ Json data:
 """
 
 def create_json_from_gui(start, finish, cellsAmount, cellsSize, mapSize,
-                         boxes, walls, signs):
+                         boxes, walls, signs, filePath):
     """ 
     @brief Create json file using frontend data
     """
@@ -67,11 +66,14 @@ def create_json_from_gui(start, finish, cellsAmount, cellsSize, mapSize,
                  (JsonNames.CELLS_SIZE, cellsSize.getListData()),
                  (JsonNames.SIZE, mapSize.getListData()),
                  (JsonNames.OBJECTS, objects)])
-    write_file = open(JSON_DEFAULT_NAME, "w")
-    json.dump(data, write_file, indent=2)
+    try:
+        write_file = open(filePath, "w")
+        json.dump(data, write_file, indent=2)
+    except:
+        print("Is file {0} correct?".format(filePath))
 
 
-def create_sdf_from_json(jsonFileName=JSON_DEFAULT_NAME, sdfFileName=SDF_DEFAULT_NAME):
+def create_sdf_from_json(jsonFileName, sdfFileName):
     """ 
     Create sdf world using json data
     """
@@ -97,10 +99,13 @@ def create_sdf_from_json(jsonFileName=JSON_DEFAULT_NAME, sdfFileName=SDF_DEFAULT
             imgType = obj.get(JsonNames.SIGN_TYPE)
             sign = Sign(Point2D(position), imgType)
             sdfCreator.addSign(sign)
-    sdfCreator.writeWorldToFile(sdfFileName)
+    try:
+        sdfCreator.writeWorldToFile(sdfFileName)
+    except:
+        print("Error: incorrect sdf file name!")
 
 
-def load_frontend_from_json(fileName = JSON_DEFAULT_NAME):
+def load_frontend_from_json(fileName):
     """ 
     Load fronted data from json file
     """
