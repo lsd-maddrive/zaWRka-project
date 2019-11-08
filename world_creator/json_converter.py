@@ -9,9 +9,6 @@ from json_constants import *
 from gazebo_sdf import *
 from objects import *
 
-# File input-output default settings
-SDF_DEFAULT_NAME = "../wr8_description/worlds/world.world"
-
 # Cheet sheet
 """
 Data types:

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from enum import Enum
+import os
 
 """
 This script containts json contants
@@ -31,13 +32,13 @@ class SignsTypes(Enum):
     FORWARD_OR_LEFT = "forward or left sign"
 
 class ImagesPaths():
-    PATH_TO_IMAGE = 'media/materials/textures/'
-    STOP = PATH_TO_IMAGE + 'stop_sign.png'
-    ONLY_FORWARD = PATH_TO_IMAGE + 'only_forward_sign.png'
-    ONLY_LEFT = PATH_TO_IMAGE + 'only_left_sign.png'
-    ONLY_RIGHT = PATH_TO_IMAGE + 'only_right_sign.png'
-    FORWARD_OR_LEFT = PATH_TO_IMAGE + 'forward_or_left_sign.png'
-    FORWARD_OR_RIGHT = PATH_TO_IMAGE + 'forward_or_right_sign.png'
+    IMAGE_PATH = 'media/materials/textures/'
+    STOP = os.path.join(IMAGE_PATH, 'stop_sign.png')
+    ONLY_FORWARD = os.path.join(IMAGE_PATH, 'only_forward_sign.png')
+    ONLY_LEFT = os.path.join(IMAGE_PATH, 'only_left_sign.png')
+    ONLY_RIGHT = os.path.join(IMAGE_PATH, 'only_right_sign.png')
+    FORWARD_OR_LEFT = os.path.join(IMAGE_PATH, 'forward_or_left_sign.png')
+    FORWARD_OR_RIGHT = os.path.join(IMAGE_PATH, 'forward_or_right_sign.png')
 
 def sign_path_to_sign_type(img_path):
     if img_path is ImagesPaths.STOP:
