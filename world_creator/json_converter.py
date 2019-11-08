@@ -70,6 +70,26 @@ def create_json_from_gui(start, finish, cellsAmount, cellsSize, mapSize,
         print("Is file {0} correct?".format(filePath))
 
 
+def create_sdf_from_gui(start, finish, cellsAmount, cellsSize, mapSize,
+                         boxes, walls, signs, filePath):
+    """ 
+    @brief Create sdf file using frontend data
+    """
+    start = start.convertFromGuiToJson(cellsSize).data
+    finish = finish.convertFromGuiToJson(cellsSize).data
+
+    sdfCreator = SdfCreator(start, finish, cellsAmount, cellsSize, mapSize)
+    for wall in walls:
+        wall = wall.convertFromGuiToJson(cellsSize)
+        sdfCreator.addWall(wall)
+    for sign in signs:
+        sign = sign.convertFromGuiToJson(cellsSize)
+        sdfCreator.addSign(sign)
+    try:
+        sdfCreator.writeWorldToFile(filePath)
+    except:
+        print("Error: incorrect sdf file name!")
+
 def create_sdf_from_json(jsonFileName, sdfFileName):
     """ 
     Create sdf world using json data
