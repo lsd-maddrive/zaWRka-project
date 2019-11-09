@@ -20,7 +20,7 @@ static void ros_is_dead_cb( void *arg )
 static void ros_alive( void )
 {
     palToggleLine( LINE_LED1 ); // just to check
-    chVTSet( &ros_checker_vt, MS2ST( 500 ), ros_is_dead_cb, NULL );
+    chVTSet( &ros_checker_vt, MS2ST( 2000 ), ros_is_dead_cb, NULL );
 }
 
 static void cntrl_handler (float speed, float steer)
@@ -47,6 +47,7 @@ void testRosRoutineADCCalib( void )
     lldSteerAngleFBInit();
 
     debug_stream_init();
+    dbgprintf( "ADC calibration test start\n" );
 
     chVTObjectInit(&ros_checker_vt);
 
@@ -66,6 +67,8 @@ void testRosRoutineADCCalib( void )
 
         raw_adc_value  = lldGetSteerAngleFiltrRawADC();
         ros_driver_send_raw_adc( raw_adc_value );
+
+        dbgprintf( "Hello %d / %d\n", test_ros_speed_cntr, test_ros_steer_cntr );
 
         time = chThdSleepUntilWindowed( time, time + MS2ST( send_period_ms ) );
 

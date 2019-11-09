@@ -129,7 +129,7 @@ void cmd_vel_cb( const geometry_msgs::Twist &msg )
 
 void raw_vel_cb( const geometry_msgs::Twist &msg )
 {
-    if ( last_cb_ctx.cmd_cb == NULL )
+    if ( last_cb_ctx.raw_cmd_cb == NULL )
     {
         return;
     }
@@ -140,7 +140,7 @@ void raw_vel_cb( const geometry_msgs::Twist &msg )
     cmd_speed = CLIP_VALUE(cmd_speed, -100, 100);
     cmd_steer = CLIP_VALUE(cmd_steer, -100, 100);
 
-    last_cb_ctx.cmd_cb( cmd_speed, cmd_steer );
+    last_cb_ctx.raw_cmd_cb( cmd_speed, cmd_steer );
 }
 
 
