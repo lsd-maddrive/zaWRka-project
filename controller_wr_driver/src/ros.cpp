@@ -162,7 +162,7 @@ ros::Publisher              topic_encspeed_raw("encspeed_raw", &f32_encspeed_raw
 ros::Publisher              topic_pose("odom_pose", &odometry_pose);
 ros::Publisher              topic_steer("steer_angle", &f32_steer_angle_msg);
 ros::Publisher              topic_state("state", &i8_state_msg);
-ros::Publisher              topic_adc_raw("steer_raw_adc", &ros_driver_send_raw_adc);
+ros::Publisher              topic_adc_raw("steer_raw_adc", &i32_adc_raw_msg);
 
 /*
  * ROS spin thread - used to receive messages
@@ -295,7 +295,7 @@ void ros_driver_init( tprio_t prio, ros_driver_cb_ctx_t *ctx )
 
     /* ROS subscribers */
     ros_node.subscribe( topic_cmd );
-    ros_node.subscribe( topic_raw_cmd );
+    ros_node.subscribe( topic_cmd_raw );
 
     /* ROS service servers */
     ros_node.advertiseService( srvc_check );
