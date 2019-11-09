@@ -113,8 +113,6 @@ ros::ServiceServer<wr8_msgs::ControlParamsRequest, wr8_msgs::ControlParamsRespon
 
 void cmd_vel_cb( const geometry_msgs::Twist &msg )
 {
-
-
     if ( last_cb_ctx.cmd_cb == NULL )
     {
         return;
@@ -129,7 +127,25 @@ void cmd_vel_cb( const geometry_msgs::Twist &msg )
     last_cb_ctx.cmd_cb( cmd_speed, cmd_steer );
 }
 
+void raw_vel_cb( const geometry_msgs::Twist &msg )
+{
+    if ( last_cb_ctx.cmd_cb == NULL )
+    {
+        return;
+    }
+
+    float cmd_speed = msg.linear.x;
+    float cmd_steer = msg.angular.z;
+
+    cmd_speed = CLIP_VALUE(cmd_speed, -100, 100);
+    cmd_steer = CLIP_VALUE(cmd_steer, -100, 100);
+
+    last_cb_ctx.cmd_cb( cmd_speed, cmd_steer );
+}
+
+
 ros::Subscriber<geometry_msgs::Twist>           topic_cmd("cmd_vel", &cmd_vel_cb);
+ros::Subscriber<geometry_msgs::Twist>           topic_cmd_raw("raw_cmd_vel", &raw_vel_cb); 
 
 
 ros::NodeHandle             ros_node;
@@ -139,12 +155,14 @@ std_msgs::Float32           f32_encspeed_raw_msg;
 std_msgs::Float32           f32_steer_angle_msg;
 std_msgs::Float32MultiArray odometry_pose;
 std_msgs::Int8              i8_state_msg;
+std_msgs::Int32             i32_adc_raw_msg; 
 
 ros::Publisher              topic_encoder_raw("encoder_raw", &i32_enc_raw_msg);
 ros::Publisher              topic_encspeed_raw("encspeed_raw", &f32_encspeed_raw_msg);
 ros::Publisher              topic_pose("odom_pose", &odometry_pose);
 ros::Publisher              topic_steer("steer_angle", &f32_steer_angle_msg);
 ros::Publisher              topic_state("state", &i8_state_msg);
+ros::Publisher              topic_adc_raw("steer_raw_adc", &ros_driver_send_raw_adc);
 
 /*
  * ROS spin thread - used to receive messages
@@ -212,7 +230,9 @@ void ros_driver_send_encoder_speed( float value )
 
 void ros_driver_send_raw_adc( uint16_t raw_adc )
 {
+    i32_adc_raw_msg.data = raw_adc; 
 
+    topic_adc_raw.publish( &i32_adc_raw_msg );
 }
 
 
@@ -271,9 +291,11 @@ void ros_driver_init( tprio_t prio, ros_driver_cb_ctx_t *ctx )
     ros_node.advertise( topic_steer );
     ros_node.advertise( topic_pose );
     ros_node.advertise( topic_state );
+    ros_node.advertise( topic_adc_raw );
 
     /* ROS subscribers */
     ros_node.subscribe( topic_cmd );
+    ros_node.subscribe( topic_raw_cmd );
 
     /* ROS service servers */
     ros_node.advertiseService( srvc_check );
