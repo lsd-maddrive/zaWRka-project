@@ -24,6 +24,7 @@ PROJECT_TESTS   = tests/test_lld_control.c     		\
 				  tests/test_ros_control.c			\
 				  tests/test_lld_start_button.c		\
 				  tests/test_lld_light.c 			\
+				  tests/test_ros_adc_calib.c 		\
 				  		
 PROJECT_CSRC    = src/main.c src/common.c src/debug.c src/usbcfg.c \
     				$(PROJECT_MODULES) $(PROJECT_TESTS)

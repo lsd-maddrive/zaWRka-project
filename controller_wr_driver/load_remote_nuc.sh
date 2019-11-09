@@ -1,6 +1,7 @@
 #!/bin/bash
 
-NUC_ADDR=usersaunuc-NUC7i5BNK.local
+ADDR=usersaunuc-NUC7i5BNK.local
+USER=user-sau-nuc
 
-scp build/ch.bin user-sau-nuc@$NUC_ADDR:/tmp
-ssh user-sau-nuc@$NUC_ADDR 'st-flash write /tmp/ch.bin 0x8000000'
+scp build/ch.bin $USER@$NUC_ADDR:/tmp
+ssh $USER@$NUC_ADDR 'st-flash write /tmp/ch.bin 0x8000000'

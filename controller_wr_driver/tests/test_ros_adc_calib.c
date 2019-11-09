@@ -4,10 +4,10 @@
 
 #include <ros_protos.h>
 
-controlValue_t          test_ros_steer_cntr = 0;
-controlValue_t          test_ros_speed_cntr = 0;
+static controlValue_t          test_ros_steer_cntr = 0;
+static controlValue_t          test_ros_speed_cntr = 0;
 
-virtual_timer_t         ros_checker_vt;
+static virtual_timer_t         ros_checker_vt;
 
 static void ros_is_dead_cb( void *arg )
 {
@@ -17,13 +17,13 @@ static void ros_is_dead_cb( void *arg )
     dbgprintf( "ROS is dead\n\r" );
 }
 
-void ros_alive( void )
+static void ros_alive( void )
 {
     palToggleLine( LINE_LED1 ); // just to check
     chVTSet( &ros_checker_vt, MS2ST( 500 ), ros_is_dead_cb, NULL );
 }
 
-void cntrl_handler (float speed, float steer)
+static void cntrl_handler (float speed, float steer)
 {
     systime_t ros_time = chVTGetSystemTimeX();
     test_ros_speed_cntr = speed;

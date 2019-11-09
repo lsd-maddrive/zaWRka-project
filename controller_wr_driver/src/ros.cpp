@@ -23,9 +23,10 @@
 
 static const ros_driver_cb_ctx_t default_cb_ctx = {
     .cmd_cb                 = NULL,
+    .raw_cmd_cb             = NULL,
 
     .set_odom_params_cb     = NULL,
-    .reset_odometry_cb      = NULL,
+    .reset_odometry_cb      = NULL
 
     // .get_control_params     = NULL,
     // .set_control_params_cb  = NULL
@@ -211,7 +212,7 @@ void ros_driver_send_encoder_speed( float value )
 
 void ros_driver_send_raw_adc( uint16_t raw_adc )
 {
-    
+
 }
 
 
