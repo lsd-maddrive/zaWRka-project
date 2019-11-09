@@ -209,6 +209,11 @@ void ros_driver_send_encoder_speed( float value )
     topic_encspeed_raw.publish( &f32_encspeed_raw_msg );
 }
 
+void ros_driver_send_raw_adc( uint16_t raw_adc )
+{
+    
+}
+
 
 /*===========================================================================*/
 /* SDU relative                                                              */
