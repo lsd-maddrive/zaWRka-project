@@ -68,9 +68,6 @@ void testRosRoutineADCCalib( void )
         raw_adc_value  = lldGetSteerAngleFiltrRawADC();
         ros_driver_send_raw_adc( raw_adc_value );
 
-        dbgprintf( "Hello %d / %d\n", test_ros_speed_cntr, test_ros_steer_cntr );
-
         time = chThdSleepUntilWindowed( time, time + MS2ST( send_period_ms ) );
-
     }
 }
