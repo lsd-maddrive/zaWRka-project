@@ -47,7 +47,7 @@ extern "C" {
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
 #define     PROGRAM_ROUTINE_TEST_ROS_ADC_CALIB          61
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ROS_ADC_CALIB
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND
 
 
 /*============================================================================*/
