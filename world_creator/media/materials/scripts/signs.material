@@ -1,0 +1,88 @@
+material SignsImages/Stop
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture ../textures/stop_sign.png
+      }
+    }
+  }
+}
+
+
+material SignsImages/OnlyForward
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture ../textures/only_forward_sign.png
+      }
+    }
+  }
+}
+
+
+material SignsImages/OnlyRight
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture ../textures/only_right_sign.png
+      }
+    }
+  }
+}
+
+
+material SignsImages/OnlyLeft
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture ../textures/only_left_sign.png
+      }
+    }
+  }
+}
+
+
+material SignsImages/ForwardOrLeft
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture ../textures/forward_or_left_sign.png
+      }
+    }
+  }
+}
+
+
+material SignsImages/ForwardOrRight
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture ../textures/forward_or_right_sign.png
+      }
+    }
+  }
+}
