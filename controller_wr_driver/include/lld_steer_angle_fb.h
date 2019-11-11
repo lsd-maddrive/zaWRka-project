@@ -6,7 +6,6 @@ typedef float       steerAngleRadValue_t;
 typedef float       steerAngleDegValue_t;
 
 
-
 /**
  * @brief       Initialization of unit for steering angle feedback
  * @note        ADC initialization and GPT initialization
@@ -51,19 +50,13 @@ steerAngleRawValue_t lldGetSteerAngleFiltrRawADC ( void );
 
 /**
  * @brief       Get steering angle [rad]
- * @return      max_right   ->  STEER_RAD_RIGHT
- *              center      ->  STEER_RAD_CENTER
- *              max_left    ->  STEER_RAD_LEFT
+ * @return      Angle in radians
 */
 steerAngleRadValue_t lldGetSteerAngleRad ( void );
 
 /**
  * @brief       Get steering angle [deg]
- * @return      max_right   ->  -34
- *              center      ->  0
- *              max_left    ->  28
- *@note         IMPORTANT!
- *              Use AFTER Initialization
+ * @return      Angle in degree
 */
 steerAngleDegValue_t lldGetSteerAngleDeg( void );
 

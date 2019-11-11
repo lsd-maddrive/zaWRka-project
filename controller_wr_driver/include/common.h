@@ -119,28 +119,18 @@ typedef struct range_map
     float b;
 } range_map_t;
 
-inline static void range_map_init(range_map_t   *ctx, 
-                                  float         in_min, 
-                                  float         in_max, 
-                                  float         out_min, 
-                                  float         out_max)
-{
-    if ( !ctx )
-        return;
+void range_map_init(range_map_t   *ctx, 
+                           float         in_min, 
+                           float         in_max, 
+                           float         out_min, 
+                           float         out_max);
 
-    ctx->k = (out_max - out_min)/(in_max - in_min);
-    ctx->b = (out_min - ctx->k * in_min);
-}
+void range_map_init_raw(range_map_t   *ctx, 
+                               float         k, 
+                               float         b);
 
-inline static float range_map_call(range_map_t   *ctx,
-                                   float         val)
-{
-    if ( !ctx )
-        return 0;
-
-    return (ctx->k * val + ctx->b);
-}
-
+float range_map_call(range_map_t   *ctx,
+                            float         val);
 
 #ifdef __cplusplus
 }

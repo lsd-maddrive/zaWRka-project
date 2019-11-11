@@ -1,4 +1,5 @@
 #include <tests.h>
+#include <common.h>
 #include <lld_steer_angle_fb.h>
 
 /*============================================================================*/
@@ -14,18 +15,7 @@
 /* OBJECT CONFIGURATION                                                       */
 /*============================================================================*/
 
-#define     STEER_ADC_RIGHT         215 // 1075
-#define     STEER_ADC_LEFT          3390 // 1980
-#define     STEER_ADC_CENTER        1800 // 1510
-
-#define     STEER_RAD_RIGHT         (float)(-0.593) // -34
-#define     STEER_RAD_LEFT          (float)0.52     // 29
-#define     STEER_RAD_CENTER        (float)0.0
-
-/*
- * R1_left  = 56.5 cm => tg = L / R1 = 0.53097 => 28 deg
- * R1_right = 44   cm => tg = L / R1 = 0.6818  => 34 deg
- */
+#define     STEER_ADC_CENTER        1350
 
 /*============================================================================*/
 /* CONFIGURATION ZONE                                                         */
@@ -34,40 +24,23 @@
 /***    ADC CONFIG    ***/
 
 /***     Timer 4 = Trigger   ***/
-#define ADC_MODE_TRIGGER        ADC_CR2_EXTEN_RISING | ADC_CR2_EXTSEL_SRC(12)
+#define ADC_MODE_TRIGGER_T4      ADC_CR2_EXTEN_RISING | ADC_CR2_EXTSEL_SRC(12)
 /***     12-BIT RESOLUTION   ***/
 #define ADC_12_BIT_CONF         (0)
 #define ADC_10_BIT_CONF         (ADC_CR1_RES_0)
 
 #define ADC_1_NUM_CHANNELS      1
 #define ADC_1_BUF_DEPTH         1
+static adcsample_t              adc_1_buffer[ADC_1_NUM_CHANNELS * ADC_1_BUF_DEPTH];
 
 #define ADC_STEER_ANGL_LINE     PAL_LINE( GPIOC, 0 )
 
-static ADCDriver                *steerADCDriver         = &ADCD1;
+static ADCDriver    *steerADCDriver         = &ADCD1;
+static bool         isInitialized       = false;
 
-steerAngleRawValue_t            steer_raw_ADC_val   = 0;
-
-static adcsample_t              adc_1_buffer[ADC_1_NUM_CHANNELS * ADC_1_BUF_DEPTH];
-
-/*============================================================================*/
-/* FILTER CONFIG                                                              */
-/*============================================================================*/
-
+steerAngleRawValue_t    steer_raw_ADC_val   = 0;
 steerAngleRawValue_t    steer_filtered_adc_val      = 0;
 
-/***        MEAN Filter         ***/
-#define STEER_MEAN_WINDOW_VAL    20
-
-static  uint32_t        adc_cb_counter              = 0;
-
-steerAngleRawValue_t    steer_mean_sum              = 0;
-
-/***    Low Pass Filter ( LPF ) ***/
-
-static float steer_lpf_factor = 0.9;
-
-steerAngleRawValue_t    prev_steer_lpf_adc_val      = 0;
 
 static void adc_1_cb ( ADCDriver *adcp, adcsample_t *buffer, size_t n )
 {
@@ -76,12 +49,16 @@ static void adc_1_cb ( ADCDriver *adcp, adcsample_t *buffer, size_t n )
     n = n;
     buffer = buffer;
 
-    adc_cb_counter += 1;
-
     steer_raw_ADC_val = adc_1_buffer[0];
 
 #if( STEER_ACTIVE_FILTER == STEER_FILTER_MEAN )
+    #define STEER_MEAN_WINDOW_VAL    20
+
+    static  uint32_t            adc_cb_counter = 0;
+    static steerAngleRawValue_t steer_mean_sum = 0;
+
     steer_mean_sum += steer_raw_ADC_val;
+    adc_cb_counter += 1;
 
     if( adc_cb_counter == STEER_MEAN_WINDOW_VAL )
     {
@@ -89,25 +66,12 @@ static void adc_1_cb ( ADCDriver *adcp, adcsample_t *buffer, size_t n )
         adc_cb_counter      = 0;
         steer_mean_sum      = 0;
     }
+
 #elif( STEER_ACTIVE_FILTER == STEER_FILTER_LPF )
+    static float steer_lpf_factor = 0.9;
 
-    if( steer_raw_ADC_val >= 1550 )
-    {
-        float new_lpf_high  = 0.97;
-        steer_filtered_adc_val = steer_raw_ADC_val * (1 - new_lpf_high) + prev_steer_lpf_adc_val * new_lpf_high;
+    steer_filtered_adc_val = steer_raw_ADC_val * (1 - steer_lpf_factor) + steer_filtered_adc_val * steer_lpf_factor;
 
-        prev_steer_lpf_adc_val = steer_filtered_adc_val;
-    }
-    else
-    {
-        steer_filtered_adc_val = steer_raw_ADC_val * (1 - steer_lpf_factor) + prev_steer_lpf_adc_val * steer_lpf_factor;
-
-        prev_steer_lpf_adc_val = steer_filtered_adc_val;
-    }
-
-
-#else
-    adc_cb_counter      = 0;
 #endif
 }
 
@@ -117,7 +81,7 @@ static const ADCConversionGroup steer_adc_1_cnfg = {
   .end_cb       = adc_1_cb,
   .error_cb     = 0,
   .cr1          = ADC_12_BIT_CONF,
-  .cr2          = ADC_MODE_TRIGGER,
+  .cr2          = ADC_MODE_TRIGGER_T4,
   .smpr1        = ADC_SMPR1_SMP_AN10(ADC_SAMPLE_480),
   .smpr2        = 0,
   .sqr1         = ADC_SQR1_NUM_CH(ADC_1_NUM_CHANNELS),
@@ -140,13 +104,9 @@ static const GPTConfig gpt_trg_cnfg = {
 /*============================================================================*/
 /* COEFFICIENT INIT                                                           */
 /*============================================================================*/
-static bool     isInitialized       = false;
 
-float           steer_right_k   = 0;
-float           steer_right_b   = 0;
-
-float           steer_left_k    = 0;
-float           steer_left_b    = 0;
+static range_map_t  steer_left_map;
+static range_map_t  steer_right_map;
 
 float           rad_2_deg       = 0;
 
@@ -166,15 +126,12 @@ void lldSteerAngleFBInit ( void )
 
     /***    TIMER start     ***/
     gptStart(adcTrgDriver, &gpt_trg_cnfg);
-    /***    Trigger = 1 ms ***/
+    /***    Trigger = 2 ms ***/
     gptStartContinuous( adcTrgDriver, gpt_trg_cnfg.frequency/2000 );
 
-    /***    Coefficient calculation  ***/
-    steer_right_k = (STEER_RAD_CENTER - STEER_RAD_RIGHT) / (STEER_ADC_CENTER - STEER_ADC_RIGHT);
-    steer_right_b = STEER_RAD_RIGHT - STEER_ADC_RIGHT * steer_right_k;
-
-    steer_left_k  = (STEER_RAD_CENTER - STEER_RAD_LEFT) / (STEER_ADC_CENTER - STEER_ADC_LEFT);
-    steer_left_b  = STEER_RAD_LEFT - STEER_ADC_LEFT * steer_left_k;
+    /***    Calibration results  ***/
+    range_map_init_raw(&steer_left_map, 0.0354, -47.8);
+    range_map_init_raw(&steer_right_map, 0.0286, -38.7);
 
     rad_2_deg     = 180 / M_PI;
 
@@ -217,37 +174,28 @@ steerAngleRawValue_t lldGetSteerAngleFiltrRawADC ( void )
 }
 
 /**
- * @brief       Get steering angle [rad]
- * @return      max_right   ->  STEER_RAD_RIGHT
- *              center      ->  STEER_RAD_CENTER
- *              max_left    ->  STEER_RAD_LEFT
+ * @brief       Get steering angle [deg]
+ * @return      Angle in degree
 */
-steerAngleRadValue_t lldGetSteerAngleRad ( void )
+steerAngleDegValue_t lldGetSteerAngleDeg ( void )
 {
-    steerAngleRadValue_t    steer_rad_angl  = 0;
+    steerAngleDegValue_t    steer_angle  = 0;
 
-    steer_filtered_adc_val  = CLIP_VALUE(steer_filtered_adc_val, STEER_ADC_RIGHT, STEER_ADC_LEFT);
+    if( steer_filtered_adc_val < STEER_ADC_CENTER ) // right
+        steer_angle = range_map_call(&steer_right_map, steer_filtered_adc_val);
+    else if( steer_filtered_adc_val >= STEER_ADC_CENTER ) // left
+        steer_angle = range_map_call(&steer_left_map, steer_filtered_adc_val);
 
-    if( steer_filtered_adc_val <= STEER_ADC_CENTER ) // right
-        steer_rad_angl = steer_filtered_adc_val * steer_right_k + steer_right_b;
-    else if( steer_filtered_adc_val > STEER_ADC_CENTER ) // left
-        steer_rad_angl = steer_filtered_adc_val * steer_left_k + steer_left_b;
-
-    return steer_rad_angl;
+    return steer_angle;
 }
 
 /**
- * @brief       Get steering angle [deg]
- * @return      max_right   ->  -34
- *              center      ->  0
- *              max_left    ->  28
- *@note         IMPORTANT!
- *              Use AFTER Initialization
+ * @brief       Get steering angle [rad]
+ * @return      Angle in radians
 */
-steerAngleDegValue_t lldGetSteerAngleDeg( void )
+steerAngleRadValue_t lldGetSteerAngleRad( void )
 {
-    steerAngleRadValue_t rad_angle = lldGetSteerAngleRad( );
-    return ( rad_angle * rad_2_deg );
+    return lldGetSteerAngleDeg() / rad_2_deg;
 }
 
 
