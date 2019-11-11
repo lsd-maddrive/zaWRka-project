@@ -7,7 +7,7 @@
 
 /* These values are only for driver, must be closed! */
 #define STEER_PWM_MAX           1650 //1650    // Left
-#define STEER_PWM_NULL          1260
+#define STEER_PWM_NULL          1140
 #define STEER_PWM_MIN           500  //650     // Right
 
 #define SPEED_MAX               1650
