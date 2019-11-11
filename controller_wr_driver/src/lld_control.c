@@ -6,9 +6,9 @@
 #define pwm1Period      10000           // 100 Hz
 
 /* These values are only for driver, must be closed! */
-#define STEER_PWM_MAX           1650    // Left
-#define STEER_PWM_NULL          1200
-#define STEER_PWM_MIN           650     // Right
+#define STEER_PWM_MAX           1650 //1650    // Left
+#define STEER_PWM_NULL          1140
+#define STEER_PWM_MIN           500  //650     // Right
 
 #define SPEED_MAX               1650
 #define SPEED_NULL_FORWARD      1550
@@ -55,18 +55,6 @@ PWMConfig pwm1conf = {
 };
 
 static bool         isInitialized       = false;
-
-// float               lld_speed_forward_k = 0;
-// float               lld_speed_forward_b = 0;
-
-// float               lld_speed_back_k    = 0;
-// float               lld_speed_back_b    = 0;
-
-// float               lld_steer_left_k;
-// float               lld_steer_left_b;
-
-// float               lld_steer_right_k;
-// float               lld_steer_right_b;
 
 range_map_t         speed_forward_map;
 range_map_t         speed_backward_map;

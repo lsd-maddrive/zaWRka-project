@@ -45,6 +45,7 @@ extern "C" {
 #define     PROGRAM_ROUTINE_TEST_ROS_CONTROL            35
 #define     PROGRAM_ROUTINE_TEST_GUI_SERVER             40
 #define     PROGRAM_ROUTINE_TEST_ROS                    60
+#define     PROGRAM_ROUTINE_TEST_ROS_ADC_CALIB          61
 
 #define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND
 
@@ -118,28 +119,18 @@ typedef struct range_map
     float b;
 } range_map_t;
 
-inline static void range_map_init(range_map_t   *ctx, 
-                                  float         in_min, 
-                                  float         in_max, 
-                                  float         out_min, 
-                                  float         out_max)
-{
-    if ( !ctx )
-        return;
+void range_map_init(range_map_t   *ctx, 
+                           float         in_min, 
+                           float         in_max, 
+                           float         out_min, 
+                           float         out_max);
 
-    ctx->k = (out_max - out_min)/(in_max - in_min);
-    ctx->b = (out_min - ctx->k * in_min);
-}
+void range_map_init_raw(range_map_t   *ctx, 
+                               float         k, 
+                               float         b);
 
-inline static float range_map_call(range_map_t   *ctx,
-                                   float         val)
-{
-    if ( !ctx )
-        return 0;
-
-    return (ctx->k * val + ctx->b);
-}
-
+float range_map_call(range_map_t   *ctx,
+                            float         val);
 
 #ifdef __cplusplus
 }
