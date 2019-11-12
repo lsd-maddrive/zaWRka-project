@@ -21,9 +21,8 @@ WALL_SPAWN_Z = float(0.25)
 
 # Files pathes
 # For correct use, you should run export GAZEBO_RESOURCE_PATH=path/to/media
-SIGN_PATH = "media/brick-sign/model.sdf"
-BOX_PATH = "box.world"
-EMPTY_WORLD_PATH = "empty_world.world"
+BOX_PATH = "media/box.world"
+EMPTY_WORLD_PATH = "media/empty_world.world"
 
 # Signs materials
 class SignsImages(Enum):

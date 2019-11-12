@@ -509,12 +509,11 @@ class SignChoiceDialog(QDialog):
         callback = lambda: self.__deleteSign(self.__pos)
         self.__dialog.buttons[0].clicked.connect(callback)
         layout.addWidget(self.__dialog.buttons[0], 1, 0)
-        for i in range(1, 7):
+        for i in range(1, len(info)):
             self.__dialog.buttons.append(QPushButton(info[i][0]))
             self.__dialog.buttons[i].setIcon(QIcon(info[i][1]))
             self.__dialog.buttons[i].setIconSize(QSize(24, 24))
-            callback = lambda this, row=i: self.__addSign(self.__pos,
-                info[row][1])
+            callback = lambda this, row=i: self.__addSign(self.__pos, info[row][1])
             self.__dialog.buttons[i].clicked.connect(callback)
             layout.addWidget(self.__dialog.buttons[i], i+1, 0)
         self.__dialog.setLayout(layout)
@@ -587,8 +586,10 @@ class CreateSdf(BaseGuiObject):
         self.__signs = ControlPanel.features[Mode.SIGNS.value].Signs
         if start is not None:
             filePath = QFileDialog.getSaveFileName(ControlPanel.window, "", ".", WORLD_FILE_TYPES)[0]
-            create_sdf_from_gui(start,finish,Map.CELLS_AMOUNT,Map.CELLS_SIZE,
-                Map.SIZE, None, self.__walls, self.__signs, filePath)
+            
+            if filePath:
+                create_sdf_from_gui(start,finish,Map.CELLS_AMOUNT,Map.CELLS_SIZE,
+                                    Map.SIZE, None, self.__walls, self.__signs, filePath)
 
         print("")
         
