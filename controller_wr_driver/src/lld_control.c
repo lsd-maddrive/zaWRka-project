@@ -5,6 +5,17 @@
 #define pwm1Freq        1000000
 #define pwm1Period      10000           // 100 Hz
 
+/* These values are only for driver, must be closed! */
+#define STEER_PWM_MAX           1650 //1650    // Left
+#define STEER_PWM_NULL          1140
+#define STEER_PWM_MIN           500  //650     // Right
+
+#define SPEED_MAX               1650
+#define SPEED_NULL_FORWARD      1550
+#define SPEED_ZERO              1500
+#define SPEED_NULL_BACK         1450
+#define SPEED_MIN               1350
+
 /***  PWM configuration pins    ***/
 /***  PE9 - Driving wheels      ***/
 #define PE9_ACTIVE      PWM_OUTPUT_ACTIVE_HIGH
@@ -45,16 +56,10 @@ PWMConfig pwm1conf = {
 
 static bool         isInitialized       = false;
 
-rawPwmValue_t       drDuty              = 0;
-
-float               lld_speed_forward_k = 0;
-float               lld_speed_forward_b = 0;
-
-float               lld_speed_back_k    = 0;
-float               lld_speed_back_b    = 0;
-
-float               lld_steer_k         = 0;
-float               lld_steer_b         = 0;
+range_map_t         speed_forward_map;
+range_map_t         speed_backward_map;
+range_map_t         steer_left_map;
+range_map_t         steer_right_map;
 
 /**
  * @brief   Initialize periphery connected to driver control
@@ -71,21 +76,14 @@ void lldControlInit( void )
 
     pwmStart( pwmDriver, &pwm1conf );
 
-
     /*** Calibration coefficients calculation ***/
-    lld_speed_forward_k = (float)( SPEED_MAX - SPEED_NULL_FORWARD )/( CONTROL_MAX - CONTROL_NULL );
-    lld_speed_forward_b = ( SPEED_NULL_FORWARD - lld_speed_forward_k * CONTROL_NULL );
-
-    lld_speed_back_k = (float)( SPEED_NULL_BACK - SPEED_MIN )/( CONTROL_NULL - CONTROL_MIN );
-    lld_speed_back_b = ( SPEED_MIN - lld_speed_back_k * CONTROL_MIN );
-
-    lld_steer_k = (float)( STEER_MAX - STEER_MIN )/( CONTROL_MAX - CONTROL_MIN );
-    lld_steer_b = ( STEER_MIN - lld_steer_k * CONTROL_MIN );
+    range_map_init( &speed_forward_map, CONTROL_NULL, CONTROL_MAX, SPEED_NULL_FORWARD, SPEED_MAX );
+    range_map_init( &speed_backward_map, CONTROL_MIN, CONTROL_NULL, SPEED_MIN, SPEED_NULL_BACK );
+    range_map_init( &steer_left_map, CONTROL_NULL, CONTROL_MAX, STEER_PWM_NULL, STEER_PWM_MAX );
+    range_map_init( &steer_right_map, CONTROL_MIN, CONTROL_NULL, STEER_PWM_MIN, STEER_PWM_NULL );
 
     /* Set initialization flag */
-
     isInitialized = true;
-
 }
 
 /**
@@ -94,22 +92,24 @@ void lldControlInit( void )
  */
 void lldControlSetDrMotorPower( controlValue_t inputPrc )
 {
+    rawPwmValue_t input_dc;
+
     inputPrc = CLIP_VALUE(inputPrc, CONTROL_MIN, CONTROL_MAX);
 
     if( inputPrc == 0 )
     {
-        drDuty   = SPEED_ZERO;
+        input_dc   = SPEED_ZERO;
     }
     else if( inputPrc > 0)
     {
-        drDuty = lld_speed_forward_k * inputPrc + lld_speed_forward_b;
+        input_dc = range_map_call(&speed_forward_map, inputPrc);
     }
     else
     {
-        drDuty = lld_speed_back_k * inputPrc + lld_speed_back_b;
+        input_dc = range_map_call(&speed_backward_map, inputPrc);
     }
-    drDuty = CLIP_VALUE(drDuty, SPEED_MIN, SPEED_MAX);
-    pwmEnableChannel( pwmDriver, drivePWMch, drDuty);
+
+    lldControlSetDrMotorRawPower(input_dc);
 }
 
 /**
@@ -119,17 +119,15 @@ void lldControlSetDrMotorPower( controlValue_t inputPrc )
 void lldControlSetDrMotorRawPower( rawPwmValue_t dutyCycleSpeed)
 {
     dutyCycleSpeed = CLIP_VALUE( dutyCycleSpeed, SPEED_MIN, SPEED_MAX );
-    pwmEnableChannel( pwmDriver, drivePWMch, dutyCycleSpeed);
+    pwmEnableChannel(pwmDriver, drivePWMch, dutyCycleSpeed);
 }
 
 /**
- * @brief   Set power (in ticks) for steering motor
- * @param   steerDuty   dutycycle for steering control
+ * @brief   Get zero power
  */
-void lldControlSetSteerMotorRawPower( rawPwmValue_t dutyCycleSteer)
+rawPwmValue_t lldControlGetDrMotorZeroPower()
 {
-    dutyCycleSteer = CLIP_VALUE( dutyCycleSteer, STEER_MIN, STEER_MAX );
-    pwmEnableChannel( pwmDriver, steerPWMch, dutyCycleSteer);
+    return SPEED_ZERO;
 }
 
 /**
@@ -141,8 +139,41 @@ void lldControlSetSteerMotorRawPower( rawPwmValue_t dutyCycleSteer)
  */
 void lldControlSetSteerMotorPower( controlValue_t inputPrc )
 {
-    inputPrc = CLIP_VALUE(inputPrc, CONTROL_MIN, CONTROL_MAX);
-    rawPwmValue_t drDuty = lld_steer_k * inputPrc + lld_steer_b;
+    rawPwmValue_t input_dc;
 
-    pwmEnableChannel( pwmDriver, steerPWMch, drDuty);
+    inputPrc = CLIP_VALUE(inputPrc, CONTROL_MIN, CONTROL_MAX);
+    if( inputPrc == 0 )
+    {
+        input_dc   = STEER_PWM_NULL;
+    }
+    else if( inputPrc > 0)
+    {
+        input_dc = range_map_call(&steer_left_map, inputPrc);
+    }
+    else
+    {
+        input_dc = range_map_call(&steer_right_map, inputPrc);
+    }
+
+    lldControlSetSteerMotorRawPower(input_dc);
+}
+
+
+
+/**
+ * @brief   Set power (in ticks) for steering motor
+ * @param   steerDuty   dutycycle for steering control
+ */
+void lldControlSetSteerMotorRawPower( rawPwmValue_t dutyCycleSteer)
+{
+    dutyCycleSteer = CLIP_VALUE( dutyCycleSteer, STEER_PWM_MIN, STEER_PWM_MAX );
+    pwmEnableChannel(pwmDriver, steerPWMch, dutyCycleSteer);
+}
+
+/**
+ * @brief   Get zero power
+ */
+rawPwmValue_t lldControlGetSteerMotorZeroPower()
+{
+    return STEER_PWM_NULL;
 }

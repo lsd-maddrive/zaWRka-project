@@ -171,11 +171,21 @@ void testRosRoutineControl( void );
 */
 void testButtonRoutine( void );
 
+/**
+ * @brief   ADC calibration process
+ * @note    Frequency = 50 Hz
+*/
+void testRosRoutineADCCalib( void );
+
 
 
 static inline void testsRoutines( void )
 {
-#if (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS)
+#if (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS_ADC_CALIB)
+
+    testRosRoutineADCCalib();
+
+#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS)
 
     testROSConnection( );
 
@@ -202,10 +212,6 @@ static inline void testsRoutines( void )
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ODOMETRY )
 
     testOdometryRoutine( );
-
-#elif ( MAIN_PROGRAM_ROUTINE ==PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND)
-
-    testRemoteControlOdometryRoutine( );
 
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_ODOMETRY_RC )
 

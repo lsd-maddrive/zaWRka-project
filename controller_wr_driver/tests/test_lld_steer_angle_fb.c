@@ -3,8 +3,9 @@
 #include <lld_control.h>
 
 #define STEER_FB_TERMINAL
-//#define ADC_CHECK
+// #define ADC_CHECK
 #define ANGLE_CHECK
+// #define ANGLE_CHECK
 
 //#define STEER_FB_MATLAB
 
@@ -33,6 +34,8 @@ void testSteerAngleSendData( void )
     lldControlInit( );
     debug_stream_init( );
 
+    dbgprintf("Start steering test!\n");
+
 #ifdef ADC_CHECK
     uint16_t                test_raw_steer          = 0;
     uint16_t                test_filtr_raw_steer    = 0;
@@ -40,6 +43,7 @@ void testSteerAngleSendData( void )
 #ifdef ANGLE_CHECK
     steerAngleRadValue_t    test_rad_angle          = 0;
     steerAngleDegValue_t    test_deg_angle          = 0;
+    uint16_t                test_filtr_raw_steer    = 0;
 #endif
     controlValue_t          test_steer_cntrl        = 0;
     controlValue_t          test_delta_steer_cntr   = 5;
@@ -59,6 +63,7 @@ void testSteerAngleSendData( void )
 #ifdef ANGLE_CHECK
         test_rad_angle      = lldGetSteerAngleRad( );
         test_deg_angle      = lldGetSteerAngleDeg( );
+        test_filtr_raw_steer  = lldGetSteerAngleFiltrRawADC( );
 #endif
 #ifdef STEER_FB_MATLAB
         char rc_data = sdGetTimeout( &SD7, TIME_IMMEDIATE );
@@ -106,9 +111,9 @@ void testSteerAngleSendData( void )
 #endif
 #ifdef ANGLE_CHECK
 
-        dbgprintf( "CONTROL:(%d)\tRAD:(%d)\tDEG:(%d)\n\r",
+        dbgprintf( "CONTROL:(%d)\tRAD:(%d)\tDEG:(%d)\tRAW:(%d)\n\r",
                   test_steer_cntrl, (int)(test_rad_angle * 10),
-                  (int)test_deg_angle );
+                  (int)test_deg_angle, test_filtr_raw_steer );
 
         time = chThdSleepUntilWindowed( time, time + MS2ST( 100 ) );
 #endif

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from copy import deepcopy
 class Vector2D:
     def __init__(self, arg1=None, arg2=None):
         if arg1 is None:
@@ -8,9 +9,15 @@ class Vector2D:
         else:
             self.BuildFromVeriables(arg1, arg2)
     def __truediv__(self, other):
-        return Point2D(self.x / other, self.y / other)
+        answer = deepcopy(self)
+        answer.x = self.x / other
+        answer.y = self.y / other
+        return answer
     def __sub__(self, other):
-        return Point2D(self.x - other.x, self.y - other.y)
+        answer = deepcopy(self)
+        answer.x = self.x - other.x
+        answer.y = self.y - other.y
+        return answer
     def __str__(self):
         return "[{0}, {1}]".format(self.x, self.y)
     def __eq__(self, other):
@@ -36,9 +43,17 @@ class Vector3D:
         else:
             self.BuildFromVeriables(arg1, arg2, arg3)
     def __truediv__(self, other):
-        self.x /= other
-        self.y /= other
-        self.z /= other
+        answer = deepcopy(self)
+        answer.x = self.x / other
+        answer.y = self.y / other
+        answer.z = self.z / other
+        return answer
+    def __sub__(self, other):
+        answer = deepcopy(self)
+        answer.x = self.x - other.x
+        answer.y = self.y - other.y
+        answer.z = self.z - other.z
+        return answer
     def __str__(self):
         return "[{0}, {1}, {2}]".format(self.x, self.y, self.z)
     def __eq__(self, other):

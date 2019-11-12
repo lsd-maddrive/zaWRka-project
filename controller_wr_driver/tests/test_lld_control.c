@@ -13,10 +13,10 @@ void testRawWheelsControlRoutine( void )
     lldControlInit();
 
     controlValue_t  speed_values_delta  = 10;
-    controlValue_t  speed_value         = SPEED_ZERO;
+    controlValue_t  speed_value         = lldControlGetDrMotorZeroPower();
 
     controlValue_t  steer_values_delta  = 10;
-    controlValue_t  steer_value         = STEER_NULL;
+    controlValue_t  steer_value         = lldControlGetSteerMotorZeroPower();
 
     systime_t   time = chVTGetSystemTimeX( );
     while ( 1 )
@@ -33,8 +33,8 @@ void testRawWheelsControlRoutine( void )
               break;
 
             case ' ':   // Stop
-              speed_value = SPEED_ZERO;
-              steer_value = STEER_NULL;
+              speed_value = lldControlGetDrMotorZeroPower();
+              steer_value = lldControlGetSteerMotorZeroPower();
               break;
 
             case 'q':   // On the left
@@ -49,10 +49,7 @@ void testRawWheelsControlRoutine( void )
                 ;
         }
 
-        speed_value = CLIP_VALUE( speed_value, SPEED_MIN, SPEED_MAX );
         lldControlSetDrMotorRawPower( speed_value );
-
-        steer_value = CLIP_VALUE( steer_value, STEER_MIN, STEER_MAX );
         lldControlSetSteerMotorRawPower( steer_value );
 
         dbgprintf( "SP:(%d)\tST:(%d)\n\r", speed_value, steer_value );
@@ -144,8 +141,6 @@ void testWheelsControlRoutines( void )
                ;
         }
 
-        speed_value     = CLIP_VALUE( speed_value, CONTROL_MIN, CONTROL_MAX );
-        steer_value     = CLIP_VALUE( steer_value, CONTROL_MIN, CONTROL_MAX );
         test_speed_lpf  = lldOdometryGetLPFObjSpeedMPS( );
 
         lldControlSetDrMotorPower( speed_value );
@@ -230,6 +225,11 @@ void testDrivingWheelsESCCalibration ( void )
 {
     lldControlInit( );
     debug_stream_init( );
+
+/* Special values only for this test */
+#define SPEED_MAX               1650
+#define SPEED_ZERO              1500
+#define SPEED_MIN               1350
 
     controlValue_t          speed_value         = SPEED_ZERO;
 

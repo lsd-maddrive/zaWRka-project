@@ -31,7 +31,6 @@ class CollorCode(Enum):
 
 WORLD_FILE_TYPES = "world files (*.world)"
 JSON_FILE_TYPES = "Json Files (*.json)"
-TEMP_JSON_FILE = ".temp.json"
 
 # ***************************** Main window *********************************
 class MainWindow(QWidget):
@@ -587,8 +586,9 @@ class CreateSdf(BaseGuiObject):
         self.__walls = ControlPanel.features[Mode.WALLS.value].walls
         self.__signs = ControlPanel.features[Mode.SIGNS.value].Signs
         if start is not None:
-            create_json_from_gui(start,finish,Map.CELLS_AMOUNT,Map.CELLS_SIZE,
-                Map.SIZE, None, self.__walls, self.__signs, TEMP_JSON_FILE)
             filePath = QFileDialog.getSaveFileName(ControlPanel.window, "", ".", WORLD_FILE_TYPES)[0]
-            create_sdf_from_json(TEMP_JSON_FILE, filePath)
+            create_sdf_from_gui(start,finish,Map.CELLS_AMOUNT,Map.CELLS_SIZE,
+                Map.SIZE, None, self.__walls, self.__signs, filePath)
+
         print("")
+        

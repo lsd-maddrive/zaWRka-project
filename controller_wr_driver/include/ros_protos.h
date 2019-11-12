@@ -54,6 +54,13 @@ void ros_driver_send_pose( float x, float y, float dir, float vx, float uz );
  */
 void ros_driver_send_state( int8_t state );
 
+/**
+ * @brief	Send raw ADC value
+ * @param
+ * 			raw_adc - value from ADC [0; 4096] (12-bit)
+ */
+void ros_driver_send_raw_adc( uint16_t raw_adc );
+
 /***
  * WARNING! Never create this structure by yourself, use ros_driver_get_new_cb_ctx() instead
  */
@@ -67,6 +74,13 @@ typedef struct
 	 * 		steer - Steering task (-25;25) [deg]
 	 */
 	void (*cmd_cb)( float speed, float steer );
+
+	/*
+	 * Cb returned arguments:
+	 * 		speed - Speed task (-100;100) [%]
+	 * 		steer - Steering task (-100;100) [%]
+	 */
+	void (*raw_cmd_cb)( float speed, float steer );
 
 	/*
 	 * It is better to use structure with parameters

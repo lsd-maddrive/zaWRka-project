@@ -247,8 +247,8 @@ void testRCOdodmetry( void )
     }
     else
     {
-      lldControlSetSteerMotorRawPower( STEER_NULL );
-      lldControlSetDrMotorRawPower( SPEED_ZERO );
+      lldControlSetSteerMotorRawPower( lldControlGetSteerMotorZeroPower() );
+      lldControlSetDrMotorRawPower( lldControlGetDrMotorZeroPower() );
     }
 
     test_tetta_deg  = lldGetOdometryObjTettaDeg( );
