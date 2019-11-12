@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 from lxml import etree
 import copy, numpy
+import math as m
 from enum import Enum
 from json_converter import *
 from data_structures import *
 from objects import *
+
 
 class SignOrientation(Enum):
     RIGHT_TOP = 0
@@ -19,18 +21,18 @@ WALL_SPAWN_Z = float(0.25)
 
 # Files pathes
 # For correct use, you should run export GAZEBO_RESOURCE_PATH=path/to/media
-SIGN_PATH = "media/stop_sign.sdf"
+SIGN_PATH = "media/brick-sign/model.sdf"
 BOX_PATH = "box.world"
 EMPTY_WORLD_PATH = "empty_world.world"
 
 # Signs materials
 class SignsImages(Enum):
-    STOP = "SignsImages/Stop"
-    ONLY_FORWARD = "SignsImages/OnlyForward"
-    ONLY_RIGHT = "SignsImages/OnlyRight"
-    ONLY_LEFT = "SignsImages/OnlyLeft"
-    FORWARD_OR_RIGHT = "SignsImages/ForwardOrRight"
-    FORWARD_OR_LEFT = "SignsImages/ForwardOrLeft"
+    STOP = "model://brick-sign"
+    ONLY_FORWARD = "model://forward-sign"
+    ONLY_RIGHT = "model://right-sign"
+    ONLY_LEFT = "model://left-sign"
+    FORWARD_OR_RIGHT = "model://forward-right-sign"
+    FORWARD_OR_LEFT = "model://forward-left-sign"
 
 
 class SdfCreator:
@@ -135,6 +137,13 @@ class SdfCreator:
         self.SDF_ROOT.find("world").insert(0, copy.deepcopy(box_root) )
 
 
+    ORIENTATIONS_2_YAW_ANGLE = {
+        SignOrientation.LEFT_BOT: m.pi,
+        SignOrientation.RIGHT_BOT: m.pi*3/2,
+        SignOrientation.LEFT_TOP: m.pi/2,
+        SignOrientation.RIGHT_TOP: 0 ,
+    }
+
     def __spawnSign(self, position, signImage):
         """ 
         @brief Spawn box in defined position
@@ -143,64 +152,39 @@ class SdfCreator:
         @param signImage - object of SignsImages class
         @note You can spawn it in 4 variants (see SignOrientation)
         """
+
+        ### LEFT/RIGHT_BOT/TOP - in terms of rendered map
         if (position.x % self.CELLS_SIZE.x <= self.CELLS_SIZE.x/2) and \
-           (position.y % self.CELLS_SIZE.y <= self.CELLS_SIZE.y/2):
+           (position.y % self.CELLS_SIZE.y > self.CELLS_SIZE.y/2):
             orientation = SignOrientation.LEFT_BOT
-        elif (position.x % self.CELLS_SIZE.x >= self.CELLS_SIZE.x/2) and \
-             (position.y % self.CELLS_SIZE.y <= self.CELLS_SIZE.y/2):
+        elif (position.x % self.CELLS_SIZE.x > self.CELLS_SIZE.x/2) and \
+             (position.y % self.CELLS_SIZE.y > self.CELLS_SIZE.y/2):
             orientation = SignOrientation.RIGHT_BOT
         elif (position.x % self.CELLS_SIZE.x <= self.CELLS_SIZE.x/2) and \
-             (position.y % self.CELLS_SIZE.y >= self.CELLS_SIZE.y/2):
+             (position.y % self.CELLS_SIZE.y <= self.CELLS_SIZE.y/2):
             orientation = SignOrientation.LEFT_TOP
-        elif (position.x % self.CELLS_SIZE.x >= self.CELLS_SIZE.x/2) and \
-             (position.y % self.CELLS_SIZE.y >= self.CELLS_SIZE.y/2):
+        elif (position.x % self.CELLS_SIZE.x > self.CELLS_SIZE.x/2) and \
+             (position.y % self.CELLS_SIZE.y <= self.CELLS_SIZE.y/2):
             orientation = SignOrientation.RIGHT_TOP
         print("sign with pos:", position, orientation, signImage)
-        self.sign_counter += 1
-        sign_root = etree.parse(SIGN_PATH).getroot()
+
         position.x = self.START.x - position.x
-        position.y = - self.START.y + position.y
-        self.__setSignParams(sign_root, position, orientation, signImage)
-        self.SDF_ROOT.find("world").insert(0, copy.deepcopy(sign_root) )
+        position.y = -self.START.y + position.y
+        yaw_angle = self.ORIENTATIONS_2_YAW_ANGLE[orientation]
 
+        sign_root = etree.Element("include")
+        uri_elem = etree.Element("uri")
+        uri_elem.text = signImage.value
+        name_elem = etree.Element("name")
+        name_elem.text = "brick_sign_{}".format(self.sign_counter)
+        pose_elem = etree.Element("pose")
+        pose_elem.text = "{0} {1} 0 0 0 {2}".format(position.x, position.y, yaw_angle)
+        sign_root.append( uri_elem )
+        sign_root.append( name_elem )
+        sign_root.append( pose_elem )
 
-    def __setSignParams(self, sign_root, position, orientation, signImage):
-        """ 
-        @brief Set sign desired parameters
-        """
-        # Calculate sign position
-        if orientation is SignOrientation.LEFT_BOT:
-            roll = 1.57
-            yaw = 1.57
-            imagePos = Point2D(position.x - 0.025, position.y - 0.00)
-        elif orientation is SignOrientation.RIGHT_BOT:
-            roll = 0
-            yaw = 1.57
-            imagePos = Point2D(position.x + 0.00, position.y + 0.025)
-        elif orientation is SignOrientation.LEFT_TOP:
-            roll = 0
-            yaw = -1.57
-            imagePos = Point2D(position.x + 0.00, position.y - 0.025)
-        elif orientation is SignOrientation.RIGHT_TOP:
-            roll = 1.57
-            yaw = -1.57
-            imagePos = Point2D(position.x + 0.025, position.y - 0.00)
-
-        # Set sign position
-        signName = "unit_stop_sign_" + str(self.sign_counter)
-        columnPos = "{0} {1} 0.35 0.00 0.0 0.0".format(position.x, position.y)
-        signPos =   "{0} {1} 0.95 1.57 {2} {3}".format(position.x, position.y, yaw, roll)
-        fondPos =   "{0} {1} 0.95 1.57 {2} {3}".format(imagePos.x, imagePos.y, yaw, roll)
-        imagePos =  "{0} {1} 0.95 1.57 {2} {3}".format(imagePos.x, imagePos.y, yaw, roll)
-        sign_root.set("name", signName)
-        sign_root[0][1].text = columnPos
-        sign_root[1][1].text = signPos
-        sign_root[2][1].text = fondPos
-        sign_root[3][1].text = imagePos
-
-        # Set sign image
-        sign_root[2].find("visual").find("material").find("script").find("name").text = "Gazebo/White"
-        sign_root[3].find("visual").find("material").find("script").find("name").text = signImage.value
+        self.SDF_ROOT.find("world").insert(0, sign_root )
+        self.sign_counter += 1
 
 
     def __setBoxParams(self, box_root, box_position, box_size):

@@ -589,7 +589,6 @@ class CreateSdf(BaseGuiObject):
         if start is not None:
             create_json_from_gui(start,finish,Map.CELLS_AMOUNT,Map.CELLS_SIZE,
                 Map.SIZE, None, self.__walls, self.__signs, TEMP_JSON_FILE)
-            filePath = QFileDialog.getSaveFileName(ControlPanel.window, "", 
-                "../wr8_description/worlds", WORLD_FILE_TYPES)[0]
+            filePath = QFileDialog.getSaveFileName(ControlPanel.window, "", ".", WORLD_FILE_TYPES)[0]
             create_sdf_from_json(TEMP_JSON_FILE, filePath)
         print("")

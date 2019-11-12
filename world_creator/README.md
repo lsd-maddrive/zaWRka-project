@@ -15,7 +15,7 @@ After that you should consistently click on buttons `create json` and `create sd
 ### Description
 `world_creator.py` is the main script. It runs GUI.
 
-`gui_new.py` and `gui_old.py` are the frontend of this program. They create main window, lables, buttons and sets callbacks.
+`gui.py` the frontend of this program. They create main window, lables, buttons and sets callbacks.
 
 `json_converter.py` allows to convert frontend data to json format, load json data to frontend and to backend.
 

@@ -10,7 +10,7 @@ from gazebo_sdf import *
 from objects import *
 
 # File input-output default settings
-SDF_DEFAULT_NAME = "../wr8_description/worlds/world.world"
+SDF_DEFAULT_NAME = "world.world"
 
 # Cheet sheet
 """

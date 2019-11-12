@@ -1,316 +1,56 @@
 {
   "start": [
-    7.0,
-    1.0
+    2,
+    2
   ],
   "finish": [
-    1.0,
-    1.0
+    2,
+    2
   ],
   "cells amount": [
-    5,
-    5
+    9,
+    9
   ],
   "cells size": [
-    3.0,
-    1.0
+    2,
+    2
   ],
   "size": [
-    15.0,
-    5.0
+    18,
+    18
   ],
   "objects": [
     {
-      "name": "wall",
-      "point1": [
-        6.0,
-        0.0
-      ],
-      "point2": [
-        6.0,
-        5.0
-      ]
-    },
-    {
-      "name": "wall",
-      "point1": [
-        9.0,
-        5.0
-      ],
-      "point2": [
-        9.0,
-        0.0
-      ]
-    },
-    {
-      "name": "wall",
-      "point1": [
-        15.0,
-        2.0
-      ],
-      "point2": [
-        0.0,
-        2.0
-      ]
-    },
-    {
-      "name": "wall",
-      "point1": [
-        0.0,
-        3.0
-      ],
-      "point2": [
-        15.0,
-        3.0
-      ]
-    },
-    {
-      "name": "wall",
-      "point1": [
-        15.0,
-        5.0
-      ],
-      "point2": [
-        15.0,
-        0.0
-      ]
-    },
-    {
-      "name": "wall",
-      "point1": [
-        15.0,
-        0.0
-      ],
-      "point2": [
-        0.0,
-        0.0
-      ]
-    },
-    {
-      "name": "wall",
-      "point1": [
-        0.0,
-        0.0
-      ],
-      "point2": [
-        0.0,
-        5.0
-      ]
-    },
-    {
-      "name": "wall",
-      "point1": [
-        0.0,
-        5.0
-      ],
-      "point2": [
-        15.0,
-        5.0
-      ]
-    },
-    {
-      "name": "wall",
-      "point1": [
-        3.0,
-        0.0
-      ],
-      "point2": [
-        3.0,
-        5.0
-      ]
-    },
-    {
-      "name": "wall",
-      "point1": [
-        0.0,
-        4.0
-      ],
-      "point2": [
-        15.0,
-        4.0
-      ]
-    },
-    {
-      "name": "wall",
-      "point1": [
-        12.0,
-        5.0
-      ],
-      "point2": [
-        12.0,
-        0.0
-      ]
-    },
-    {
-      "name": "wall",
-      "point1": [
-        15.0,
-        1.0
-      ],
-      "point2": [
-        0.0,
-        1.0
-      ]
-    },
-    {
       "name": "sign",
       "position": [
-        2.25,
-        0.75
+        2.5,
+        2.5
       ],
       "sign type": "stop sign"
     },
     {
       "name": "sign",
       "position": [
-        5.25,
-        1.75
-      ],
-      "sign type": "stop sign"
-    },
-    {
-      "name": "sign",
-      "position": [
-        9.75,
-        3.25
-      ],
-      "sign type": "stop sign"
-    },
-    {
-      "name": "sign",
-      "position": [
-        12.75,
-        4.25
-      ],
-      "sign type": "forward or left sign"
-    },
-    {
-      "name": "sign",
-      "position": [
-        9.75,
-        1.75
+        3.5,
+        2.5
       ],
       "sign type": "only forward sign"
     },
     {
       "name": "sign",
       "position": [
-        12.75,
-        0.75
+        3.5,
+        3.5
       ],
       "sign type": "only left sign"
     },
     {
       "name": "sign",
       "position": [
-        5.25,
-        3.25
-      ],
-      "sign type": "forward or left sign"
-    },
-    {
-      "name": "sign",
-      "position": [
-        2.25,
-        4.25
-      ],
-      "sign type": "only forward sign"
-    },
-    {
-      "name": "sign",
-      "position": [
-        6.75,
-        2.75
+        2.5,
+        3.5
       ],
       "sign type": "only right sign"
-    },
-    {
-      "name": "sign",
-      "position": [
-        6.75,
-        2.25
-      ],
-      "sign type": "only left sign"
-    },
-    {
-      "name": "sign",
-      "position": [
-        8.25,
-        2.25
-      ],
-      "sign type": "only right sign"
-    },
-    {
-      "name": "sign",
-      "position": [
-        8.25,
-        2.75
-      ],
-      "sign type": "forward or left sign"
-    },
-    {
-      "name": "sign",
-      "position": [
-        3.75,
-        1.25
-      ],
-      "sign type": "only left sign"
-    },
-    {
-      "name": "sign",
-      "position": [
-        0.75,
-        0.25
-      ],
-      "sign type": "only forward sign"
-    },
-    {
-      "name": "sign",
-      "position": [
-        11.25,
-        3.75
-      ],
-      "sign type": "forward or left sign"
-    },
-    {
-      "name": "sign",
-      "position": [
-        0.75,
-        4.75
-      ],
-      "sign type": "forward or right sign"
-    },
-    {
-      "name": "sign",
-      "position": [
-        3.75,
-        3.75
-      ],
-      "sign type": "forward or left sign"
-    },
-    {
-      "name": "sign",
-      "position": [
-        11.25,
-        1.25
-      ],
-      "sign type": "only left sign"
-    },
-    {
-      "name": "sign",
-      "position": [
-        14.25,
-        0.25
-      ],
-      "sign type": "only forward sign"
-    },
-    {
-      "name": "sign",
-      "position": [
-        14.25,
-        4.75
-      ],
-      "sign type": "forward or left sign"
     }
   ]
 }
