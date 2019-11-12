@@ -53,7 +53,7 @@
 				<geometry>
 					<mesh>
             			<scale>1 1 1</scale>
-						<uri>model://brick-sign/brick.dae</uri>
+						<uri>model://left-sign/left.dae</uri>
 					</mesh>
 				</geometry>
 			</visual>
