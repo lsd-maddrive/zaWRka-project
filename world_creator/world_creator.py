@@ -16,16 +16,16 @@ if __name__=="__main__":
                         help='Default JSON dir',
                         default=None)
     parser.add_argument('--size', 
-                        help='Size of map (w x h)',
+                        help='Size of map [measured in cells] (w x h)',
                         default='9x9')
-    parser.add_argument('--cell_size', 
+    parser.add_argument('--cell', 
                         help='Size of cell in map',
                         default='1x1')
 
     args = vars(parser.parse_args())
 
     map_w, map_h = args['size'].split('x')
-    cell_w, cell_h = args['cell_size'].split('x')
+    cell_w, cell_h = args['cell'].split('x')
     defaultJsonPath = args['jdir']
 
     cellsSize = Size2D(float(cell_w), float(cell_h))
