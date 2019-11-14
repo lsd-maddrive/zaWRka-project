@@ -6,8 +6,8 @@
 /*============================================================================*/
 
 #define RC_STEER_MAX    1700
-#define RC_STEER_NULL   1425
-#define RC_STEER_MIN    1000
+#define RC_STEER_NULL   1400
+#define RC_STEER_MIN    1100
 
 #define RC_SPEED_MAX    1935
 #define RC_SPEED_NULL   1520
@@ -38,25 +38,16 @@ static thread_reference_t trp_rcmode = NULL;
 static void icuWidthcb_steer(ICUDriver *icup)
 {
     steer_rc = icuGetWidthX(icup);                // ...X - can work anywhere
-                                                  // return width in ticks
-
-  if( steer_rc < RC_STEER_MAX && steer_rc > RC_STEER_MIN ) // Protection from electrical noise
-  {
-      chSysLockFromISR();
-      chThdResumeI(&trp_rcmode, MSG_OK);            /* Resuming the thread with message.*/
-      chSysUnlockFromISR();
-  }
+                                                    // return width in ticks
+    chSysLockFromISR();
+    chThdResumeI(&trp_rcmode, MSG_OK);            /* Resuming the thread with message.*/
+    chSysUnlockFromISR();
 }
 
 static void icuWidthcb_speed(ICUDriver *icup)
 {
-    uint32_t    speed_temp = 0;
-    speed_temp  = icuGetWidthX(icup);               // ...X - can work anywhere
+    speed_rc  = icuGetWidthX(icup);               // ...X - can work anywhere
                                                     // return width in ticks
-    /*** Protection from electrical noise ***/
-    if( speed_temp < RC_SPEED_MAX && speed_temp > RC_SPEED_MIN ) speed_rc = speed_temp;
-
-
 }
 
 /*============================================================================*/
@@ -118,12 +109,8 @@ static THD_FUNCTION(RCModeDetect, arg)
 
 static bool         isInitialized       = false;
 
-float               icu_steer_k         = 0;
-float               icu_steer_b         = 0;
-
-float               icu_speed_k         = 0;
-float               icu_speed_b         = 0;
-
+range_map_t         steer_map;
+range_map_t         speed_map;
 
 /**
  * @brief   Initialize periphery connected to remote control
@@ -134,13 +121,11 @@ float               icu_speed_b         = 0;
 void remoteControlInit( tprio_t prio )
 {
     if ( isInitialized )
-            return;
+        return;
 
-    icu_steer_k = (float)( CONTROL_MAX - CONTROL_MIN )/( RC_STEER_MAX - RC_STEER_MIN );
-    icu_steer_b = -( icu_steer_k * RC_STEER_NULL - CONTROL_NULL );
-
-    icu_speed_k = (float)( CONTROL_MAX - CONTROL_MIN )/( RC_SPEED_MAX - RC_SPEED_MIN );
-    icu_speed_b = -( icu_speed_k * RC_SPEED_NULL - CONTROL_NULL );
+    /* Swapped for inverse */
+    range_map_init(&steer_map, RC_STEER_MIN, RC_STEER_MAX, CONTROL_MAX, CONTROL_MIN);
+    range_map_init(&speed_map, RC_SPEED_MIN, RC_SPEED_MAX, CONTROL_MIN, CONTROL_MAX);
 
     icuStart( icuSteerDriver, &icucfg_steer );
     palSetLineMode( icuSteering, PAL_MODE_ALTERNATE(3) );
@@ -202,7 +187,7 @@ pwmValue_t rcGetSteerDutyCycleValue( void )
  */
 icuControlValue_t rcGetSpeedControlValue( void )
 {
-    icuControlValue_t speed_prt_cntr = speed_rc * icu_speed_k + icu_speed_b;
+    icuControlValue_t speed_prt_cntr = range_map_call(&speed_map, speed_rc);
     speed_prt_cntr = CLIP_VALUE( speed_prt_cntr, CONTROL_MIN, CONTROL_MAX);
     return speed_prt_cntr;
 }
@@ -215,7 +200,7 @@ icuControlValue_t rcGetSpeedControlValue( void )
  */
 icuControlValue_t rcGetSteerControlValue( void )
 {
-    icuControlValue_t steer_prt_cntr = steer_rc * icu_steer_k + icu_steer_b;
+    icuControlValue_t steer_prt_cntr = range_map_call(&steer_map, steer_rc);
     steer_prt_cntr = CLIP_VALUE( steer_prt_cntr, CONTROL_MIN, CONTROL_MAX);
     return steer_prt_cntr;
 }
