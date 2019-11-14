@@ -32,13 +32,13 @@ class SignsTypes(Enum):
     FORWARD_OR_LEFT = "forward or left sign"
 
 class ImagesPaths():
-    IMAGE_PATH = 'media/materials/textures/'
-    STOP = os.path.join(IMAGE_PATH, 'stop_sign.png')
-    ONLY_FORWARD = os.path.join(IMAGE_PATH, 'only_forward_sign.png')
-    ONLY_LEFT = os.path.join(IMAGE_PATH, 'only_left_sign.png')
-    ONLY_RIGHT = os.path.join(IMAGE_PATH, 'only_right_sign.png')
-    FORWARD_OR_LEFT = os.path.join(IMAGE_PATH, 'forward_or_left_sign.png')
-    FORWARD_OR_RIGHT = os.path.join(IMAGE_PATH, 'forward_or_right_sign.png')
+    PATH_TO_IMAGE = 'media'
+    STOP = os.path.join(PATH_TO_IMAGE, 'brick-sign/brick.png')
+    ONLY_FORWARD = os.path.join(PATH_TO_IMAGE, 'forward-sign/forward.png')
+    ONLY_LEFT = os.path.join(PATH_TO_IMAGE, 'left-sign/left.png')
+    ONLY_RIGHT = os.path.join(PATH_TO_IMAGE, 'right-sign/right.png')
+    FORWARD_OR_LEFT = os.path.join(PATH_TO_IMAGE, 'forward-left-sign/frwd_left.png')
+    FORWARD_OR_RIGHT = os.path.join(PATH_TO_IMAGE, 'forward-right-sign/frwd_right.png')
 
 def sign_path_to_sign_type(img_path):
     if img_path is ImagesPaths.STOP:
