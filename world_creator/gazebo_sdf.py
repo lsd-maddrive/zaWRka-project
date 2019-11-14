@@ -8,11 +8,7 @@ from data_structures import *
 from objects import *
 
 
-class SignOrientation(Enum):
-    RIGHT_TOP = 0
-    RIGHT_BOT = 1
-    LEFT_TOP = 2
-    LEFT_BOT = 3
+
 
 # Constants
 WALL_WIDTH = float(0.01)
@@ -20,9 +16,8 @@ WALL_HEGHT = float(0.5)
 WALL_SPAWN_Z = float(0.25)
 
 # Files pathes
-# For correct use, you should run export GAZEBO_RESOURCE_PATH=path/to/media
-BOX_PATH = "media/box.world"
-EMPTY_WORLD_PATH = "media/empty_world.world"
+BOX_PATH = "models/box.sdf"
+EMPTY_WORLD_PATH = "models/empty_world.world"
 
 # Signs materials
 class SignsImages(Enum):
@@ -137,10 +132,10 @@ class SdfCreator:
 
 
     ORIENTATIONS_2_YAW_ANGLE = {
-        SignOrientation.LEFT_BOT: m.pi,
-        SignOrientation.RIGHT_BOT: m.pi*3/2,
-        SignOrientation.LEFT_TOP: m.pi/2,
-        SignOrientation.RIGHT_TOP: 0 ,
+        CellQuarter.LEFT_BOT: m.pi,
+        CellQuarter.RIGHT_BOT: m.pi*3/2,
+        CellQuarter.LEFT_TOP: m.pi/2,
+        CellQuarter.RIGHT_TOP: 0 ,
     }
 
     def __spawnSign(self, position, signImage):
@@ -155,16 +150,16 @@ class SdfCreator:
         ### LEFT/RIGHT_BOT/TOP - in terms of rendered map
         if (position.x % self.CELLS_SIZE.x <= self.CELLS_SIZE.x/2) and \
            (position.y % self.CELLS_SIZE.y > self.CELLS_SIZE.y/2):
-            orientation = SignOrientation.LEFT_BOT
+            orientation = CellQuarter.LEFT_BOT
         elif (position.x % self.CELLS_SIZE.x > self.CELLS_SIZE.x/2) and \
              (position.y % self.CELLS_SIZE.y > self.CELLS_SIZE.y/2):
-            orientation = SignOrientation.RIGHT_BOT
+            orientation = CellQuarter.RIGHT_BOT
         elif (position.x % self.CELLS_SIZE.x <= self.CELLS_SIZE.x/2) and \
              (position.y % self.CELLS_SIZE.y <= self.CELLS_SIZE.y/2):
-            orientation = SignOrientation.LEFT_TOP
+            orientation = CellQuarter.LEFT_TOP
         elif (position.x % self.CELLS_SIZE.x > self.CELLS_SIZE.x/2) and \
              (position.y % self.CELLS_SIZE.y <= self.CELLS_SIZE.y/2):
-            orientation = SignOrientation.RIGHT_TOP
+            orientation = CellQuarter.RIGHT_TOP
         print("sign with pos:", position, orientation, signImage)
 
         position.x = self.START.x - position.x

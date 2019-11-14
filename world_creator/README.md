@@ -8,7 +8,7 @@ Firstly, you should install required packages:
 
 Then you should run the main script and configure the map as you like:
 
-`python3 world_creator.py`
+`./start_creator.sh`
 
 After that you should consistently click on buttons `create json` and `create sdf from json`.
 

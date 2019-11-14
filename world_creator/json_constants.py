@@ -32,7 +32,7 @@ class SignsTypes(Enum):
     FORWARD_OR_LEFT = "forward or left sign"
 
 class ImagesPaths():
-    PATH_TO_IMAGE = 'media'
+    PATH_TO_IMAGE = 'models'
     STOP = os.path.join(PATH_TO_IMAGE, 'brick-sign/brick.png')
     ONLY_FORWARD = os.path.join(PATH_TO_IMAGE, 'forward-sign/forward.png')
     ONLY_LEFT = os.path.join(PATH_TO_IMAGE, 'left-sign/left.png')

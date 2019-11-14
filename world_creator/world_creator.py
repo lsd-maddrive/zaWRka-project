@@ -11,10 +11,14 @@ import argparse
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Map creation tool')
-    parser.add_argument('--jdir', 
+    parser.add_argument('--load', 
                         type=str, 
-                        help='Default JSON dir',
+                        help='Path to JSON to load',
                         default=None)
+    parser.add_argument('--name', 
+                        type=str, 
+                        help='Prefix for generated JSON/WORLD files. For \'--name worlds/new\' files \'worlds/new.json\' and \'worlds/new.world\' will be generated',
+                        default='new_world')
     parser.add_argument('--size', 
                         help='Size of map [measured in cells] (w x h)',
                         default='9x9')
@@ -24,15 +28,16 @@ if __name__=="__main__":
 
     args = vars(parser.parse_args())
 
-    map_w, map_h = args['size'].split('x')
+    ncell_w, ncell_h = args['size'].split('x')
     cell_w, cell_h = args['cell'].split('x')
-    defaultJsonPath = args['jdir']
+    filepath2Load = args['load']
+    basenamePrefix = args['name'] 
 
     cellsSize = Size2D(float(cell_w), float(cell_h))
-    cellsAmount = Size2D(int(map_w), int(map_h))
+    cellsAmount = Size2D(int(ncell_w), int(ncell_h))
 
     app = QApplication(sys.argv)
     Map.Init(cellsAmount, cellsSize)
-    window = MainWindow(defaultJsonPath)
+    window = MainWindow(filepath2Load, basenamePrefix)
     app.exec_()
 
