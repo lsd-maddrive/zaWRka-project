@@ -20,7 +20,7 @@ BOX_PATH = "models/box.sdf"
 EMPTY_WORLD_PATH = "models/empty_world.world"
 
 # Signs materials
-class SignsImages(Enum):
+class SignsModels(Enum):
     STOP = "model://brick-sign"
     ONLY_FORWARD = "model://forward-sign"
     ONLY_RIGHT = "model://right-sign"
@@ -95,17 +95,17 @@ class SdfCreator:
         @note we can figure out orientation from position
         """
         if sign.type == SignsTypes.STOP.value:
-            signImage = SignsImages.STOP
+            signImage = SignsModels.STOP
         elif sign.type == SignsTypes.ONLY_FORWARD.value:
-            signImage = SignsImages.ONLY_FORWARD
+            signImage = SignsModels.ONLY_FORWARD
         elif sign.type == SignsTypes.ONLY_LEFT.value:
-            signImage = SignsImages.ONLY_LEFT
+            signImage = SignsModels.ONLY_LEFT
         elif sign.type == SignsTypes.ONLY_RIGHT.value:
-            signImage = SignsImages.ONLY_RIGHT
+            signImage = SignsModels.ONLY_RIGHT
         elif sign.type == SignsTypes.FORWARD_OR_LEFT.value:
-            signImage = SignsImages.FORWARD_OR_LEFT
+            signImage = SignsModels.FORWARD_OR_LEFT
         elif sign.type == SignsTypes.FORWARD_OR_RIGHT.value:
-            signImage = SignsImages.FORWARD_OR_RIGHT
+            signImage = SignsModels.FORWARD_OR_RIGHT
         else:
             print("Error: sign type is ", sign.type)
             return
@@ -143,7 +143,7 @@ class SdfCreator:
         @brief Spawn box in defined position
         @param position - Point2D - position on map (high level abstraction),
             in other words, start offset is not taken into account.
-        @param signImage - object of SignsImages class
+        @param signImage - object of SignsModels class
         @note You can spawn it in 4 variants (see SignOrientation)
         """
 
