@@ -6,6 +6,8 @@ import os
 This script containts json contants
 """
 
+APP_VERSION = 1.0
+
 class JsonNames:
     START = "start"
     FINISH = "finish"

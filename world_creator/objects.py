@@ -6,6 +6,14 @@ from json_constants import *
 from PyQt5.QtGui import QPainter, QColor, QPen, QBrush, QIcon, QImage
 from PyQt5.QtCore import Qt, QSize
 
+class ObjectType(Enum):
+    START = 10,
+    WALL = 11,
+    BOX = 12,
+    SQUARE = 13,
+    SIGN = 14,
+    TRAFFIC_LIGHT = 15
+
 class CellQuarter(Enum):
     RIGHT_TOP = 0
     RIGHT_BOT = 1
@@ -59,6 +67,13 @@ class MapParams:
         }
         
         return data
+    
+    def __str__(self):
+        return 'Map params: count({}) / size({})'.format(self.n_cells, self.cell_sz)
+    
+    @staticmethod
+    def deserialize(data: dict):
+        return MapParams(Point2D.from_list(data['cell_cnt']), Point2D.from_list(data['cell_sz']))
 
         
 class Object:
@@ -76,15 +91,22 @@ class Object:
         pass
     def serialized(self):
         pass
-
+    @staticmethod
+    def deserialize(data: dict):
+        if data['name'] not in SERIALIZATION_SUPPORT:
+            return None
+        
+        return SERIALIZATION_SUPPORT[data['name']].deserialize(data)
+    
 
 class Start(Object):
-    SERIALIZED_NAME = 'start'
+    TYPE = ObjectType.START
     
     def __init__(self, pos: Point2D):
         self.pos = pos
+        
     def __str__(self):
-        return str(self.pos)
+        return "[({}) pos = {}]".format(type(self), self.pos)
     
     def convertFromJsonToGui(self, cellsSize):
         self.__map_pose_to_cell_indexes(cellsSize)
@@ -103,42 +125,31 @@ class Start(Object):
         qp.fillCell(self.pos, color=QColor(255, 0, 0))
         
     def serialized(self):
+        for name, _class in SERIALIZATION_SUPPORT.items():
+            if type(self) == _class:
+                break
+        
         data = {
-            'name': self.SERIALIZED_NAME,
+            'name': name,
             'pos': self.pos.as_list()
         }
 
         return data
-
-class Finish(Object):
-    def __init__(self, point=None):
-        if point is not None:
-            self.data = point
-        else:
-            self.data = Point2D()
-    def convertFromJsonToGui(self, cellsSize):
-        self.__map_pose_to_cell_indexes(cellsSize)
-    def convertFromGuiToJson(self, cellsSize):
-        data = copy.deepcopy(self)
-        data.__cell_indexes_to_map_pose(cellsSize)
-        return data
-    def __map_pose_to_cell_indexes(self, cellsSize):
-        self.data = Point2D(int((self.data.x - cellsSize.x) / cellsSize.x), 
-                             int((self.data.y - cellsSize.y) / cellsSize.y) )
-    def __cell_indexes_to_map_pose(self, cellsSize):
-        self.data = Point2D(self.data.x * cellsSize.x + cellsSize.x, 
-                             self.data.y * cellsSize.y + cellsSize.y )
-
+    
+    @staticmethod
+    def deserialize(data: dict):
+        return Start(Point2D.from_list(data['pos']))
+    
 
 class Wall():
-    SERIALIZED_NAME = 'wall'
-    
+    TYPE = ObjectType.WALL
+
     def __init__(self, point1, point2):
         self.p1 = point1
         self.p2 = point2
     def __str__(self):
-        return "[{0}, {1}], [{2}, {3}]".format(self.point1.x, self.point1.y, 
-                                               self.point2.x, self.point2.y)
+        return "[({}) p1 = {}, p2 = {}]".format(type(self), self.p1, self.p2)
+    
     def getListData(self):
         return list([self.point1.getListData(), self.point2.getListData() ])
     def convertFromJsonToGui(self, cellsSize):
@@ -159,52 +170,42 @@ class Wall():
                               self.point2.y * cellsSize.y)
 
     def render(self, qp):
-        qp.drawWallLine(self.point1, self.point2, color=QColor(0, 0, 0))
+        qp.drawWallLine(self.p1, self.p2, color=QColor(0, 0, 0))
         
     def serialized(self):
+        for name, _class in SERIALIZATION_SUPPORT.items():
+            if type(self) == _class:
+                break
+        
         data = {
-            'name': self.SERIALIZED_NAME,
+            'name': name,
             'pnts': self.p1.as_list() + self.p2.as_list()
         }
         
         return data
 
-class Walls(Object):
-    def __init__(self, walls=None):
-        if walls is None:
-            self.data = list()
-        else:
-            self.data = list([walls])
-    def add(self, wall):
-        self.data.append(wall)
-    def remove(self, wall):
-        self.data.remove(wall)
-    def __str__(self):
-        text = str()
-        for wall in self.data:
-            text += "\n" + str(wall)
-        return text
-    def __getitem__(self, i):
-        return self.data[i]
-    def __len__(self):
-        return len(self.data)
-
+    @staticmethod
+    def deserialize(data: dict):
+        return Wall(Point2D.from_list(data['pnts'][0:2]), 
+                    Point2D.from_list(data['pnts'][2:4]))
+    
+    
 class Box(Object):
     def __init__(self, point):
         self.point = point
 
 
-class Sign():
-    def __init__(self, point=None, orient=None, signType=None):
-        if point is not None or signType is not None:
-            self.point = point
-            self.type = signType
-            self.orient = orient
-        else:
-            self.point = Point2D
-            self.type = str()
+class Sign(Object):
+    TYPE = ObjectType.SIGN
+    
+    def __init__(self, point, orient, signType):
+        self.point = point
+        self.type = signType
+        self.orient = orient
+
     def __str__(self):
-        return "[pose = {0}, type = {1}]".format(self.point, self.type)
+        return "[({}) pose = {}, orient = {}, type = {}]".format(type(self), self.point, self.orient, self.type)
+    
     def getListData(self):
         return list([ self.point.getListData(), self.signType.getListData() ])
     def convertFromJsonToGui(self, cellsSize):
@@ -221,27 +222,34 @@ class Sign():
         self.point = Point2D( cellsSize.x/4 + self.point.x * cellsSize.x/2, 
                               cellsSize.y/4 + self.point.y * cellsSize.y/2 )
         self.type = sign_path_to_sign_type(self.type)
+    
     def render(self, qp):
         qp.drawQuarterImg(self.point, self.orient, self.type)
+    
+    def serialized(self):
+        for name, _class in SERIALIZATION_SUPPORT.items():
+            if type(self) == _class:
+                break
         
+        data = {
+            'name': name,
+            'pos': self.point.as_list(),
+            'orient': self.orient.value,
+            'type': self.type
+        }
+        
+        return data        
+    
+    @staticmethod
+    def deserialize(data: dict):
+        return Sign(Point2D.from_list(data['pos']), 
+                    data['orient'],
+                    data['type'])
+    
 
-# class Signs(Object):
-#     def __init__(self, signs=None):
-#         if signs is None:
-#             self.data = list()
-#         else:
-#             self.data = signs
-#     def add(self, sign):
-#         self.data.append(sign)
-#     def remove(self, sign):
-#         self.data.remove(sign)
-#     def __str__(self):
-#         text = str()
-#         for wall in self.data:
-#             text += "\n" + str(wall)
-#         return text
-#     def __getitem__(self, i):
-#         return self.data[i]
-#     def __len__(self):
-#         return len(self.data)
-
+SERIALIZATION_SUPPORT = {
+    'start': Start,
+    'wall': Wall,
+    'sign': Sign 
+}
+    

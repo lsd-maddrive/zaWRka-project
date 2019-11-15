@@ -37,13 +37,11 @@ Json data:
 6.  signs       [meters, type]              list([x, y], type)
 """
 
-def create_json_from_gui(filepath: str, objects: list, map_params: MapParams):
-    """ 
-    @brief Create json file using frontend data
-    """
+def serialize_2_json(filepath: str, objects: dict, map_params: MapParams):
     serialized = {    
-        'objects': [],
-        'map_params': map_params.serialize()
+        'version': APP_VERSION,
+        'map_params': map_params.serialize(),
+        'objects': []
     }
     
     for obj_type, objs in objects.items():
@@ -61,6 +59,31 @@ def create_json_from_gui(filepath: str, objects: list, map_params: MapParams):
     except:
         print("Failed to write to file {}".format(filePath))
 
+def deserialize_from_json(filepath: str, objects: dict):
+    map_params = None
+    
+    with open(filepath, "r") as fp:
+        data = json.load(fp)
+    
+    if data['version'] != APP_VERSION:
+        raise Exception('Invalid file version!')
+    
+    map_params = MapParams.deserialize(data['map_params'])
+    
+    for obj in data['objects']:
+        deser_obj = Object.deserialize(obj)
+
+        print(deser_obj)
+
+        if deser_obj:
+            if deser_obj.TYPE == ObjectType.START:
+                objects[deser_obj.TYPE] = deser_obj
+            else:
+                objects[deser_obj.TYPE] += [deser_obj]
+    
+    print(map_params)
+    
+    return map_params
 
 def create_sdf_from_gui(start, finish, cellsAmount, cellsSize, mapSize,
                          boxes, walls, signs, filePath):
@@ -114,44 +137,4 @@ def create_sdf_from_json(jsonFileName, sdfFileName):
         print("Error: incorrect sdf file name!")
 
 
-def load_frontend_from_json(fileName):
-    """ 
-    Load fronted data from json file
-    """
-    read_file = open(fileName, "r")
-    data = json.load(read_file)
-
-    cellsSize = Size2D(data.get(JsonNames.CELLS_SIZE))
-
-    start = Start(Point2D(data.get(JsonNames.START)))
-    start.convertFromJsonToGui(cellsSize)
-
-    finish = Finish(Point2D(data.get(JsonNames.FINISH)))
-    finish.convertFromJsonToGui(cellsSize)
-
-    boxes = list()
-    walls = Walls()
-    signs = Signs()
-    for obj in data.get(JsonNames.OBJECTS):
-        if obj.get(JsonNames.NAME) == JsonNames.BOX:
-            position = obj.get(JsonNames.POSITION)
-            boxes.append(position)
-        elif obj.get(JsonNames.NAME) == JsonNames.WALL:
-            p1 = Point2D(obj.get(JsonNames.POINT_1))
-            p2 = Point2D(obj.get(JsonNames.POINT_2))
-            wall = Wall(p1, p2)
-            wall.convertFromJsonToGui(cellsSize)
-            walls.add(wall)
-        elif obj.get(JsonNames.NAME) == JsonNames.SIGN:
-            position = Point2D(obj.get(JsonNames.POSITION))
-            signPath = obj.get(JsonNames.SIGN_TYPE)
-            sign = Sign(position, signPath)
-            sign.convertFromJsonToGui(cellsSize)
-            signs.add(sign)
-    return list([start,
-                 finish,
-                 data.get(JsonNames.SIZE),
-                 boxes,
-                 walls,
-                 signs])
 

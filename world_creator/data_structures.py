@@ -31,6 +31,10 @@ class Vector2D:
     def BuildFromArray(self, arr):
         self.x = arr[0]
         self.y = arr[1]
+    
+    @staticmethod
+    def from_list(data: list):
+        return Vector2D(data[0], data[1])
         
     def as_list(self):
         return list([self.x, self.y])

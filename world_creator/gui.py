@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys, random
 from PyQt5.QtWidgets import QWidget, QApplication, QPushButton, QGridLayout, \
-    QLabel, QDialog, QStatusBar, QMainWindow
+    QLabel, QDialog, QStatusBar, QMainWindow, QButtonGroup
 from PyQt5.QtGui import QPainter, QColor, QPen, QBrush, QIcon, QImage
 from PyQt5.QtCore import Qt, QSize
 from enum import Enum
@@ -29,13 +29,6 @@ class ColorCode(Enum):
     GREEN = str("00FF00")
     RED = str("FF0000")
 
-class ObjectType(Enum):
-    START = 10,
-    WALL = 11,
-    BOX = 12,
-    SQUARE = 13,
-    SIGN = 14,
-    TRAFFIC_LIGHT = 15
     
 # ***************************** Main window *********************************
 class Canvas(QWidget):
@@ -107,6 +100,8 @@ class Canvas(QWidget):
                 self.model.modes[self.model.mode].processRightMousePressing(canvasPos, self.cellSz)
         else:
             print("Warning: you should choose mode")
+            
+        print('Canvas update call')
         self.update()
         
              
@@ -122,8 +117,7 @@ class Canvas(QWidget):
     
 class Model:
     # Class for keeping main processing data
-    def __init__(self, map_params):
-        self.map_params = map_params
+    def __init__(self, map_params, load_filepath):
         self.modes = {
             Mode.START: GuiStartMode(self),
             Mode.WALLS: GuiWallsMode(self),
@@ -136,6 +130,12 @@ class Model:
             ObjectType.SIGN: [],
             ObjectType.SQUARE: []
         }
+        
+        if load_filepath:
+            print('Loading data from {}'.format(load_filepath))
+            self.map_params = deserialize_from_json(load_filepath, self.objects)
+        else:
+            self.map_params = map_params
         
         self.mode = Mode.NO_MODE
     
@@ -173,13 +173,13 @@ class ModeButton(QPushButton):
     
     
 class MainWindow(QWidget):
-    def __init__(self, filePath, save_file_prefix, map_params):
+    def __init__(self, load_filepath, save_file_prefix, map_params):
         super().__init__()
         WINDOW_TITLE = 'World creator v.2'
         self.setWindowTitle(WINDOW_TITLE)
         self.show()
         
-        self.model = Model(map_params)
+        self.model = Model(map_params, load_filepath)
 
         self.json_save_fpath = save_file_prefix + '.json'
         self.world_save_fpath = save_file_prefix + '.world'
@@ -233,7 +233,7 @@ class MainWindow(QWidget):
 
 
     def generateOutputFiles(self):
-        create_json_from_gui(self.json_save_fpath, self.model.objects, self.model.map_params)
+        serialize_2_json(self.json_save_fpath, self.model.objects, self.model.map_params)
         
         # create_sdf_from_gui(start,finish,Map.CELLS_AMOUNT,Map.CELLS_SIZE, 
                                 # Map.SIZE, None, self.__walls, self.__signs, ControlPanel.worldSaveFpath)
@@ -283,20 +283,7 @@ class GuiWallsMode(BaseGuiObject):
 class GuiSignsMode(BaseGuiObject):
     def processLeftMousePressing(self, canvas_pos, canvas_cell_sz):
         click_cell, orient = Canvas.getCellQuarter(canvas_pos, canvas_cell_sz)
-        self.signChoiceDialog = SignChoiceDialog(click_cell, orient)
 
-
-class SignChoiceDialog(QDialog):
-    def __init__(self, pos, orient, parent=None):
-        super(SignChoiceDialog, self).__init__(parent)
-        self.__pos = pos
-        self.__orient = orient
-        
-        self.__createDialog()
-    def __createDialog(self):
-        self.__dialog = QDialog()
-        self.__dialog.label = QLabel("Choose the sign:")
-        self.__dialog.buttons = list()
         info = list([ ["0. Empty", None],
                       ["1. Stop", ImagesPaths.STOP],
                       ["2. Forward", ImagesPaths.ONLY_FORWARD],
@@ -304,25 +291,20 @@ class SignChoiceDialog(QDialog):
                       ["4. Right", ImagesPaths.ONLY_RIGHT],
                       ["5. Forward or left", ImagesPaths.FORWARD_OR_LEFT],
                       ["6. Forward or right", ImagesPaths.FORWARD_OR_RIGHT],])
-        layout = QGridLayout()
-        layout.addWidget(self.__dialog.label, 0, 0)
-        self.__dialog.buttons.append(QPushButton(info[0][0]))
-        callback = lambda: self.__deleteSign(self.__pos, self.__orient)
-        self.__dialog.buttons[0].clicked.connect(callback)
-        layout.addWidget(self.__dialog.buttons[0], 1, 0)
+
+        self.signChoiceDialog = SignChoiceDialog(info)
+        self.signChoiceDialog.exec_()
         
-        for i in range(1, len(info)):
-            self.__dialog.buttons.append(QPushButton(info[i][0]))
-            self.__dialog.buttons[i].setIcon(QIcon(info[i][1]))
-            self.__dialog.buttons[i].setIconSize(QSize(24, 24))
-            callback = lambda this, row=i: self.__addSign(self.__pos, self.__orient, info[row][1])
-            self.__dialog.buttons[i].clicked.connect(callback)
-            layout.addWidget(self.__dialog.buttons[i], i+1, 0)
+        select_idx = self.signChoiceDialog.get_result()
         
-        self.__dialog.setLayout(layout)
-        self.__dialog.show()
+        if select_idx == 0:
+            self.deleteSign(click_cell, orient)
+        elif select_idx > 1:
+            self.addSign(click_cell, orient, info[select_idx][1])
+
+    def addSign(self, pos, orient, signImg):
+        self.deleteSign(pos, orient)
         
-    def __addSign(self, pos, orient, signImg):
         for idx, sign in enumerate(self.model.objects[ObjectType.SIGN]):
             if sign.point == pos and sign.orient == orient:
                 print("Delete object: sign ({2}) with pose {0}/{1}".format(pos, orient.name, sign.type))
@@ -330,8 +312,56 @@ class SignChoiceDialog(QDialog):
                 
         print("Add object: sign ({2}) with pose {0}/{1}.".format(pos, orient.name, signImg))
         self.model.objects[ObjectType.SIGN] += [Sign(pos, orient, signImg)]
-        self.__dialog.close()
+    
+    def deleteSign(self, pos, orient):
+        for idx, sign in enumerate(self.model.objects[ObjectType.SIGN]):
+            if sign.point == pos and sign.orient == orient:
+                print("Delete object: sign ({2}) with pose {0}/{1}".format(pos, orient.name, sign.type))
+                self.model.objects[ObjectType.SIGN].remove(sign)
+
+
+class SignSelectButton(QPushButton):
+    def __init__(self, text, idx, parent=None):
+        super().__init__(text, parent)
+        self.idx = idx
         
+        
+class SignChoiceDialog(QDialog):
+    def __init__(self, sign_list):
+        super().__init__()
+
+        self.result_idx = -1
+        self.label = QLabel("Choose the sign:")     
+        
+        layout = QGridLayout()
+        layout.addWidget(self.label, 0, 0)
+        
+        self.btn_grp = QButtonGroup()
+        self.btn_grp.setExclusive(True)
+        
+        for idx, sign_info in enumerate(sign_list):
+            btn = SignSelectButton(sign_info[0], idx, self)
+            btn.setIcon(QIcon(sign_info[1]))
+            btn.setIconSize(QSize(24, 24))
+            layout.addWidget(btn, idx+1, 0)
+            
+            self.btn_grp.addButton(btn)
+            self.btn_grp.setId(btn, idx)
+
+        self.btn_grp.buttonClicked.connect(self.on_click)
+
+        self.setLayout(layout)
+        self.show()
+
+    def on_click(self, btn):
+        self.result_idx = btn.idx
+        self.close()
+
+    def get_result(self):
+        # -1 - no selection 
+        return self.result_idx
+
+
 
 # class LoadJson(BaseGuiObject):
 #     def processButtonPressing(self):
