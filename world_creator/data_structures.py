@@ -1,23 +1,19 @@
 #!/usr/bin/env python3
 from copy import deepcopy
 class Vector2D:
-    def __init__(self, arg1=None, arg2=None):
-        if arg1 is None:
-            self.BuildEmpty()
-        elif arg2 is None:
-            self.BuildFromArray(arg1)
-        else:
-            self.BuildFromVeriables(arg1, arg2)
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        
     def __truediv__(self, other):
         answer = deepcopy(self)
         answer.x = self.x / other
         answer.y = self.y / other
         return answer
     def __sub__(self, other):
-        answer = deepcopy(self)
-        answer.x = self.x - other.x
-        answer.y = self.y - other.y
-        return answer
+        return Vector2D(self.x - other.x,
+                        self.y - other.y)
+
     def __str__(self):
         return "[{0}, {1}]".format(self.x, self.y)
     def __eq__(self, other):

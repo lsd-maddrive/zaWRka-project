@@ -4,6 +4,7 @@ import copy
 from json_constants import *
 import logging as log
 import converter
+import math as m
 
 from PyQt5.QtGui import QPainter, QColor, QPen, QBrush, QIcon, QImage
 from PyQt5.QtCore import Qt, QSize
@@ -23,7 +24,7 @@ class CellQuarter(Enum):
     LEFT_BOT = 3
 
 class MyPainter(QPainter):
-    def __init__(self, base=None, cell_sz=Size2D()):
+    def __init__(self, base, cell_sz):
         super().__init__(base)
         
         self.cell_sz = cell_sz
@@ -128,8 +129,21 @@ class Wall():
     def __init__(self, point1, point2):
         self.p1 = point1
         self.p2 = point2
+    
     def __str__(self):
         return "[({}) p1 = {}, p2 = {}]".format(type(self), self.p1, self.p2)
+    
+    def get_center(self):
+        return Point2D((self.p1.x + self.p2.x)/2,
+                       (self.p1.y + self.p2.y)/2)
+    
+    def get_length(self):
+        sub = self.p2 - self.p1
+        return m.sqrt(sub.x**2 + sub.y**2)
+    
+    def get_angle(self):
+        sub = self.p2 - self.p1
+        return m.atan2(sub.y, sub.x)
     
     def render(self, qp):
         qp.drawWallLine(self.p1, self.p2, color=QColor(0, 0, 0))

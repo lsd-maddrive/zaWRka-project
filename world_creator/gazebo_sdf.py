@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import logging as log
 from lxml import etree
-import copy, numpy
+import copy
 import math as m
 from enum import Enum
 import converter
@@ -53,7 +53,7 @@ class SdfCreator:
 
     def addObject(self, obj: Object):
         FUNCTIONS_MAPPING = {
-            # ObjectType.WALL: self.addWall,
+            ObjectType.WALL: self.addWall,
             ObjectType.SIGN: self.addSign
         }
 
@@ -70,22 +70,23 @@ class SdfCreator:
         @note wall must be horizontal or vertical (too lazy to work with
         rotation angles)
         """
-        log.debug("wall with pos:", wall)
-        center_x = numpy.mean([wall.point1.x, wall.point2.x]) 
-        center_y = numpy.mean([wall.point1.y, wall.point2.y])
-        center_point = Point3D(center_x, center_y, WALL_SPAWN_Z)
+        log.debug("wall with pos: {}".format(wall))
+        
+        wall_center = wall.get_center()
+        wall_length = wall.get_length()
+        wall_angle = wall.get_angle()
+        
+        wall_center.y = self.map_params.n_cells.y - wall_center.y
+                
+        wall_center.x = wall_center.x * self.map_params.cell_sz.x
+        wall_center.y = wall_center.y * self.map_params.cell_sz.y
+        
+        pos_str = '{} {} {} 0 0 {}'.format(wall_center.x, wall_center.y, WALL_SPAWN_Z,
+                                           -wall_angle)
+        
+        size_str = '{} {} {}'.format(wall_length, WALL_WIDTH, WALL_HEIGHT)
 
-        # vertical
-        if wall.point1.x == wall.point2.x:
-            wall_length = abs(wall.point1.y - wall.point2.y)
-            wall_size = Point3D(WALL_WIDTH, wall_length, WALL_HEIGHT)
-        # horizontal
-        elif wall.point1.y == wall.point2.y:
-            wall_length = abs(wall.point1.x - wall.point2.x)
-            wall_size = Point3D(wall_length, WALL_WIDTH, WALL_HEIGHT)
-        else:
-            return
-        self.__spawnBox(center_point, wall_size)
+        self.__spawnBox(pos_str, size_str)
 
 
     def addBox(self, box):
@@ -98,7 +99,7 @@ class SdfCreator:
         pose_y = box.point.y * boxSize.y + boxSize.y / 2
         self.__spawnBox(Point3D(pose_x, pose_y, WALL_HEIGHT), boxSize)
 
-    def __spawnBox(self, box_position, box_size):
+    def __spawnBox(self, pos_str, size_str):
         """ 
         @brief Spawn box with defined size in defined position
         @note You can spawn it in 2 variants:
@@ -110,11 +111,15 @@ class SdfCreator:
             words, start offset is not taken into account.
         """
         self.box_counter += 1
-        box_root = etree.parse(BOX_PATH).getroot()
-        box_position.x = self.START.x - box_position.x
-        box_position.y = - self.START.y + box_position.y
-        self.__setBoxParams(box_root, box_position, box_size)
-        self.SDF_ROOT.find("world").insert(0, copy.deepcopy(box_root) )
+        box_root = etree.parse(BOX_PATH).getroot()        
+        
+        box_root.set("name", "box_{}".format(self.box_counter))
+        box_root.find("pose").text = pos_str
+        link = box_root.find("link")
+        link.find("collision").find("geometry").find("box").find("size").text = size_str
+        link.find("visual").find("geometry").find("box").find("size").text = size_str
+        
+        self.SDF_ROOT.find("world").insert(0, box_root)
 
 
     ORIENTATIONS_2_YAW_ANGLE = {
@@ -197,29 +202,6 @@ class SdfCreator:
         self.SDF_ROOT.find("world").insert(0, sign_root )
         self.sign_counter += 1
 
-
-    def __setBoxParams(self, box_root, box_position, box_size):
-        """ 
-        @brief Set box desired parameters
-        @note To avoid collision problem when objects spawn on borders of each
-            other, the collision length will reduce on WALL width size
-        """
-        box_name = "unit_box_" + str(self.box_counter)
-        box_position_text = box_position.getString()
-        box_visual_size_text = box_size.getString()
-
-        collision_size = box_size
-        if collision_size.x > WALL_WIDTH:
-            collision_size.x = collision_size.x - WALL_WIDTH
-        if collision_size.y > WALL_WIDTH:
-            collision_size.y -= WALL_WIDTH
-        box_collision_size_text = collision_size.getString()
-
-        box_root.set("name", box_name)
-        box_root.find("pose").text = box_position_text
-        link = box_root.find("link")
-        link.find("collision").find("geometry").find("box").find("size").text = box_collision_size_text
-        link.find("visual").find("geometry").find("box").find("size").text = box_visual_size_text
 
     @staticmethod
     def __controlRange(value, minimum, maximum, default):
