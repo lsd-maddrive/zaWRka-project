@@ -37,37 +37,29 @@ Json data:
 6.  signs       [meters, type]              list([x, y], type)
 """
 
-def create_json_from_gui(start, finish, cellsAmount, cellsSize, mapSize,
-                         boxes, walls, signs, filePath):
+def create_json_from_gui(filepath: str, objects: list, map_params: MapParams):
     """ 
     @brief Create json file using frontend data
     """
-    objects = list()
-    start = start.convertFromGuiToJson(cellsSize)
-    finish = finish.convertFromGuiToJson(cellsSize)
-    for wall in walls:
-        wall = wall.convertFromGuiToJson(cellsSize)
-        wall = dict([ (JsonNames.NAME, JsonNames.WALL), 
-                   (JsonNames.POINT_1, wall.point1.getListData()),
-                   (JsonNames.POINT_2, wall.point2.getListData()) ])
-        objects.append(wall)
-    for sign in signs:
-        sign = sign.convertFromGuiToJson(cellsSize)
-        sign = dict([ (JsonNames.NAME, JsonNames.SIGN), 
-                      (JsonNames.POSITION, sign.point.getListData()),
-                      (JsonNames.SIGN_TYPE, sign.type) ])
-        objects.append(sign)
-    data = dict([(JsonNames.START, start.getListData()),
-                 (JsonNames.FINISH, finish.getListData()),
-                 (JsonNames.CELLS_AMOUNT, cellsAmount.getListData()),
-                 (JsonNames.CELLS_SIZE, cellsSize.getListData()),
-                 (JsonNames.SIZE, mapSize.getListData()),
-                 (JsonNames.OBJECTS, objects)])
+    serialized = {    
+        'objects': [],
+        'map_params': map_params.serialize()
+    }
+    
+    for obj_type, objs in objects.items():
+        if type(objs) is list:
+            for obj in objs:
+                serialized['objects'] += [obj.serialized()] 
+        else:
+            serialized['objects'] += [objs.serialized()] 
+
+    print(serialized)
+
     try:
-        write_file = open(filePath, "w")
-        json.dump(data, write_file, indent=2)
+        with open(filepath, "w") as fp:
+            json.dump(serialized, fp, indent=2)
     except:
-        print("Is file {0} correct?".format(filePath))
+        print("Failed to write to file {}".format(filePath))
 
 
 def create_sdf_from_gui(start, finish, cellsAmount, cellsSize, mapSize,

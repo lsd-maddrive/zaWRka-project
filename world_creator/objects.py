@@ -43,6 +43,23 @@ class MyPainter(QPainter):
         img = QImage(img_path).scaled(QSize(self.half_cell_sz.x, self.half_cell_sz.y))
         self.drawImage(render_x * self.cell_sz.x, render_y * self.cell_sz.y, img)
 
+
+class MapParams:
+    def __init__(self, n_cells: Size2D, cell_sz: Size2D):
+        self.n_cells = n_cells
+        self.cell_sz = cell_sz
+        self.phys_size = Size2D(self.n_cells.x * self.cell_sz.x, 
+                                self.n_cells.y * self.cell_sz.y)
+        print("World cells: count={0},size={1}".format(self.n_cells, self.cell_sz))
+
+    def serialize(self):
+        data = {
+            'cell_cnt': self.n_cells.as_list(),
+            'cell_sz': self.cell_sz.as_list()
+        }
+        
+        return data
+
         
 class Object:
     def getData(self):
@@ -57,11 +74,18 @@ class Object:
         return str(self.data)
     def render(self):
         pass
+    def serialized(self):
+        pass
 
 
 class Start(Object):
-    def __init__(self, point=None):
-        self.data = point if point is not None else Point2D()
+    SERIALIZED_NAME = 'start'
+    
+    def __init__(self, pos: Point2D):
+        self.pos = pos
+    def __str__(self):
+        return str(self.pos)
+    
     def convertFromJsonToGui(self, cellsSize):
         self.__map_pose_to_cell_indexes(cellsSize)
     def convertFromGuiToJson(self, cellsSize):
@@ -74,9 +98,17 @@ class Start(Object):
     def __cell_indexes_to_map_pose(self, cellsSize):
         self.data = Point2D(self.data.x * cellsSize.x + cellsSize.x, 
                              self.data.y * cellsSize.y + cellsSize.y )
-    def render(self, qp):
-        qp.fillCell(self.data, color=QColor(255, 0, 0))
     
+    def render(self, qp):
+        qp.fillCell(self.pos, color=QColor(255, 0, 0))
+        
+    def serialized(self):
+        data = {
+            'name': self.SERIALIZED_NAME,
+            'pos': self.pos.as_list()
+        }
+
+        return data
 
 class Finish(Object):
     def __init__(self, point=None):
@@ -99,13 +131,11 @@ class Finish(Object):
 
 
 class Wall():
-    def __init__(self, point1=None, point2=None):
-        if point1 is not None or point2 is not None:
-            self.point1 = point1
-            self.point2 = point2
-        else:
-            self.point1 = Point2D()
-            self.point2 = Point2D()
+    SERIALIZED_NAME = 'wall'
+    
+    def __init__(self, point1, point2):
+        self.p1 = point1
+        self.p2 = point2
     def __str__(self):
         return "[{0}, {1}], [{2}, {3}]".format(self.point1.x, self.point1.y, 
                                                self.point2.x, self.point2.y)
@@ -127,9 +157,17 @@ class Wall():
                               self.point1.y * cellsSize.y)
         self.point2 = Point2D(self.point2.x * cellsSize.x, 
                               self.point2.y * cellsSize.y)
+
     def render(self, qp):
         qp.drawWallLine(self.point1, self.point2, color=QColor(0, 0, 0))
         
+    def serialized(self):
+        data = {
+            'name': self.SERIALIZED_NAME,
+            'pnts': self.p1.as_list() + self.p2.as_list()
+        }
+        
+        return data
 
 class Walls(Object):
     def __init__(self, walls=None):
@@ -187,23 +225,23 @@ class Sign():
         qp.drawQuarterImg(self.point, self.orient, self.type)
         
 
-class Signs(Object):
-    def __init__(self, signs=None):
-        if signs is None:
-            self.data = list()
-        else:
-            self.data = signs
-    def add(self, sign):
-        self.data.append(sign)
-    def remove(self, sign):
-        self.data.remove(sign)
-    def __str__(self):
-        text = str()
-        for wall in self.data:
-            text += "\n" + str(wall)
-        return text
-    def __getitem__(self, i):
-        return self.data[i]
-    def __len__(self):
-        return len(self.data)
+# class Signs(Object):
+#     def __init__(self, signs=None):
+#         if signs is None:
+#             self.data = list()
+#         else:
+#             self.data = signs
+#     def add(self, sign):
+#         self.data.append(sign)
+#     def remove(self, sign):
+#         self.data.remove(sign)
+#     def __str__(self):
+#         text = str()
+#         for wall in self.data:
+#             text += "\n" + str(wall)
+#         return text
+#     def __getitem__(self, i):
+#         return self.data[i]
+#     def __len__(self):
+#         return len(self.data)
 

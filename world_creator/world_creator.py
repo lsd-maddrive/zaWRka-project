@@ -37,7 +37,6 @@ if __name__=="__main__":
     cellsAmount = Size2D(int(ncell_w), int(ncell_h))
 
     app = QApplication(sys.argv)
-    Map.Init(cellsAmount, cellsSize)
-    window = MainWindow(filepath2Load, basenamePrefix)
+    window = MainWindow(filepath2Load, basenamePrefix, MapParams(cellsAmount, cellsSize))
     app.exec_()
 

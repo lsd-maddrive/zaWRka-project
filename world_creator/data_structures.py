@@ -31,7 +31,8 @@ class Vector2D:
     def BuildFromArray(self, arr):
         self.x = arr[0]
         self.y = arr[1]
-    def getListData(self):
+        
+    def as_list(self):
         return list([self.x, self.y])
 
 class Vector3D:
