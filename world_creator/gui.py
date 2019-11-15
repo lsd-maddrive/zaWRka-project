@@ -5,8 +5,13 @@ from PyQt5.QtWidgets import QWidget, QApplication, QPushButton, QGridLayout, \
 from PyQt5.QtGui import QPainter, QColor, QPen, QBrush, QIcon, QImage
 from PyQt5.QtCore import Qt, QSize
 from enum import Enum
-from json_converter import *
+import converter
+from objects import *
 from json_constants import *
+import logging as log
+
+log.basicConfig(filename='world_creator.log', level=log.DEBUG)
+log.getLogger().addHandler(log.StreamHandler(sys.stdout))
 
 # ************************** Constants and enums *****************************
 class Mode(Enum):
@@ -133,7 +138,7 @@ class Model:
         
         if load_filepath:
             print('Loading data from {}'.format(load_filepath))
-            self.map_params = deserialize_from_json(load_filepath, self.objects)
+            self.map_params = converter.deserialize_from_json(load_filepath, self.objects)
         else:
             self.map_params = map_params
         
@@ -184,16 +189,10 @@ class MainWindow(QWidget):
         self.json_save_fpath = save_file_prefix + '.json'
         self.world_save_fpath = save_file_prefix + '.world'
 
-        self.canvas = Canvas(self.model, self)
-
         layout = QGridLayout()
         layout.setSpacing(5)
         self.setLayout(layout)
         
-        self.statusBar = QStatusBar()
-        self.statusBar.showMessage('Ready')
-        self.statusBar.setMaximumHeight(20)
-    
         generateButton = QPushButton('Generate JSON/WORLD', self)
         generateButton.setFixedSize(QSize(200, 25))
         generateButton.pressed.connect(self.generateOutputFiles)
@@ -209,11 +208,16 @@ class MainWindow(QWidget):
         layout.addWidget(QLabel('To create the world:', self), 0, 1)
         for idx in range(len(mode_buttons)):
             layout.addWidget(mode_buttons[idx], idx + 1, 1)       
- 
+
         layout.addWidget(QLabel('Then press buttons below:', self), len(mode_buttons)+1, 1)
         layout.addWidget(generateButton, len(mode_buttons)+2, 1)
         
+        self.statusBar = QStatusBar()
+        self.statusBar.showMessage('Ready')
+        self.statusBar.setMaximumHeight(20)
         layout.addWidget(self.statusBar, len(mode_buttons)+3, 0, 1, 2)
+        
+        self.canvas = Canvas(self.model, self)
         layout.addWidget(self.canvas, 0, 0, len(mode_buttons)+3, 1)
 
     def paintEvent(self, event=None):
@@ -233,17 +237,14 @@ class MainWindow(QWidget):
 
 
     def generateOutputFiles(self):
-        serialize_2_json(self.json_save_fpath, self.model.objects, self.model.map_params)
+        converter.serialize_2_json(self.json_save_fpath, self.model.objects, self.model.map_params)
+        # converter.create_sdf(self.world_save_fpath, self.model.objects, self.model.map_params)
         
-        # create_sdf_from_gui(start,finish,Map.CELLS_AMOUNT,Map.CELLS_SIZE, 
-                                # Map.SIZE, None, self.__walls, self.__signs, ControlPanel.worldSaveFpath)
-        
-        # ControlPanel.PrintObjects()
-        print("Files generated!")
+        log.info("Files generated!")
 
 
-# ***************************** BaseGuiObject ********************************
-class BaseGuiObject():
+# ***************************** BaseGuiMode ********************************
+class BaseGuiMode():
     """ @brief Interface for button features """
     def __init__(self, model):
         self.model = model
@@ -255,14 +256,14 @@ class BaseGuiObject():
         pass
 
 
-class GuiStartMode(BaseGuiObject):
+class GuiStartMode(BaseGuiMode):
     def processLeftMousePressing(self, canvas_pos, canvas_cell_sz):
         clickCell = Canvas.getCellClicked(canvas_pos, canvas_cell_sz)
         self.model.objects[ObjectType.START] = Start(clickCell)
         print("start pose was setted using mouse:", self.model.objects[ObjectType.START])
     
 
-class GuiWallsMode(BaseGuiObject):
+class GuiWallsMode(BaseGuiMode):
     def __init__(self, model):
         super().__init__(model)
         self._prev_clicked_cross = None
@@ -280,7 +281,7 @@ class GuiWallsMode(BaseGuiObject):
         self._prev_clicked_cross = clickCross
         
 
-class GuiSignsMode(BaseGuiObject):
+class GuiSignsMode(BaseGuiMode):
     def processLeftMousePressing(self, canvas_pos, canvas_cell_sz):
         click_cell, orient = Canvas.getCellQuarter(canvas_pos, canvas_cell_sz)
 
@@ -325,7 +326,7 @@ class SignSelectButton(QPushButton):
         super().__init__(text, parent)
         self.idx = idx
         
-        
+
 class SignChoiceDialog(QDialog):
     def __init__(self, sign_list):
         super().__init__()
@@ -363,7 +364,7 @@ class SignChoiceDialog(QDialog):
 
 
 
-# class LoadJson(BaseGuiObject):
+# class LoadJson(BaseGuiMode):
 #     def processButtonPressing(self):
 #         print("\nLoad json:")
 #         FILE_TYPES = "Json Files (*.json)"

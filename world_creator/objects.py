@@ -2,6 +2,8 @@
 from data_structures import *
 import copy
 from json_constants import *
+import logging as log
+import converter
 
 from PyQt5.QtGui import QPainter, QColor, QPen, QBrush, QIcon, QImage
 from PyQt5.QtCore import Qt, QSize
@@ -28,6 +30,7 @@ class MyPainter(QPainter):
 
     def fillCell(self, cell_pos, color=QColor(255, 0, 0)):
         self.setBrush(QBrush(color))
+        self.setPen(Qt.NoPen)
         self.drawRect(cell_pos.x * self.cell_sz.x, cell_pos.y * self.cell_sz.y, 
                       self.cell_sz.x, self.cell_sz.y)
     
@@ -77,16 +80,6 @@ class MapParams:
 
         
 class Object:
-    def getData(self):
-        return self.data
-    def getListData(self):
-        return self.data.getListData()
-    def convertFromJsonToGui(self, cellsSize):
-        pass
-    def convertFromGuiToJson(self, cellsSize):
-        return None
-    def __str__(self):
-        return str(self.data)
     def render(self):
         pass
     def serialized(self):
@@ -94,6 +87,7 @@ class Object:
     @staticmethod
     def deserialize(data: dict):
         if data['name'] not in SERIALIZATION_SUPPORT:
+            log.error('Object type \'{}\' not found'.format(data['name']))
             return None
         
         return SERIALIZATION_SUPPORT[data['name']].deserialize(data)
@@ -107,20 +101,7 @@ class Start(Object):
         
     def __str__(self):
         return "[({}) pos = {}]".format(type(self), self.pos)
-    
-    def convertFromJsonToGui(self, cellsSize):
-        self.__map_pose_to_cell_indexes(cellsSize)
-    def convertFromGuiToJson(self, cellsSize):
-        data = copy.deepcopy(self)
-        data.__cell_indexes_to_map_pose(cellsSize)
-        return data
-    def __map_pose_to_cell_indexes(self, cellsSize):
-        self.data = Point2D(int((self.data.x - cellsSize.x) / cellsSize.x), 
-                             int((self.data.y - cellsSize.y) / cellsSize.y) )
-    def __cell_indexes_to_map_pose(self, cellsSize):
-        self.data = Point2D(self.data.x * cellsSize.x + cellsSize.x, 
-                             self.data.y * cellsSize.y + cellsSize.y )
-    
+
     def render(self, qp):
         qp.fillCell(self.pos, color=QColor(255, 0, 0))
         
@@ -150,25 +131,6 @@ class Wall():
     def __str__(self):
         return "[({}) p1 = {}, p2 = {}]".format(type(self), self.p1, self.p2)
     
-    def getListData(self):
-        return list([self.point1.getListData(), self.point2.getListData() ])
-    def convertFromJsonToGui(self, cellsSize):
-        self.__map_pose_to_node_indexes(cellsSize)
-    def convertFromGuiToJson(self, cellsSize):
-        data = copy.deepcopy(self)
-        data.__node_indexes_to_map_pose(cellsSize)
-        return data
-    def __map_pose_to_node_indexes(self, cellsSize):
-        self.point1 = Point2D(int(self.point1.x / cellsSize.x), 
-                              int(self.point1.y / cellsSize.y))
-        self.point2 = Point2D(int(self.point2.x / cellsSize.x), 
-                              int(self.point2.y / cellsSize.y))
-    def __node_indexes_to_map_pose(self, cellsSize):
-        self.point1 = Point2D(self.point1.x * cellsSize.x, 
-                              self.point1.y * cellsSize.y)
-        self.point2 = Point2D(self.point2.x * cellsSize.x, 
-                              self.point2.y * cellsSize.y)
-
     def render(self, qp):
         qp.drawWallLine(self.p1, self.p2, color=QColor(0, 0, 0))
         
@@ -190,11 +152,6 @@ class Wall():
                     Point2D.from_list(data['pnts'][2:4]))
     
     
-class Box(Object):
-    def __init__(self, point):
-        self.point = point
-
-
 class Sign(Object):
     TYPE = ObjectType.SIGN
     
@@ -205,23 +162,6 @@ class Sign(Object):
 
     def __str__(self):
         return "[({}) pose = {}, orient = {}, type = {}]".format(type(self), self.point, self.orient, self.type)
-    
-    def getListData(self):
-        return list([ self.point.getListData(), self.signType.getListData() ])
-    def convertFromJsonToGui(self, cellsSize):
-        self.__map_pose_to_half_cell_indexes(cellsSize)
-    def convertFromGuiToJson(self, cellsSize):
-        data = copy.deepcopy(self)
-        data.__half_cell_indexes_to_map_pose(cellsSize)
-        return data
-    def __map_pose_to_half_cell_indexes(self, cellsSize):
-        self.point = Point2D( (self.point.x - cellsSize.x/4) / cellsSize.x * 2, 
-                              (self.point.y - cellsSize.y/4) / cellsSize.y * 2 )
-        self.type = sign_type_to_sign_path(self.type)
-    def __half_cell_indexes_to_map_pose(self, cellsSize):
-        self.point = Point2D( cellsSize.x/4 + self.point.x * cellsSize.x/2, 
-                              cellsSize.y/4 + self.point.y * cellsSize.y/2 )
-        self.type = sign_path_to_sign_type(self.type)
     
     def render(self, qp):
         qp.drawQuarterImg(self.point, self.orient, self.type)
@@ -243,10 +183,17 @@ class Sign(Object):
     @staticmethod
     def deserialize(data: dict):
         return Sign(Point2D.from_list(data['pos']), 
-                    data['orient'],
+                    CellQuarter(data['orient']),
                     data['type'])
     
+    
 
+class Box(Object):
+    # TODO - planned
+    def __init__(self, point):
+        self.point = point
+        
+        
 SERIALIZATION_SUPPORT = {
     'start': Start,
     'wall': Wall,

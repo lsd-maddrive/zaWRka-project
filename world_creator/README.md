@@ -17,7 +17,7 @@ After that you should consistently click on buttons `create json` and `create sd
 
 `gui.py` the frontend of this program. They create main window, lables, buttons and sets callbacks.
 
-`json_converter.py` allows to convert frontend data to json format, load json data to frontend and to backend.
+`converter.py` allows to convert frontend data to json format, load json data to frontend and to backend.
 
 `gazebo_sdf.py` is the backend of this program. It allows to create .world file from json file. 
 

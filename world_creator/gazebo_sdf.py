@@ -3,7 +3,7 @@ from lxml import etree
 import copy, numpy
 import math as m
 from enum import Enum
-from json_converter import *
+import converter
 from data_structures import *
 from objects import *
 
