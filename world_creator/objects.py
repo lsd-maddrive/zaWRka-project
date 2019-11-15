@@ -1,13 +1,62 @@
 #!/usr/bin/env python3
 from data_structures import *
 import copy
-from json_constants import *
 import logging as log
 import converter
 import math as m
+from enum import Enum
+import os
 
-from PyQt5.QtGui import QPainter, QColor, QPen, QBrush, QIcon, QImage
-from PyQt5.QtCore import Qt, QSize
+APP_VERSION = 1.0
+
+class SignsTypes(Enum):
+    STOP = "stop sign"
+    ONLY_FORWARD = "only forward sign"
+    ONLY_RIGHT = "only right sign"
+    ONLY_LEFT = "only left sign"
+    FORWARD_OR_RIGHT = "forward or right sign"
+    FORWARD_OR_LEFT = "forward or left sign"
+
+class ImagesPaths():
+    PATH_TO_IMAGE = 'models'
+    STOP = os.path.join(PATH_TO_IMAGE, 'brick-sign/brick.png')
+    ONLY_FORWARD = os.path.join(PATH_TO_IMAGE, 'forward-sign/forward.png')
+    ONLY_LEFT = os.path.join(PATH_TO_IMAGE, 'left-sign/left.png')
+    ONLY_RIGHT = os.path.join(PATH_TO_IMAGE, 'right-sign/right.png')
+    FORWARD_OR_LEFT = os.path.join(PATH_TO_IMAGE, 'forward-left-sign/frwd_left.png')
+    FORWARD_OR_RIGHT = os.path.join(PATH_TO_IMAGE, 'forward-right-sign/frwd_right.png')
+
+def sign_path_to_sign_type(img_path):
+    if img_path is ImagesPaths.STOP:
+        return SignsTypes.STOP.value
+    elif img_path is ImagesPaths.ONLY_FORWARD:
+        return SignsTypes.ONLY_FORWARD.value
+    elif img_path is ImagesPaths.ONLY_LEFT:
+        return SignsTypes.ONLY_LEFT.value
+    elif img_path is ImagesPaths.ONLY_RIGHT:
+        return SignsTypes.ONLY_RIGHT.value
+    elif img_path is ImagesPaths.FORWARD_OR_LEFT:
+        return SignsTypes.FORWARD_OR_LEFT.value
+    elif img_path is ImagesPaths.FORWARD_OR_RIGHT:
+        return SignsTypes.FORWARD_OR_RIGHT.value
+    else:
+        return " "
+
+def sign_type_to_sign_path(sign_type):
+    if sign_type == SignsTypes.STOP.value:
+        return ImagesPaths.STOP
+    elif sign_type == SignsTypes.ONLY_FORWARD.value:
+        return ImagesPaths.ONLY_FORWARD
+    elif sign_type == SignsTypes.ONLY_LEFT.value:
+        return ImagesPaths.ONLY_LEFT
+    elif sign_type == SignsTypes.ONLY_RIGHT.value:
+        return ImagesPaths.ONLY_RIGHT
+    elif sign_type == SignsTypes.FORWARD_OR_LEFT.value:
+        return ImagesPaths.FORWARD_OR_LEFT
+    elif sign_type == SignsTypes.FORWARD_OR_RIGHT.value:
+        return ImagesPaths.FORWARD_OR_RIGHT
+    else:
+        return " "
 
 class ObjectType(Enum):
     START = 10,
@@ -22,38 +71,6 @@ class CellQuarter(Enum):
     RIGHT_BOT = 1
     LEFT_TOP = 2
     LEFT_BOT = 3
-
-class MyPainter(QPainter):
-    def __init__(self, base, cell_sz):
-        super().__init__(base)
-        
-        self.cell_sz = cell_sz
-
-    def fillCell(self, cell_pos, color=QColor(255, 0, 0)):
-        self.setBrush(QBrush(color))
-        self.setPen(Qt.NoPen)
-        self.drawRect(cell_pos.x * self.cell_sz.x, cell_pos.y * self.cell_sz.y, 
-                      self.cell_sz.x, self.cell_sz.y)
-    
-    def drawWallLine(self, node_pos1, node_pos2, color=QColor(0, 0, 0)):
-        self.setPen(QPen(color, 3))
-        self.drawLine(node_pos1.x * self.cell_sz.x, node_pos1.y * self.cell_sz.y,
-                      node_pos2.x * self.cell_sz.x, node_pos2.y * self.cell_sz.y)
-        
-    def drawQuarterImg(self, cell, quarter, img_path):
-        self.half_cell_sz = self.cell_sz / 2
-        
-        render_x = cell.x
-        render_y = cell.y
-        
-        if quarter == CellQuarter.RIGHT_TOP or quarter == CellQuarter.RIGHT_BOT:
-            render_x += 0.5
-        
-        if quarter == CellQuarter.RIGHT_BOT or quarter == CellQuarter.LEFT_BOT:
-            render_y += 0.5
-        
-        img = QImage(img_path).scaled(QSize(self.half_cell_sz.x, self.half_cell_sz.y))
-        self.drawImage(render_x * self.cell_sz.x, render_y * self.cell_sz.y, img)
 
 
 class MapParams:
@@ -104,7 +121,7 @@ class Start(Object):
         return "[({}) pos = {}]".format(type(self), self.pos)
 
     def render(self, qp):
-        qp.fillCell(self.pos, color=QColor(255, 0, 0))
+        qp.fillCell(self.pos, color=(255, 0, 0))
         
     def serialized(self):
         for name, _class in SERIALIZATION_SUPPORT.items():
@@ -141,12 +158,16 @@ class Wall():
         sub = self.p2 - self.p1
         return m.sqrt(sub.x**2 + sub.y**2)
     
+    def get_phys_length(self, cell_sz):
+        sub = self.p2 - self.p1
+        return m.sqrt((sub.x*cell_sz.y)**2 + (sub.y*cell_sz.y)**2)
+    
     def get_angle(self):
         sub = self.p2 - self.p1
         return m.atan2(sub.y, sub.x)
     
     def render(self, qp):
-        qp.drawWallLine(self.p1, self.p2, color=QColor(0, 0, 0))
+        qp.drawWallLine(self.p1, self.p2, color=(0, 0, 0))
         
     def serialized(self):
         for name, _class in SERIALIZATION_SUPPORT.items():
@@ -201,7 +222,6 @@ class Sign(Object):
                     data['type'])
     
     
-
 class Box(Object):
     # TODO - planned
     def __init__(self, pos: Point2D):

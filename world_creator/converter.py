@@ -6,7 +6,6 @@ This script allow to create json file from data and sdf file from json.
 
 import json
 import logging as log
-from json_constants import *
 from gazebo_sdf import *
 from objects import *
 
@@ -98,37 +97,3 @@ def create_sdf(filepath: str, objects: dict, map_params: MapParams):
         sdfCreator.writeWorldToFile(filepath)
     except:
         log.error("Failed to write WORLD to file")
-
-# def create_sdf_from_json(jsonFileName, sdfFileName):
-#     """ 
-#     Create sdf world using json data
-#     """
-#     read_file = open(jsonFileName, "r")
-#     data = json.load(read_file)
-
-#     sdfCreator = SdfCreator(Point2D(data.get(JsonNames.START)),
-#                             Point2D(data.get(JsonNames.FINISH)),
-#                             Point2D(data.get(JsonNames.CELLS_AMOUNT)),
-#                             Size2D(data.get(JsonNames.CELLS_SIZE)),
-#                             Size2D(data.get(JsonNames.SIZE)))
-#     for obj in data.get(JsonNames.OBJECTS):
-#         if obj.get(JsonNames.NAME) == JsonNames.BOX:
-#             position = Point2D(obj.get(JsonNames.POSITION))
-#             sdfCreator.addBox(position)
-#         elif obj.get(JsonNames.NAME) == JsonNames.WALL:
-#             point1 = obj.get(JsonNames.POINT_1)
-#             point2 = obj.get(JsonNames.POINT_2)
-#             wall = Wall(Point2D(point1), Point2D(point2))
-#             sdfCreator.addWall(wall)
-#         elif obj.get(JsonNames.NAME) == JsonNames.SIGN:
-#             position = obj.get(JsonNames.POSITION)
-#             imgType = obj.get(JsonNames.SIGN_TYPE)
-#             sign = Sign(Point2D(position), imgType)
-#             sdfCreator.addSign(sign)
-#     try:
-#         sdfCreator.writeWorldToFile(sdfFileName)
-#     except:
-#         print("Error: incorrect sdf file name!")
-
-
-

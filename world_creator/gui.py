@@ -5,10 +5,10 @@ from PyQt5.QtWidgets import QWidget, QApplication, QPushButton, QGridLayout, \
 from PyQt5.QtGui import QPainter, QColor, QPen, QBrush, QIcon, QImage
 from PyQt5.QtCore import Qt, QSize
 from enum import Enum
+import logging as log
+
 import converter
 from objects import *
-from json_constants import *
-import logging as log
 
 log.basicConfig(filename='world_creator.log', level=log.DEBUG)
 log.getLogger().addHandler(log.StreamHandler(sys.stdout))
@@ -36,6 +36,40 @@ class ColorCode(Enum):
 
     
 # ***************************** Main window *********************************
+
+class MyPainter(QPainter):
+    def __init__(self, base, cell_sz):
+        super().__init__(base)
+        
+        self.cell_sz = cell_sz
+
+    def fillCell(self, cell_pos, color=(255, 0, 0)):
+        self.setBrush(QBrush(QColor(*color)))
+        self.setPen(Qt.NoPen)
+        self.drawRect(cell_pos.x * self.cell_sz.x, cell_pos.y * self.cell_sz.y, 
+                      self.cell_sz.x, self.cell_sz.y)
+    
+    def drawWallLine(self, node_pos1, node_pos2, color=(0, 0, 0)):
+        self.setPen(QPen(QColor(*color), 3))
+        self.drawLine(node_pos1.x * self.cell_sz.x, node_pos1.y * self.cell_sz.y,
+                      node_pos2.x * self.cell_sz.x, node_pos2.y * self.cell_sz.y)
+        
+    def drawQuarterImg(self, cell, quarter, img_path):
+        self.half_cell_sz = self.cell_sz / 2
+        
+        render_x = cell.x
+        render_y = cell.y
+        
+        if quarter == CellQuarter.RIGHT_TOP or quarter == CellQuarter.RIGHT_BOT:
+            render_x += 0.5
+        
+        if quarter == CellQuarter.RIGHT_BOT or quarter == CellQuarter.LEFT_BOT:
+            render_y += 0.5
+        
+        img = QImage(img_path).scaled(QSize(self.half_cell_sz.x, self.half_cell_sz.y))
+        self.drawImage(render_x * self.cell_sz.x, render_y * self.cell_sz.y, img)
+        
+
 class Canvas(QWidget):
     def __init__(self, model, parent=None):
         super().__init__(parent)
@@ -108,16 +142,15 @@ class Canvas(QWidget):
             
         print('Canvas update call')
         self.update()
-        
-             
+           
     def drawMap(self, qp):
         thinPen = QPen(Qt.black, 1, Qt.SolidLine)
         qp.setPen(thinPen)
-        qp.drawRect(0, 0, self.canvasSz.x, self.canvasSz.y)
+        qp.drawRect(0, 0, self.canvasSz.x-1, self.canvasSz.y-1)
         for row in range(1, self.model.map_params.n_cells.y):
-            qp.drawLine(0, row*self.cellSz.y, self.canvasSz.x, row*self.cellSz.y)
+            qp.drawLine(0, row*self.cellSz.y, self.canvasSz.x-1, row*self.cellSz.y)
         for col in range(1, self.model.map_params.n_cells.x):
-            qp.drawLine(col*self.cellSz.x, 0, col*self.cellSz.x, self.canvasSz.y)
+            qp.drawLine(col*self.cellSz.x, 0, col*self.cellSz.x, self.canvasSz.y-1)
     
     
 class Model:
@@ -146,12 +179,9 @@ class Model:
     
     def set_mode(self, _set_mode):
         print(_set_mode)
-        # TODO - View part / replace
-        # for mode in self.modes:
-            # self.set_button_color(self.modes[mode].button, ColorCode.WHITE)
-            
-        # if _set_mode != Mode.NO_MODE:
-            # self.set_button_color(self.modes[_set_mode].button, ColorCode.RED)
+        
+        if self.mode != Mode.NO_MODE:
+            self.modes[self.mode].on_disable()
         
         self.mode = _set_mode
         
@@ -255,6 +285,8 @@ class BaseGuiMode():
     def processLeftMousePressing(self, canvas_pos, canvas_cell_sz):
         pass
 
+    def on_disable(self):
+        pass
 
 class GuiStartMode(BaseGuiMode):
     def processLeftMousePressing(self, canvas_pos, canvas_cell_sz):
@@ -269,7 +301,6 @@ class GuiWallsMode(BaseGuiMode):
         self._prev_clicked_cross = None
 
     def processRightMousePressing(self, canvas_pos, canvas_cell_sz):
-        #Just repeat reset logic
         self._prev_clicked_cross = None
     
     def processLeftMousePressing(self, canvas_pos, canvas_cell_sz):
@@ -279,6 +310,9 @@ class GuiWallsMode(BaseGuiMode):
             self.model.objects[ObjectType.WALL] += [Wall(clickCross, self._prev_clicked_cross)]
         
         self._prev_clicked_cross = clickCross
+        
+    def on_disable(self):
+        self._prev_clicked_cross = None
         
 
 class GuiSignsMode(BaseGuiMode):

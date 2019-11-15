@@ -76,7 +76,7 @@ class SdfCreator:
         log.debug("wall with pos: {}".format(wall))
         
         wall_center = wall.get_center()
-        wall_length = wall.get_length()
+        wall_length = wall.get_phys_length(self.map_params.cell_sz)
         wall_angle = wall.get_angle()
         
         wall_center.y = self.map_params.n_cells.y - wall_center.y
