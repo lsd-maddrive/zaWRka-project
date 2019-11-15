@@ -184,8 +184,8 @@ class SdfCreator:
         position.y = self.map_params.n_cells.y - position.y
         
         # Turn to physical
-        position.x = position.x * self.map_params.cell_sz.x
-        position.y = position.y * self.map_params.cell_sz.y
+        position.x *= self.map_params.cell_sz.x
+        position.y *= self.map_params.cell_sz.y
         
         yaw_angle = self.ORIENTATIONS_2_YAW_ANGLE[orient]
 
