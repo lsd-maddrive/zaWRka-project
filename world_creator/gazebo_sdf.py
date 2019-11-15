@@ -9,9 +9,10 @@ from data_structures import *
 from objects import *
 
 # Constants
+OBJECT_HEIGHT = float(0.5)
+OBJECT_SPAWN_Z = OBJECT_HEIGHT / 2
+
 WALL_WIDTH = float(0.01)
-WALL_HEIGHT = float(0.5)
-WALL_SPAWN_Z = WALL_HEIGHT / 2
 
 # Files pathes
 BOX_PATH = "models/box.sdf"
@@ -28,11 +29,14 @@ class SignsModels(Enum):
 
 
 class SdfCreator:
+    # Variables:
+    box_counter = 0
+    sign_counter = 0
+    
     def __init__(self, map_params: MapParams):
         """ 
         @brief Constructor that create empty world with defined config
         """
-        # self.__setConfig(start, finish, cellsAmount, cellsSize, mapSize)
         self.__create_empty_world()
         
         self.map_params = map_params
@@ -42,7 +46,6 @@ class SdfCreator:
         @brief Print on console xml tree of current world 
         """
         log.debug(etree.tostring(self.SDF_ROOT, pretty_print=True))
-
 
     def writeWorldToFile(self, fileName):
         """ 
@@ -78,38 +81,36 @@ class SdfCreator:
         
         wall_center.y = self.map_params.n_cells.y - wall_center.y
                 
-        wall_center.x = wall_center.x * self.map_params.cell_sz.x
-        wall_center.y = wall_center.y * self.map_params.cell_sz.y
+        wall_center.x *= self.map_params.cell_sz.x
+        wall_center.y *= self.map_params.cell_sz.y
         
-        pos_str = '{} {} {} 0 0 {}'.format(wall_center.x, wall_center.y, WALL_SPAWN_Z,
-                                           -wall_angle)
-        
-        size_str = '{} {} {}'.format(wall_length, WALL_WIDTH, WALL_HEIGHT)
+        pos_str = '{} {} {} 0 0 {}'.format(wall_center.x, wall_center.y, OBJECT_SPAWN_Z, -wall_angle)
+        size_str = '{} {} {}'.format(wall_length, WALL_WIDTH, OBJECT_HEIGHT)
 
         self.__spawnBox(pos_str, size_str)
-
 
     def addBox(self, box):
         """ 
         @brief Spawn box with cell size in middle of cell
         @param box - object from json
         """
-        boxSize = Point3D(self.CELLS_SIZE.x, self.CELLS_SIZE.y, WALL_HEIGHT)
-        pose_x = box.point.x * boxSize.x + boxSize.x / 2
-        pose_y = box.point.y * boxSize.y + boxSize.y / 2
-        self.__spawnBox(Point3D(pose_x, pose_y, WALL_HEIGHT), boxSize)
+
+        box_center = box.pos
+        
+        box_center.x += 0.5
+        box_center.y += 0.5
+        
+        box_center.y = self.map_params.n_cells.y - box_center.y
+    
+        box_center.x *= self.map_params.cell_sz.x
+        box_center.y *= self.map_params.cell_sz.y
+        
+        pos_str = '{} {} {} 0 0 0'.format(box_center.x, box_center.y, OBJECT_SPAWN_Z)
+        size_str = '{} {} {}'.format(self.map_params.cell_sz.x, self.map_params.cell_sz.y, OBJECT_HEIGHT)
+        
+        self.__spawnBox(pos_str, size_str)
 
     def __spawnBox(self, pos_str, size_str):
-        """ 
-        @brief Spawn box with defined size in defined position
-        @note You can spawn it in 2 variants:
-        1. box: on center of cell in template [odd; odd], 
-            for example [3; 1], [3; 3], [3; 5]
-        2. wall: on center of cell in template [even; odd] or [odd; even], 
-            for example [1; 0], [2; 1], [4; 3]
-        @param box_position - position in high level abstraction, in other 
-            words, start offset is not taken into account.
-        """
         self.box_counter += 1
         box_root = etree.parse(BOX_PATH).getroot()        
         
@@ -202,62 +203,9 @@ class SdfCreator:
         self.SDF_ROOT.find("world").insert(0, sign_root )
         self.sign_counter += 1
 
-
-    @staticmethod
-    def __controlRange(value, minimum, maximum, default):
-        if value >= minimum and value <= maximum:
-            return value
-        else:
-            return default
-
-
-    def __setConfig(self, start, finish, cellsAmount, cellsSize, mapSize):
-        """ 
-        @brief Set config from inputs
-        """
-        MIN_MAP_SIZE = 4
-        MAX_MAP_SIZE = 40
-        MIN_CELL_SIZE = 0.1
-        MAX_CELL_SIZE = 10
-
-        DEFAULT_MAP_SIZE = 18
-        DEFAULT_POSE = 17
-        DEFAULT_CELL_SIZE = 2
-
-        # Control cells size range
-        x = SdfCreator.__controlRange(cellsSize.x, MIN_CELL_SIZE, MAX_CELL_SIZE,
-                                      DEFAULT_CELL_SIZE)
-        y = SdfCreator.__controlRange(cellsSize.y, MIN_CELL_SIZE, MAX_CELL_SIZE,
-                                      DEFAULT_CELL_SIZE)
-        self.CELLS_SIZE = Size2D(x, y)
-
-        # Control map size range
-        x = SdfCreator.__controlRange(mapSize.x, MIN_MAP_SIZE, MAX_MAP_SIZE,
-                                      DEFAULT_MAP_SIZE)
-        y = SdfCreator.__controlRange(mapSize.y, MIN_MAP_SIZE, MAX_MAP_SIZE, 
-                                      DEFAULT_MAP_SIZE)
-        self.MAP_SIZE = Size2D(x, y)
-
-        # Control start range
-        x = SdfCreator.__controlRange(start.x, 0,self.MAP_SIZE.x,DEFAULT_POSE)
-        y = SdfCreator.__controlRange(start.y, 0,self.MAP_SIZE.y,DEFAULT_POSE)
-        self.START = Size2D(x, y)
-
-        log.debug("World settings are:") 
-        log.debug("- start:", self.START)
-        log.debug("- finish: [ don't support now]")
-        log.debug("- cells amount: [ don't support now]")
-        log.debug("- cells size:", self.CELLS_SIZE)
-        log.debug("- map size:", self.MAP_SIZE)
-
-
     def __create_empty_world(self):
         """ 
         @brief Create sdf tree for empty world from file
         """
         self.SDF_ROOT = etree.parse(EMPTY_WORLD_PATH).getroot()
-
-    # Variables:
-    box_counter = 0
-    sign_counter = 0
 

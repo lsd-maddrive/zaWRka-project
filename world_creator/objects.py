@@ -204,8 +204,8 @@ class Sign(Object):
 
 class Box(Object):
     # TODO - planned
-    def __init__(self, point):
-        self.point = point
+    def __init__(self, pos: Point2D):
+        self.pos = pos
         
         
 SERIALIZATION_SUPPORT = {
