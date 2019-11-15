@@ -164,7 +164,7 @@ class Sign(Object):
         return "[({}) pose = {}, orient = {}, type = {}]".format(type(self), self.point, self.orient, self.type)
     
     def render(self, qp):
-        qp.drawQuarterImg(self.point, self.orient, self.type)
+        qp.drawQuarterImg(self.point, self.orient, sign_type_to_sign_path(self.type))
     
     def serialized(self):
         for name, _class in SERIALIZATION_SUPPORT.items():

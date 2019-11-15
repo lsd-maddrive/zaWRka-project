@@ -238,7 +238,7 @@ class MainWindow(QWidget):
 
     def generateOutputFiles(self):
         converter.serialize_2_json(self.json_save_fpath, self.model.objects, self.model.map_params)
-        # converter.create_sdf(self.world_save_fpath, self.model.objects, self.model.map_params)
+        converter.create_sdf(self.world_save_fpath, self.model.objects, self.model.map_params)
         
         log.info("Files generated!")
 
@@ -297,10 +297,9 @@ class GuiSignsMode(BaseGuiMode):
         self.signChoiceDialog.exec_()
         
         select_idx = self.signChoiceDialog.get_result()
-        
         if select_idx == 0:
             self.deleteSign(click_cell, orient)
-        elif select_idx > 1:
+        elif select_idx > 0:
             self.addSign(click_cell, orient, info[select_idx][1])
 
     def addSign(self, pos, orient, signImg):
@@ -310,9 +309,11 @@ class GuiSignsMode(BaseGuiMode):
             if sign.point == pos and sign.orient == orient:
                 print("Delete object: sign ({2}) with pose {0}/{1}".format(pos, orient.name, sign.type))
                 self.model.objects[ObjectType.SIGN].remove(sign)
-                
-        print("Add object: sign ({2}) with pose {0}/{1}.".format(pos, orient.name, signImg))
-        self.model.objects[ObjectType.SIGN] += [Sign(pos, orient, signImg)]
+        
+        sign_type = sign_path_to_sign_type(signImg)
+        
+        print("Add object: sign ({2}) with pose {0}/{1}.".format(pos, orient.name, sign_type))
+        self.model.objects[ObjectType.SIGN] += [Sign(pos, orient, sign_type)]
     
     def deleteSign(self, pos, orient):
         for idx, sign in enumerate(self.model.objects[ObjectType.SIGN]):
@@ -361,32 +362,3 @@ class SignChoiceDialog(QDialog):
     def get_result(self):
         # -1 - no selection 
         return self.result_idx
-
-
-
-# class LoadJson(BaseGuiMode):
-#     def processButtonPressing(self):
-#         print("\nLoad json:")
-#         FILE_TYPES = "Json Files (*.json)"
-#         filePath = QFileDialog.getOpenFileName(ControlPanel.window, "", " ", FILE_TYPES)[0]
-        
-#         print(filePath)
-#         self.loadJson(filePath)
-#         print("")
-#     def loadJson(self, filePath):
-#         if filePath == "":
-#             print("User don't choose the file to save.")
-#         else:
-#             try:
-#                 objects = load_frontend_from_json(filePath)
-#                 ControlPanel.features[Mode.START.value].start = objects[0]
-#                 ControlPanel.features[Mode.FINISH.value].finish = objects[1]
-#                 size = objects[2]
-#                 boxes = objects[3]
-#                 ControlPanel.features[Mode.WALLS.value].walls = objects[4]
-#                 ControlPanel.features[Mode.SIGNS.value].Signs = objects[5]
-#                 ControlPanel.PrintObjects()
-#                 ControlPanel.window.update()
-#             except:
-#                 print("Error: file {0} is incorrect!".format(filePath))
-
