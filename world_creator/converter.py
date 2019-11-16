@@ -6,7 +6,7 @@ This script allow to create json file from data and sdf file from json.
 
 import json
 import logging as log
-from gazebo_sdf import *
+import gazebo_sdf as gzs
 from objects import *
 
 # Cheet sheet
@@ -57,7 +57,7 @@ def serialize_2_json(filepath: str, objects: dict, map_params: MapParams):
         with open(filepath, "w") as fp:
             json.dump(serialized, fp, indent=2)
     except:
-        log.error("Failed to write to file {}".format(filePath))
+        log.error("Failed to write to file {}".format(filepath))
 
 def deserialize_from_json(filepath: str, objects: dict):
     map_params = None
@@ -84,16 +84,16 @@ def deserialize_from_json(filepath: str, objects: dict):
     return map_params
 
 def create_sdf(filepath: str, objects: dict, map_params: MapParams):
-    sdfCreator = SdfCreator(map_params)
+    creator = gzs.WorldCreator(map_params)
 
     for obj_type, objs in objects.items():
         if type(objs) is list:
             for obj in objs:
-                sdfCreator.addObject(obj)
+                creator.addObject(obj)
         else:
-            sdfCreator.addObject(objs)
+            creator.addObject(objs)
 
     try:
-        sdfCreator.writeWorldToFile(filepath)
+        creator.writeWorldToFile(filepath)
     except:
         log.error("Failed to write WORLD to file")

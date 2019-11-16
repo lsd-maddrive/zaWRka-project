@@ -132,7 +132,7 @@ class Canvas(QWidget):
     def mousePressEvent(self, e):
         canvasPos = self.get_canvas_pos(e.pos().x(), e.pos().y()) 
         
-        if self.model.mode is not Mode.NO_MODE:
+        if self.model.mode in self.model.modes:
             if e.button() == Qt.LeftButton:
                 self.model.modes[self.model.mode].processLeftMousePressing(canvasPos, self.cellSz)
             elif e.button() == Qt.RightButton:
@@ -157,7 +157,6 @@ class Model:
     # Class for keeping main processing data
     def __init__(self, map_params, load_filepath):
         self.modes = {
-            Mode.START: GuiStartMode(self),
             Mode.WALLS: GuiWallsMode(self),
             Mode.SIGNS: GuiSignsMode(self),
         }
@@ -180,7 +179,7 @@ class Model:
     def set_mode(self, _set_mode):
         print(_set_mode)
         
-        if self.mode != Mode.NO_MODE:
+        if self.mode in self.modes:
             self.modes[self.mode].on_disable()
         
         self.mode = _set_mode
@@ -229,9 +228,8 @@ class MainWindow(QWidget):
         
         # TODO - maybe must be not "model" but "controller" connected to buttons
         mode_buttons = [
-            ModeButton('1. Choose start pose', Mode.START, self.model, self),
-            ModeButton('2. Create walls', Mode.WALLS, self.model, self),
-            ModeButton('3. Create signs', Mode.SIGNS, self.model, self)
+            ModeButton('1. Create walls', Mode.WALLS, self.model, self),
+            ModeButton('2. Create signs', Mode.SIGNS, self.model, self)
         ]        
         
         # Layout fill
@@ -288,11 +286,13 @@ class BaseGuiMode():
     def on_disable(self):
         pass
 
+# Must be turned into start
 class GuiStartMode(BaseGuiMode):
     def processLeftMousePressing(self, canvas_pos, canvas_cell_sz):
-        clickCell = Canvas.getCellClicked(canvas_pos, canvas_cell_sz)
-        self.model.objects[ObjectType.START] = Start(clickCell)
-        print("start pose was setted using mouse:", self.model.objects[ObjectType.START])
+        pass
+        # clickCell = Canvas.getCellClicked(canvas_pos, canvas_cell_sz)
+        # self.model.objects[ObjectType.START] = Start(clickCell)
+        # print("start pose was setted using mouse:", self.model.objects[ObjectType.START])
     
 
 class GuiWallsMode(BaseGuiMode):
@@ -306,7 +306,8 @@ class GuiWallsMode(BaseGuiMode):
     def processLeftMousePressing(self, canvas_pos, canvas_cell_sz):
         clickCross = Canvas.getCrossClicked(canvas_pos, canvas_cell_sz)
         
-        if self._prev_clicked_cross is not None:
+        if self._prev_clicked_cross is not None and \
+           self._prev_clicked_cross != clickCross:
             self.model.objects[ObjectType.WALL] += [Wall(clickCross, self._prev_clicked_cross)]
         
         self._prev_clicked_cross = clickCross
@@ -339,7 +340,7 @@ class GuiSignsMode(BaseGuiMode):
     def addSign(self, pos, orient, signImg):
         self.deleteSign(pos, orient)
         
-        for idx, sign in enumerate(self.model.objects[ObjectType.SIGN]):
+        for sign in self.model.objects[ObjectType.SIGN]:
             if sign.point == pos and sign.orient == orient:
                 print("Delete object: sign ({2}) with pose {0}/{1}".format(pos, orient.name, sign.type))
                 self.model.objects[ObjectType.SIGN].remove(sign)
@@ -350,7 +351,7 @@ class GuiSignsMode(BaseGuiMode):
         self.model.objects[ObjectType.SIGN] += [Sign(pos, orient, sign_type)]
     
     def deleteSign(self, pos, orient):
-        for idx, sign in enumerate(self.model.objects[ObjectType.SIGN]):
+        for sign in self.model.objects[ObjectType.SIGN]:
             if sign.point == pos and sign.orient == orient:
                 print("Delete object: sign ({2}) with pose {0}/{1}".format(pos, orient.name, sign.type))
                 self.model.objects[ObjectType.SIGN].remove(sign)

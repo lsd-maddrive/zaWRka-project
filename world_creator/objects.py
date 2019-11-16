@@ -111,33 +111,33 @@ class Object:
         return SERIALIZATION_SUPPORT[data['name']].deserialize(data)
     
 
-class Start(Object):
-    TYPE = ObjectType.START
+# class Start(Object):
+#     TYPE = ObjectType.START
     
-    def __init__(self, pos: Point2D):
-        self.pos = pos
+#     def __init__(self, pos: Point2D):
+#         self.pos = pos
         
-    def __str__(self):
-        return "[({}) pos = {}]".format(type(self), self.pos)
+#     def __str__(self):
+#         return "[({}) pos = {}]".format(type(self), self.pos)
 
-    def render(self, qp):
-        qp.fillCell(self.pos, color=(255, 0, 0))
+#     def render(self, qp):
+#         qp.fillCell(self.pos, color=(255, 0, 0))
         
-    def serialized(self):
-        for name, _class in SERIALIZATION_SUPPORT.items():
-            if type(self) == _class:
-                break
+#     def serialized(self):
+#         for name, _class in SERIALIZATION_SUPPORT.items():
+#             if type(self) == _class:
+#                 break
         
-        data = {
-            'name': name,
-            'pos': self.pos.as_list()
-        }
+#         data = {
+#             'name': name,
+#             'pos': self.pos.as_list()
+#         }
 
-        return data
+#         return data
     
-    @staticmethod
-    def deserialize(data: dict):
-        return Start(Point2D.from_list(data['pos']))
+#     @staticmethod
+#     def deserialize(data: dict):
+#         return Start(Point2D.from_list(data['pos']))
     
 
 class Wall():
@@ -190,16 +190,16 @@ class Wall():
 class Sign(Object):
     TYPE = ObjectType.SIGN
     
-    def __init__(self, point, orient, signType):
-        self.point = point
+    def __init__(self, pos, orient, signType):
+        self.pos = pos
         self.type = signType
         self.orient = orient
 
     def __str__(self):
-        return "[({}) pose = {}, orient = {}, type = {}]".format(type(self), self.point, self.orient, self.type)
+        return "[({}) pose = {}, orient = {}, type = {}]".format(type(self), self.pos, self.orient, self.type)
     
     def render(self, qp):
-        qp.drawQuarterImg(self.point, self.orient, sign_type_to_sign_path(self.type))
+        qp.drawQuarterImg(self.pos, self.orient, sign_type_to_sign_path(self.type))
     
     def serialized(self):
         for name, _class in SERIALIZATION_SUPPORT.items():
@@ -208,7 +208,7 @@ class Sign(Object):
         
         data = {
             'name': name,
-            'pos': self.point.as_list(),
+            'pos': self.pos.as_list(),
             'orient': self.orient.value,
             'type': self.type
         }
@@ -229,7 +229,6 @@ class Box(Object):
         
         
 SERIALIZATION_SUPPORT = {
-    'start': Start,
     'wall': Wall,
     'sign': Sign 
 }

@@ -7,12 +7,7 @@ from enum import Enum
 import converter
 from data_structures import *
 from objects import *
-
-# Constants
-OBJECT_HEIGHT = float(0.5)
-OBJECT_SPAWN_Z = OBJECT_HEIGHT / 2
-
-WALL_WIDTH = float(0.01)
+import gazebo_objects as go
 
 # Files pathes
 BOX_PATH = "models/box.sdf"
@@ -28,7 +23,7 @@ class SignsModels(Enum):
     FORWARD_OR_LEFT = "model://forward-left-sign"
 
 
-class SdfCreator:
+class WorldCreator:
     # Variables:
     box_counter = 0
     sign_counter = 0
@@ -75,17 +70,10 @@ class SdfCreator:
         """
         log.debug("wall with pos: {}".format(wall))
         
-        wall_center = wall.get_center()
-        wall_length = wall.get_phys_length(self.map_params.cell_sz)
-        wall_angle = wall.get_angle()
-        
-        wall_center.y = self.map_params.n_cells.y - wall_center.y
-                
-        wall_center.x *= self.map_params.cell_sz.x
-        wall_center.y *= self.map_params.cell_sz.y
-        
-        pos_str = '{} {} {} 0 0 {}'.format(wall_center.x, wall_center.y, OBJECT_SPAWN_Z, -wall_angle)
-        size_str = '{} {} {}'.format(wall_length, WALL_WIDTH, OBJECT_HEIGHT)
+        gz_wall = go.GazeboWall(wall, self.map_params)
+
+        pos_str = gz_wall.get_position_str()
+        size_str = gz_wall.get_size_str()
 
         self.__spawnBox(pos_str, size_str)
 
@@ -95,19 +83,11 @@ class SdfCreator:
         @param box - object from json
         """
 
-        box_center = box.pos
-        
-        box_center.x += 0.5
-        box_center.y += 0.5
-        
-        box_center.y = self.map_params.n_cells.y - box_center.y
-    
-        box_center.x *= self.map_params.cell_sz.x
-        box_center.y *= self.map_params.cell_sz.y
-        
-        pos_str = '{} {} {} 0 0 0'.format(box_center.x, box_center.y, OBJECT_SPAWN_Z)
-        size_str = '{} {} {}'.format(self.map_params.cell_sz.x, self.map_params.cell_sz.y, OBJECT_HEIGHT)
-        
+        gz_box = go.GazeboBox(box, self.map_params)
+
+        pos_str = gz_box.get_position_str()
+        size_str = gz_box.get_size_str()
+
         self.__spawnBox(pos_str, size_str)
 
     def __spawnBox(self, pos_str, size_str):
@@ -122,19 +102,17 @@ class SdfCreator:
         
         self.SDF_ROOT.find("world").insert(0, box_root)
 
-
-    ORIENTATIONS_2_YAW_ANGLE = {
-        CellQuarter.LEFT_BOT: 0,
-        CellQuarter.RIGHT_BOT: m.pi/2,
-        CellQuarter.LEFT_TOP: m.pi*3/2,
-        CellQuarter.RIGHT_TOP: m.pi,
-    }
-    
     def addSign(self, sign):
         """ 
         @param sign - object from json
         @note we can figure out orientation from position
         """
+
+        gz_sign = go.GazeboSign(sign, self.map_params)
+
+        pos_str = gz_sign.get_position_str()
+        _type = gz_sign.get_type()
+
         SIGN_MODEL_MAP = {
             SignsTypes.STOP.value:              SignsModels.STOP,
             SignsTypes.ONLY_FORWARD.value:      SignsModels.ONLY_FORWARD,
@@ -144,14 +122,14 @@ class SdfCreator:
             SignsTypes.FORWARD_OR_RIGHT.value:  SignsModels.FORWARD_OR_RIGHT,
         }
   
-        if sign.type not in SIGN_MODEL_MAP:
-            log.error("Error: sign type {} is not supported".format(sign.type))
+        if _type not in SIGN_MODEL_MAP:
+            log.error("Error: sign type \'{}\' is not supported".format(_type))
             return
         
-        self.__spawnSign(sign.point, sign.orient, SIGN_MODEL_MAP[sign.type])
+        self.__spawnSign(pos_str, SIGN_MODEL_MAP[_type])
 
 
-    def __spawnSign(self, position, orient, signImage):
+    def __spawnSign(self, pos_str, model_path):
         """ 
         @brief Spawn box in defined position
         @param position - Point2D - position on map (high level abstraction),
@@ -161,41 +139,15 @@ class SdfCreator:
         """
 
         ### LEFT/RIGHT_BOT/TOP - in terms of rendered map
-        log.debug("sign with pos: {} / {} / {}".format(position, orient, signImage))
-
-        # position.x = self.START.x - position.x
-        # position.y = -self.START.y + position.y
-      
-        # Apply small shift
-        if orient == CellQuarter.RIGHT_TOP:
-            position.x += 0.75
-            position.y += 0.25
-        elif orient == CellQuarter.RIGHT_BOT:
-            position.x += 0.75
-            position.y += 0.75
-        elif orient == CellQuarter.LEFT_BOT:
-            position.x += 0.25
-            position.y += 0.75
-        elif orient == CellQuarter.LEFT_TOP:
-            position.x += 0.25
-            position.y += 0.25
-        
-        # Swap axes
-        position.y = self.map_params.n_cells.y - position.y
-        
-        # Turn to physical
-        position.x *= self.map_params.cell_sz.x
-        position.y *= self.map_params.cell_sz.y
-        
-        yaw_angle = self.ORIENTATIONS_2_YAW_ANGLE[orient]
+        log.debug("sign with pos: {} / {}".format(pos_str, model_path))
 
         sign_root = etree.Element("include")
         uri_elem = etree.Element("uri")
-        uri_elem.text = signImage.value
+        uri_elem.text = model_path.value
         name_elem = etree.Element("name")
         name_elem.text = "sign_{}".format(self.sign_counter)
         pose_elem = etree.Element("pose")
-        pose_elem.text = "{0} {1} 0 0 0 {2}".format(position.x, position.y, yaw_angle)
+        pose_elem.text = pos_str
         sign_root.append( uri_elem )
         sign_root.append( name_elem )
         sign_root.append( pose_elem )
