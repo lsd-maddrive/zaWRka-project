@@ -231,6 +231,9 @@ class MainWindow(QWidget):
         generateButton.setFixedSize(QSize(200, 25))
         generateButton.pressed.connect(self.generateOutputFiles)
         
+        self.ctrl_grp = QButtonGroup()
+        self.ctrl_grp.setExclusive(True)
+
         # TODO - maybe must be not "model" but "controller" connected to buttons
         mode_buttons = [
             ModeButton('1. Create walls', Mode.WALLS, self.model, self),
@@ -239,8 +242,9 @@ class MainWindow(QWidget):
         
         # Layout fill
         layout.addWidget(QLabel('To create the world:', self), 0, 1)
-        for idx in range(len(mode_buttons)):
-            layout.addWidget(mode_buttons[idx], idx + 1, 1)       
+        for idx, btn in enumerate(mode_buttons):
+            layout.addWidget(btn, idx + 1, 1)       
+            self.ctrl_grp.addButton(btn)
 
         layout.addWidget(QLabel('Then press buttons below:', self), len(mode_buttons)+1, 1)
         layout.addWidget(generateButton, len(mode_buttons)+2, 1)
@@ -330,22 +334,18 @@ class GuiSignsMode(BaseGuiMode):
         map_cell = Canvas.getCellClicked(map_pos)
         orient = Canvas.getCellQuarter(map_pos)
 
-        info = list([ ["0. Empty", None],
-                      ["1. Stop", ImagesPaths.STOP],
-                      ["2. Forward", ImagesPaths.ONLY_FORWARD],
-                      ["3. Left", ImagesPaths.ONLY_LEFT],
-                      ["4. Right", ImagesPaths.ONLY_RIGHT],
-                      ["5. Forward or left", ImagesPaths.FORWARD_OR_LEFT],
-                      ["6. Forward or right", ImagesPaths.FORWARD_OR_RIGHT],])
+        info = list([ ["Stop", ImagesPaths.STOP],
+                      ["Forward", ImagesPaths.ONLY_FORWARD],
+                      ["Left", ImagesPaths.ONLY_LEFT],
+                      ["Right", ImagesPaths.ONLY_RIGHT],
+                      ["Forward or left", ImagesPaths.FORWARD_OR_LEFT],
+                      ["Forward or right", ImagesPaths.FORWARD_OR_RIGHT],])
 
         self.signChoiceDialog = SignChoiceDialog(info)
         self.signChoiceDialog.exec_()
         
         select_idx = self.signChoiceDialog.get_result()
-        if select_idx == 0:
-            self.deleteSign(map_cell, orient)
-        elif select_idx > 0:
-            self.addSign(map_cell, orient, info[select_idx][1])
+        self.addSign(map_cell, orient, info[select_idx][1])
 
     def processRightMousePressing(self, map_pos):
         map_cell = Canvas.getCellClicked(map_pos)
