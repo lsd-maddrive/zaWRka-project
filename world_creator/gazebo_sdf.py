@@ -52,7 +52,8 @@ class WorldCreator:
     def addObject(self, obj: Object):
         FUNCTIONS_MAPPING = {
             ObjectType.WALL: self.addWall,
-            ObjectType.SIGN: self.addSign
+            ObjectType.SIGN: self.addSign,
+            ObjectType.BOX: self.addBox
         }
 
         if obj.TYPE not in FUNCTIONS_MAPPING:

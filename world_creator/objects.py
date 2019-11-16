@@ -109,36 +109,7 @@ class Object:
             return None
         
         return SERIALIZATION_SUPPORT[data['name']].deserialize(data)
-    
 
-# class Start(Object):
-#     TYPE = ObjectType.START
-    
-#     def __init__(self, pos: Point2D):
-#         self.pos = pos
-        
-#     def __str__(self):
-#         return "[({}) pos = {}]".format(type(self), self.pos)
-
-#     def render(self, qp):
-#         qp.fillCell(self.pos, color=(255, 0, 0))
-        
-#     def serialized(self):
-#         for name, _class in SERIALIZATION_SUPPORT.items():
-#             if type(self) == _class:
-#                 break
-        
-#         data = {
-#             'name': name,
-#             'pos': self.pos.as_list()
-#         }
-
-#         return data
-    
-#     @staticmethod
-#     def deserialize(data: dict):
-#         return Start(Point2D.from_list(data['pos']))
-    
 
 class Wall():
     TYPE = ObjectType.WALL
@@ -150,22 +121,21 @@ class Wall():
     def __str__(self):
         return "[({}) p1 = {}, p2 = {}]".format(type(self), self.p1, self.p2)
     
-    def get_center(self):
-        return Point2D((self.p1.x + self.p2.x)/2,
-                       (self.p1.y + self.p2.y)/2)
-    
-    def get_length(self):
-        sub = self.p2 - self.p1
-        return m.sqrt(sub.x**2 + sub.y**2)
-    
-    def get_phys_length(self, cell_sz):
-        sub = self.p2 - self.p1
-        return m.sqrt((sub.x*cell_sz.y)**2 + (sub.y*cell_sz.y)**2)
-    
-    def get_angle(self):
-        sub = self.p2 - self.p1
-        return m.atan2(sub.y, sub.x)
-    
+    def distance_2_point(self, pnt):
+        import numpy
+        from numpy import arccos, array, dot, pi, cross
+        from numpy.linalg import det, norm
+
+        A = numpy.array(self.p1.as_list())
+        B = numpy.array(self.p2.as_list())
+        P = numpy.array(pnt.as_list())
+
+        if arccos(dot((P - A) / norm(P - A), (B - A) / norm(B - A))) > m.pi / 2:
+            return norm(P - A)
+        if arccos(dot((P - B) / norm(P - B), (A - B) / norm(A - B))) > m.pi / 2:
+            return norm(P - B)
+        return norm(cross(A-B, A-P))/norm(B-A)
+
     def render(self, qp):
         qp.drawWallLine(self.p1, self.p2, color=(0, 0, 0))
         
@@ -223,13 +193,34 @@ class Sign(Object):
     
     
 class Box(Object):
-    # TODO - planned
+    TYPE = ObjectType.BOX
+
     def __init__(self, pos: Point2D):
         self.pos = pos
+   
+    def render(self, qp):
+        qp.fillCell(self.pos, color=(150, 150, 150))
         
+    def serialized(self):
+        for name, _class in SERIALIZATION_SUPPORT.items():
+            if type(self) == _class:
+                break
+        
+        data = {
+            'name': name,
+            'pos': self.pos.as_list()
+        }
+        
+        return data
+
+    @staticmethod
+    def deserialize(data: dict):
+        return Box(Point2D.from_list(data['pos']))
+     
         
 SERIALIZATION_SUPPORT = {
     'wall': Wall,
-    'sign': Sign 
+    'sign': Sign,
+    'box': Box 
 }
     

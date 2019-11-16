@@ -19,7 +19,7 @@ class GazeboBox(GazeboObject):
     def __init__(self, base, map_params):
         super().__init__(base, map_params)
 
-        if type(base) is not objects.Wall:
+        if type(base) is not objects.Box:
             raise Exception('Invalid class passed')
 
     def get_position_str(self):
@@ -38,6 +38,7 @@ class GazeboBox(GazeboObject):
         
     def get_size_str(self):
         return '{} {} {}'.format(self.map_params.cell_sz.x, self.map_params.cell_sz.y, OBJECT_HEIGHT)
+
 
 class GazeboWall(GazeboObject):
     def __init__(self, base, map_params):

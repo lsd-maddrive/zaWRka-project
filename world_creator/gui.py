@@ -6,6 +6,7 @@ from PyQt5.QtGui import QPainter, QColor, QPen, QBrush, QIcon, QImage
 from PyQt5.QtCore import Qt, QSize
 from enum import Enum
 import logging as log
+import itertools as it
 
 import converter
 from objects import *
@@ -33,7 +34,6 @@ class ColorCode(Enum):
     BLUE = str("0000FF")
     GREEN = str("00FF00")
     RED = str("FF0000")
-
     
 # ***************************** Main window *********************************
 
@@ -132,11 +132,8 @@ class Canvas(QWidget):
         
     def mousePressEvent(self, e):
         canvas_pos = self.get_canvas_pos(e.pos().x(), e.pos().y()) 
-        
         map_pos = self.get_map_positions(canvas_pos, self.cellSz)
         
-        print(map_pos)
-
         if self.model.mode in self.model.modes:
             if e.button() == Qt.LeftButton:
                 self.model.modes[self.model.mode].processLeftMousePressing(map_pos)
@@ -145,7 +142,6 @@ class Canvas(QWidget):
         else:
             print("Warning: you should choose mode")
             
-        print('Canvas update call')
         self.update()
            
     def drawMap(self, qp):
@@ -164,13 +160,15 @@ class Model:
         self.modes = {
             Mode.WALLS: GuiWallsMode(self),
             Mode.SIGNS: GuiSignsMode(self),
+            Mode.BOXES: GuiBoxesMode(self)
         }
         
         self.objects = {
             ObjectType.TRAFFIC_LIGHT: [],
             ObjectType.WALL: [],
             ObjectType.SIGN: [],
-            ObjectType.SQUARE: []
+            ObjectType.SQUARE: [],
+            ObjectType.BOX: []
         }
         
         if load_filepath:
@@ -237,7 +235,8 @@ class MainWindow(QWidget):
         # TODO - maybe must be not "model" but "controller" connected to buttons
         mode_buttons = [
             ModeButton('1. Create walls', Mode.WALLS, self.model, self),
-            ModeButton('2. Create signs', Mode.SIGNS, self.model, self)
+            ModeButton('2. Create boxes', Mode.BOXES, self.model, self),
+            ModeButton('3. Create signs', Mode.SIGNS, self.model, self)
         ]        
         
         # Layout fill
@@ -296,14 +295,21 @@ class BaseGuiMode():
     def on_disable(self):
         pass
 
-# Must be turned into start
-class GuiStartMode(BaseGuiMode):
+
+class GuiBoxesMode(BaseGuiMode):
     def processLeftMousePressing(self, map_pos):
-        pass
-        # clickCell = Canvas.getCellClicked(canvas_pos, canvas_cell_sz)
-        # self.model.objects[ObjectType.START] = Start(clickCell)
-        # print("start pose was setted using mouse:", self.model.objects[ObjectType.START])
-    
+        map_cell = Canvas.getCellClicked(map_pos)
+
+        self.model.objects[ObjectType.BOX] += [Box(map_cell)]
+
+    def processRightMousePressing(self, map_pos):
+        map_cell = Canvas.getCellClicked(map_pos)
+
+        for box in self.model.objects[ObjectType.BOX]:
+            if box.pos == map_cell:
+                print("Delete object: box with pose {}".format(map_pos))
+                self.model.objects[ObjectType.BOX].remove(box)
+
 
 class GuiWallsMode(BaseGuiMode):
     def __init__(self, model):
@@ -312,18 +318,23 @@ class GuiWallsMode(BaseGuiMode):
 
     def processRightMousePressing(self, map_pos):
         self._prev_clicked_cross = None
-    
+
+        WALL_REMOVE_LIMIT = 0.1
+
+        filtered_walls = it.filterfalse(lambda x: x.distance_2_point(map_pos) < WALL_REMOVE_LIMIT, 
+                                        [wall for wall in self.model.objects[ObjectType.WALL]])
+
+        self.model.objects[ObjectType.WALL] = list(filtered_walls)
+
     def processLeftMousePressing(self, map_pos):
         map_cross = Canvas.getCrossClicked(map_pos)
         
-        print(map_cross)
-
         if self._prev_clicked_cross is not None and \
            self._prev_clicked_cross != map_cross:
             self.model.objects[ObjectType.WALL] += [Wall(map_cross, self._prev_clicked_cross)]
-            self._prev_clicked_cross = None
-        else:
-            self._prev_clicked_cross = map_cross
+            # self._prev_clicked_cross = None
+        # else:
+        self._prev_clicked_cross = map_cross
         
     def on_disable(self):
         self._prev_clicked_cross = None
@@ -363,7 +374,6 @@ class GuiSignsMode(BaseGuiMode):
     
     def deleteSign(self, pos, orient):
         for sign in self.model.objects[ObjectType.SIGN]:
-            print(sign)
             if sign.pos == pos and sign.orient == orient:
                 print("Delete object: sign ({2}) with pose {0}/{1}".format(pos, orient.name, sign.type))
                 self.model.objects[ObjectType.SIGN].remove(sign)
