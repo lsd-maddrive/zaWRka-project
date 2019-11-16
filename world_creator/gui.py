@@ -91,34 +91,35 @@ class Canvas(QWidget):
             else:
                 objs.render(qp)
                 
-    
+    def get_map_positions(self, canvas_click, cell_sz):
+        return Point2D(canvas_click.x / cell_sz.x, canvas_click.y / cell_sz.y)
+
+    @staticmethod   
+    def getCellClicked(map_pos):
+        return Point2D(int(map_pos.x), int(map_pos.y))
+
     @staticmethod
-    def getCellClicked(pos, cell_sz):
-        return Point2D(pos.x // cell_sz.x, pos.y // cell_sz.y)
-        
-    @staticmethod
-    def getCrossClicked(pos, cell_sz):
+    def getCrossClicked(map_pos):
         # Cross == Node (crossing of lines)
-        return Point2D((pos.x + cell_sz.x/2.) // cell_sz.x, (pos.y + cell_sz.y/2.) //cell_sz.y)
+        return Point2D(int(map_pos.x + .5), int(map_pos.y + .5))
     
     @staticmethod
-    def getCellQuarter(pos, cell_sz):
-        cell = Canvas.getCellClicked(pos, cell_sz)
-        float_cell = Point2D(pos.x / float(cell_sz.x), pos.y / float(cell_sz.y))
+    def getCellQuarter(map_pos):
+        cell_pos = Canvas.getCellClicked(map_pos)
 
         orient = None
-        if float_cell.x - cell.x > 0.5:
-            if float_cell.y - cell.y > 0.5:
+        if map_pos.x - cell_pos.x > 0.5:
+            if map_pos.y - cell_pos.y > 0.5:
                 orient = CellQuarter.RIGHT_BOT
             else:
                 orient = CellQuarter.RIGHT_TOP
         else:
-            if float_cell.y - cell.y > 0.5:
+            if map_pos.y - cell_pos.y > 0.5:
                 orient = CellQuarter.LEFT_BOT
             else:
                 orient = CellQuarter.LEFT_TOP
         
-        return (cell, orient)
+        return orient
         
     def get_canvas_pos(self, x, y):
         if x >= self.canvasSz.x:
@@ -130,13 +131,17 @@ class Canvas(QWidget):
         return Point2D(x, y)
         
     def mousePressEvent(self, e):
-        canvasPos = self.get_canvas_pos(e.pos().x(), e.pos().y()) 
+        canvas_pos = self.get_canvas_pos(e.pos().x(), e.pos().y()) 
         
+        map_pos = self.get_map_positions(canvas_pos, self.cellSz)
+        
+        print(map_pos)
+
         if self.model.mode in self.model.modes:
             if e.button() == Qt.LeftButton:
-                self.model.modes[self.model.mode].processLeftMousePressing(canvasPos, self.cellSz)
+                self.model.modes[self.model.mode].processLeftMousePressing(map_pos)
             elif e.button() == Qt.RightButton:
-                self.model.modes[self.model.mode].processRightMousePressing(canvasPos, self.cellSz)
+                self.model.modes[self.model.mode].processRightMousePressing(map_pos)
         else:
             print("Warning: you should choose mode")
             
@@ -277,10 +282,11 @@ class BaseGuiMode():
     def __init__(self, model):
         self.model = model
 
-    def processRightMousePressing(self, canvas_pos, canvas_cell_sz):
+    # map_pos - means position in cells (float), for ex. center of (1, 1) == map_pos(1.5, 1.5)
+    def processRightMousePressing(self, map_pos):
         pass
     
-    def processLeftMousePressing(self, canvas_pos, canvas_cell_sz):
+    def processLeftMousePressing(self, map_pos):
         pass
 
     def on_disable(self):
@@ -288,7 +294,7 @@ class BaseGuiMode():
 
 # Must be turned into start
 class GuiStartMode(BaseGuiMode):
-    def processLeftMousePressing(self, canvas_pos, canvas_cell_sz):
+    def processLeftMousePressing(self, map_pos):
         pass
         # clickCell = Canvas.getCellClicked(canvas_pos, canvas_cell_sz)
         # self.model.objects[ObjectType.START] = Start(clickCell)
@@ -300,25 +306,29 @@ class GuiWallsMode(BaseGuiMode):
         super().__init__(model)
         self._prev_clicked_cross = None
 
-    def processRightMousePressing(self, canvas_pos, canvas_cell_sz):
+    def processRightMousePressing(self, map_pos):
         self._prev_clicked_cross = None
     
-    def processLeftMousePressing(self, canvas_pos, canvas_cell_sz):
-        clickCross = Canvas.getCrossClicked(canvas_pos, canvas_cell_sz)
+    def processLeftMousePressing(self, map_pos):
+        map_cross = Canvas.getCrossClicked(map_pos)
         
+        print(map_cross)
+
         if self._prev_clicked_cross is not None and \
-           self._prev_clicked_cross != clickCross:
-            self.model.objects[ObjectType.WALL] += [Wall(clickCross, self._prev_clicked_cross)]
-        
-        self._prev_clicked_cross = clickCross
+           self._prev_clicked_cross != map_cross:
+            self.model.objects[ObjectType.WALL] += [Wall(map_cross, self._prev_clicked_cross)]
+            self._prev_clicked_cross = None
+        else:
+            self._prev_clicked_cross = map_cross
         
     def on_disable(self):
         self._prev_clicked_cross = None
         
 
 class GuiSignsMode(BaseGuiMode):
-    def processLeftMousePressing(self, canvas_pos, canvas_cell_sz):
-        click_cell, orient = Canvas.getCellQuarter(canvas_pos, canvas_cell_sz)
+    def processLeftMousePressing(self, map_pos):
+        map_cell = Canvas.getCellClicked(map_pos)
+        orient = Canvas.getCellQuarter(map_pos)
 
         info = list([ ["0. Empty", None],
                       ["1. Stop", ImagesPaths.STOP],
@@ -333,18 +343,13 @@ class GuiSignsMode(BaseGuiMode):
         
         select_idx = self.signChoiceDialog.get_result()
         if select_idx == 0:
-            self.deleteSign(click_cell, orient)
+            self.deleteSign(map_cell, orient)
         elif select_idx > 0:
-            self.addSign(click_cell, orient, info[select_idx][1])
+            self.addSign(map_cell, orient, info[select_idx][1])
 
     def addSign(self, pos, orient, signImg):
         self.deleteSign(pos, orient)
-        
-        for sign in self.model.objects[ObjectType.SIGN]:
-            if sign.point == pos and sign.orient == orient:
-                print("Delete object: sign ({2}) with pose {0}/{1}".format(pos, orient.name, sign.type))
-                self.model.objects[ObjectType.SIGN].remove(sign)
-        
+
         sign_type = sign_path_to_sign_type(signImg)
         
         print("Add object: sign ({2}) with pose {0}/{1}.".format(pos, orient.name, sign_type))
@@ -352,7 +357,7 @@ class GuiSignsMode(BaseGuiMode):
     
     def deleteSign(self, pos, orient):
         for sign in self.model.objects[ObjectType.SIGN]:
-            if sign.point == pos and sign.orient == orient:
+            if sign.pos == pos and sign.orient == orient:
                 print("Delete object: sign ({2}) with pose {0}/{1}".format(pos, orient.name, sign.type))
                 self.model.objects[ObjectType.SIGN].remove(sign)
 
