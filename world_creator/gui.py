@@ -347,6 +347,12 @@ class GuiSignsMode(BaseGuiMode):
         elif select_idx > 0:
             self.addSign(map_cell, orient, info[select_idx][1])
 
+    def processRightMousePressing(self, map_pos):
+        map_cell = Canvas.getCellClicked(map_pos)
+        orient = Canvas.getCellQuarter(map_pos)
+
+        self.deleteSign(map_cell, orient)
+
     def addSign(self, pos, orient, signImg):
         self.deleteSign(pos, orient)
 
@@ -357,6 +363,7 @@ class GuiSignsMode(BaseGuiMode):
     
     def deleteSign(self, pos, orient):
         for sign in self.model.objects[ObjectType.SIGN]:
+            print(sign)
             if sign.pos == pos and sign.orient == orient:
                 print("Delete object: sign ({2}) with pose {0}/{1}".format(pos, orient.name, sign.type))
                 self.model.objects[ObjectType.SIGN].remove(sign)
