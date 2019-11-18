@@ -17,17 +17,11 @@ log.getLogger().addHandler(log.StreamHandler(sys.stdout))
 # ************************** Constants and enums *****************************
 class Mode(Enum):
     NO_MODE = int(-1)
-    MAP_SIZE = int(0)
-    CELL_SIZE = int(1)
-    START = int(2)
-    FINISH = int(3)
-    BOXES = int(4)
-    WALLS = int(5)
-    SIGNS = int(6)
-    TRAFFIC_LIGHTS = int(7)
-    LOAD_JSON = int(8)
-    GENERATE_JSON = int(9)
-    GENERATE_SDF = int(10)
+    BOXES = int(0)
+    WALLS = int(1)
+    SIGNS = int(2)
+    TRAFFIC_LIGHTS = int(3)
+    SQUARES = int(4)
 
 class ColorCode(Enum):
     WHITE = str("FFFFFF")
@@ -185,10 +179,7 @@ class Model:
             self.modes[self.mode].on_disable()
         
         self.mode = _set_mode
-        
-    def set_button_color(self, btn, color = ColorCode.WHITE):
-        btn.setStyleSheet("background-color: #{}".format(color.value))
-        
+
     
 class ModeButton(QPushButton):
     def __init__(self, text: str, mode: Mode, model: Model, parent=None):
@@ -237,6 +228,7 @@ class MainWindow(QWidget):
             (ModeButton('2. Create boxes', Mode.BOXES, self.model, self), GuiBoxesMode(self.model)),
             (ModeButton('3. Create signs', Mode.SIGNS, self.model, self), GuiSignsMode(self.model)),
             (ModeButton('4. Create traffic-lights', Mode.TRAFFIC_LIGHTS, self.model, self), GuiTrafficLightsMode(self.model)),
+            (ModeButton('5. Create squares', Mode.SQUARES, self.model, self), GuiSquaressMode(self.model)),
         ]        
         
         # Layout fill
@@ -308,8 +300,23 @@ class GuiBoxesMode(BaseGuiMode):
 
         for box in self.model.objects[ObjectType.BOX]:
             if box.pos == map_cell:
-                print("Delete object: box with pose {}".format(map_pos))
+                print("Delete object: {}".format(box))
                 self.model.objects[ObjectType.BOX].remove(box)
+
+
+class GuiSquaressMode(BaseGuiMode):
+    def processLeftMousePressing(self, map_pos):
+        map_cell = Canvas.getCellClicked(map_pos)
+
+        self.model.objects[ObjectType.SQUARE] += [Square(map_cell)]
+
+    def processRightMousePressing(self, map_pos):
+        map_cell = Canvas.getCellClicked(map_pos)
+
+        for square in self.model.objects[ObjectType.SQUARE]:
+            if square.pos == map_cell:
+                print("Delete object: {}".format(square))
+                self.model.objects[ObjectType.SQUARE].remove(square)
 
 
 class GuiWallsMode(BaseGuiMode):
