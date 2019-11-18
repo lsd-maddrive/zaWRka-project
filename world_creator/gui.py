@@ -24,7 +24,7 @@ class Mode(Enum):
     BOXES = int(4)
     WALLS = int(5)
     SIGNS = int(6)
-    LIGHTS = int(7)
+    TRAFFIC_LIGHTS = int(7)
     LOAD_JSON = int(8)
     GENERATE_JSON = int(9)
     GENERATE_SDF = int(10)
@@ -66,8 +66,8 @@ class MyPainter(QPainter):
         if quarter == CellQuarter.RIGHT_BOT or quarter == CellQuarter.LEFT_BOT:
             render_y += 0.5
         
-        img = QImage(img_path).scaled(QSize(self.half_cell_sz.x, self.half_cell_sz.y))
-        self.drawImage(render_x * self.cell_sz.x, render_y * self.cell_sz.y, img)
+        img = QImage(img_path).scaled(QSize(self.half_cell_sz.x-1, self.half_cell_sz.y-1))
+        self.drawImage(render_x * self.cell_sz.x + 1, render_y * self.cell_sz.y + 1, img)
         
 
 class Canvas(QWidget):
@@ -157,11 +157,7 @@ class Canvas(QWidget):
 class Model:
     # Class for keeping main processing data
     def __init__(self, map_params, load_filepath):
-        self.modes = {
-            Mode.WALLS: GuiWallsMode(self),
-            Mode.SIGNS: GuiSignsMode(self),
-            Mode.BOXES: GuiBoxesMode(self)
-        }
+        self.modes = {}
         
         self.objects = {
             ObjectType.TRAFFIC_LIGHT: [],
@@ -178,6 +174,9 @@ class Model:
             self.map_params = map_params
         
         self.mode = Mode.NO_MODE
+    
+    def add_mode(self, mode, controller):
+        self.modes[mode] = controller
     
     def set_mode(self, _set_mode):
         print(_set_mode)
@@ -234,16 +233,18 @@ class MainWindow(QWidget):
 
         # TODO - maybe must be not "model" but "controller" connected to buttons
         mode_buttons = [
-            ModeButton('1. Create walls', Mode.WALLS, self.model, self),
-            ModeButton('2. Create boxes', Mode.BOXES, self.model, self),
-            ModeButton('3. Create signs', Mode.SIGNS, self.model, self)
+            (ModeButton('1. Create walls', Mode.WALLS, self.model, self), GuiWallsMode(self.model)),
+            (ModeButton('2. Create boxes', Mode.BOXES, self.model, self), GuiBoxesMode(self.model)),
+            (ModeButton('3. Create signs', Mode.SIGNS, self.model, self), GuiSignsMode(self.model)),
+            (ModeButton('4. Create traffic-lights', Mode.TRAFFIC_LIGHTS, self.model, self), GuiTrafficLightsMode(self.model)),
         ]        
         
         # Layout fill
         layout.addWidget(QLabel('To create the world:', self), 0, 1)
         for idx, btn in enumerate(mode_buttons):
-            layout.addWidget(btn, idx + 1, 1)       
-            self.ctrl_grp.addButton(btn)
+            layout.addWidget(btn[0], idx + 1, 1)       
+            self.ctrl_grp.addButton(btn[0])
+            self.model.add_mode(btn[0].mode, btn[1])
 
         layout.addWidget(QLabel('Then press buttons below:', self), len(mode_buttons)+1, 1)
         layout.addWidget(generateButton, len(mode_buttons)+2, 1)
@@ -338,7 +339,26 @@ class GuiWallsMode(BaseGuiMode):
         
     def on_disable(self):
         self._prev_clicked_cross = None
+      
+      
+class GuiTrafficLightsMode(BaseGuiMode):
+    def processLeftMousePressing(self, map_pos):
+        map_cell = Canvas.getCellClicked(map_pos)
+        orient = Canvas.getCellQuarter(map_pos)
         
+        new_tl = TrafficLight(map_cell, orient)
+        self.model.objects[ObjectType.TRAFFIC_LIGHT] += [new_tl]
+        print("Add object: {}".format(new_tl))
+        
+    def processRightMousePressing(self, map_pos):
+        map_cell = Canvas.getCellClicked(map_pos)
+        orient = Canvas.getCellQuarter(map_pos)
+
+        for tl in self.model.objects[ObjectType.TRAFFIC_LIGHT]:
+            if tl.pos == map_cell and tl.orient == orient:
+                log.debug("Delete object {}".format(tl))
+                self.model.objects[ObjectType.TRAFFIC_LIGHT].remove(tl)
+  
 
 class GuiSignsMode(BaseGuiMode):
     def processLeftMousePressing(self, map_pos):

@@ -26,6 +26,8 @@ class ImagesPaths():
     FORWARD_OR_LEFT = os.path.join(PATH_TO_IMAGE, 'forward-left-sign/frwd_left.png')
     FORWARD_OR_RIGHT = os.path.join(PATH_TO_IMAGE, 'forward-right-sign/frwd_right.png')
 
+TRAFFIC_LIGHT_IMG_PATH = 'models/traffic-light.png'
+
 def sign_path_to_sign_type(img_path):
     if img_path is ImagesPaths.STOP:
         return SignsTypes.STOP.value
@@ -192,6 +194,38 @@ class Sign(Object):
                     data['type'])
     
     
+class TrafficLight(Object):
+    TYPE = ObjectType.TRAFFIC_LIGHT
+    
+    def __init__(self, pos, orient):
+        self.pos = pos
+        self.orient = orient
+
+    def __str__(self):
+        return "[({}) pose = {}, orient = {}]".format(type(self), self.pos, self.orient)
+    
+    def render(self, qp):
+        qp.drawQuarterImg(self.pos, self.orient, TRAFFIC_LIGHT_IMG_PATH)
+    
+    def serialized(self):
+        for name, _class in SERIALIZATION_SUPPORT.items():
+            if type(self) == _class:
+                break
+        
+        data = {
+            'name': name,
+            'pos': self.pos.as_list(),
+            'orient': self.orient.value,
+        }
+        
+        return data        
+    
+    @staticmethod
+    def deserialize(data: dict):
+        return TrafficLight(Point2D.from_list(data['pos']), 
+                            CellQuarter(data['orient']))
+    
+    
 class Box(Object):
     TYPE = ObjectType.BOX
 
@@ -217,10 +251,38 @@ class Box(Object):
     def deserialize(data: dict):
         return Box(Point2D.from_list(data['pos']))
      
+    
+class Square(Object):
+    TYPE = ObjectType.SQUARE
+
+    def __init__(self, pos: Point2D):
+        self.pos = pos
+   
+    def render(self, qp):
+        qp.fillCell(self.pos, color=(30, 250, 30))
+        
+    def serialized(self):
+        for name, _class in SERIALIZATION_SUPPORT.items():
+            if type(self) == _class:
+                break
+        
+        data = {
+            'name': name,
+            'pos': self.pos.as_list()
+        }
+        
+        return data
+
+    @staticmethod
+    def deserialize(data: dict):
+        return Square(Point2D.from_list(data['pos']))
+     
         
 SERIALIZATION_SUPPORT = {
     'wall': Wall,
     'sign': Sign,
-    'box': Box 
+    'square': Square, 
+    'box': Box, 
+    'traffic_light': TrafficLight,
 }
     
