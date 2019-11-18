@@ -24,17 +24,17 @@ class GazeboBox(GazeboObject):
 
     def get_position_str(self):
         # Maybe better to realize and use Box object method like 'get_pos()' with deep copy
-        box_center = deepcopy(self.base.pos)
+        center = deepcopy(self.base.pos)
         
-        box_center.x += 0.5
-        box_center.y += 0.5
+        center.x += 0.5
+        center.y += 0.5
         
-        box_center.y = self.map_params.n_cells.y - box_center.y
+        center.y = self.map_params.n_cells.y - center.y
     
-        box_center.x *= self.map_params.cell_sz.x
-        box_center.y *= self.map_params.cell_sz.y
+        center.x *= self.map_params.cell_sz.x
+        center.y *= self.map_params.cell_sz.y
         
-        return '{} {} {} 0 0 0'.format(box_center.x, box_center.y, OBJECT_SPAWN_Z)
+        return '{} {} {} 0 0 0'.format(center.x, center.y, OBJECT_SPAWN_Z)
         
     def get_size_str(self):
         return '{} {} {}'.format(self.map_params.cell_sz.x, self.map_params.cell_sz.y, OBJECT_HEIGHT)
@@ -48,19 +48,19 @@ class GazeboWall(GazeboObject):
             raise Exception('Invalid class passed')
         
     def get_position_str(self):
-        wall_center = ds.Point2D((self.base.p1.x + self.base.p2.x)/2,
+        center = ds.Point2D((self.base.p1.x + self.base.p2.x)/2,
                                  (self.base.p1.y + self.base.p2.y)/2)
 
         sub = self.base.p2 - self.base.p1
 
         wall_angle = m.atan2(sub.y, sub.x)
             
-        wall_center.y = self.map_params.n_cells.y - wall_center.y
+        center.y = self.map_params.n_cells.y - center.y
                 
-        wall_center.x *= self.map_params.cell_sz.x
-        wall_center.y *= self.map_params.cell_sz.y
+        center.x *= self.map_params.cell_sz.x
+        center.y *= self.map_params.cell_sz.y
         
-        return '{} {} {} 0 0 {}'.format(wall_center.x, wall_center.y, OBJECT_SPAWN_Z, -wall_angle)
+        return '{} {} {} 0 0 {}'.format(center.x, center.y, OBJECT_SPAWN_Z, -wall_angle)
 
     def get_size_str(self):
         sub = self.base.p2 - self.base.p1
@@ -70,6 +70,47 @@ class GazeboWall(GazeboObject):
 
         return '{} {} {}'.format(wall_length, WALL_WIDTH, OBJECT_HEIGHT)
 
+
+class GazeboSquare(GazeboObject):
+    def __init__(self, base, map_params):
+        super().__init__(base, map_params)
+
+        self.pillar_width = ds.Size2D(map_params.cell_sz.x / 10, 
+                                      map_params.cell_sz.y / 10)
+
+        if type(base) is not objects.Square:
+            raise Exception('Invalid class passed')
+
+    def get_position_strs(self):
+        results = []
+        center = deepcopy(self.base.pos)
+        
+        positions = [
+            ds.Point2D(.0, .0),
+            ds.Point2D(.5, .0),
+            ds.Point2D(1., .0),
+            ds.Point2D(.0, .5),
+            ds.Point2D(1., .5),
+            ds.Point2D(.0, 1.),
+            ds.Point2D(.5, 1.),
+            ds.Point2D(1., 1.)
+        ]
+        
+        for pos in positions:
+            pillar_cntr = center + pos
+                        
+            pillar_cntr.y = self.map_params.n_cells.y - pillar_cntr.y
+        
+            pillar_cntr.x *= self.map_params.cell_sz.x
+            pillar_cntr.y *= self.map_params.cell_sz.y
+            
+            results += ['{} {} {} 0 0 0'.format(pillar_cntr.x, pillar_cntr.y, OBJECT_SPAWN_Z)]
+
+        return results
+
+    def get_size_str(self):
+        return '{} {} {}'.format(self.pillar_width.x, self.pillar_width.y, OBJECT_HEIGHT)
+        
 
 class GazeboSign(GazeboObject):
     ORIENTATIONS_2_YAW_ANGLE = {

@@ -53,7 +53,8 @@ class WorldCreator:
         FUNCTIONS_MAPPING = {
             ObjectType.WALL: self.addWall,
             ObjectType.SIGN: self.addSign,
-            ObjectType.BOX: self.addBox
+            ObjectType.BOX: self.addBox,
+            ObjectType.SQUARE: self.addSquare
         }
 
         if obj.TYPE not in FUNCTIONS_MAPPING:
@@ -63,14 +64,6 @@ class WorldCreator:
         FUNCTIONS_MAPPING[obj.TYPE](obj)
 
     def addWall(self, wall):
-        """ 
-        @brief Spawn wall (only vertical or horizontal)
-        @param wall - object from json
-        @note wall must be horizontal or vertical (too lazy to work with
-        rotation angles)
-        """
-        log.debug("wall with pos: {}".format(wall))
-        
         gz_wall = go.GazeboWall(wall, self.map_params)
 
         pos_str = gz_wall.get_position_str()
@@ -79,17 +72,21 @@ class WorldCreator:
         self.__spawnBox(pos_str, size_str)
 
     def addBox(self, box):
-        """ 
-        @brief Spawn box with cell size in middle of cell
-        @param box - object from json
-        """
-
         gz_box = go.GazeboBox(box, self.map_params)
 
         pos_str = gz_box.get_position_str()
         size_str = gz_box.get_size_str()
 
         self.__spawnBox(pos_str, size_str)
+
+    def addSquare(self, square):
+        gz_square = go.GazeboSquare(square, self.map_params)
+        
+        size_str = gz_square.get_size_str()
+        pos_strs = gz_square.get_position_strs()
+        
+        for pos_str in pos_strs:
+            self.__spawnBox(pos_str, size_str)
 
     def __spawnBox(self, pos_str, size_str):
         self.box_counter += 1

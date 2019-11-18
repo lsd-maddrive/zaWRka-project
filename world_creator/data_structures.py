@@ -17,6 +17,12 @@ class Vector2D:
         answer.x = self.x - other.x
         answer.y = self.y - other.y
         return answer
+      
+    def __add__(self, other):
+        answer = deepcopy(self)
+        answer.x = self.x + other.x
+        answer.y = self.y + other.y
+        return answer
         
     def __str__(self):
         return "[{0}, {1}]".format(self.x, self.y)
