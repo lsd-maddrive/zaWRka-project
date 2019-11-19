@@ -4,16 +4,22 @@ from copy import deepcopy
 import objects
 import data_structures as ds
 
+OBJECT_HEIGHT = float(0.5)
+OBJECT_SPAWN_Z = OBJECT_HEIGHT / 2
+WALL_WIDTH = float(0.01)
+
+ORIENTATIONS_2_YAW_ANGLE = {
+    objects.CellQuarter.LEFT_BOT: 0,
+    objects.CellQuarter.RIGHT_BOT: m.pi/2,
+    objects.CellQuarter.LEFT_TOP: m.pi*3/2,
+    objects.CellQuarter.RIGHT_TOP: m.pi,
+}
+
 class GazeboObject():
     def __init__(self, base, map_params):
         self.map_params = map_params
         self.base = base
 
-
-OBJECT_HEIGHT = float(0.5)
-OBJECT_SPAWN_Z = OBJECT_HEIGHT / 2
-
-WALL_WIDTH = float(0.01)
 
 class GazeboBox(GazeboObject):
     def __init__(self, base, map_params):
@@ -113,13 +119,6 @@ class GazeboSquare(GazeboObject):
         
 
 class GazeboSign(GazeboObject):
-    ORIENTATIONS_2_YAW_ANGLE = {
-        objects.CellQuarter.LEFT_BOT: 0,
-        objects.CellQuarter.RIGHT_BOT: m.pi/2,
-        objects.CellQuarter.LEFT_TOP: m.pi*3/2,
-        objects.CellQuarter.RIGHT_TOP: m.pi,
-    }
-
     def __init__(self, base, map_params):
         super().__init__(base, map_params)
 
@@ -150,9 +149,44 @@ class GazeboSign(GazeboObject):
         pos.x *= self.map_params.cell_sz.x
         pos.y *= self.map_params.cell_sz.y
 
-        yaw_angle = self.ORIENTATIONS_2_YAW_ANGLE[self.base.orient]
+        yaw_angle = ORIENTATIONS_2_YAW_ANGLE[self.base.orient]
 
         return "{0} {1} 0 0 0 {2}".format(pos.x, pos.y, yaw_angle)
 
     def get_type(self):
         return self.base.type
+
+
+class GazeboTrafficLight(GazeboObject):
+    def __init__(self, base, map_params):
+        super().__init__(base, map_params)
+        if type(base) is not objects.TrafficLight:
+            raise Exception('Invalid class passed')
+
+    def get_position_str(self):
+        pos = deepcopy(self.base.pos)
+
+        # Apply small shift
+        if self.base.orient == objects.CellQuarter.RIGHT_TOP:
+            pos.x += 0.75
+            pos.y += 0.25
+        elif self.base.orient == objects.CellQuarter.RIGHT_BOT:
+            pos.x += 0.75
+            pos.y += 0.75
+        elif self.base.orient == objects.CellQuarter.LEFT_BOT:
+            pos.x += 0.25
+            pos.y += 0.75
+        elif self.base.orient == objects.CellQuarter.LEFT_TOP:
+            pos.x += 0.25
+            pos.y += 0.25
+        
+        # Swap axes
+        pos.y = self.map_params.n_cells.y - pos.y
+        
+        # Turn to physical
+        pos.x *= self.map_params.cell_sz.x
+        pos.y *= self.map_params.cell_sz.y
+
+        yaw_angle = ORIENTATIONS_2_YAW_ANGLE[self.base.orient]
+
+        return "{0} {1} 0 0 0 {2}".format(pos.x, pos.y, yaw_angle)

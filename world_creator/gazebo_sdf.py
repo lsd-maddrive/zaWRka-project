@@ -11,6 +11,7 @@ import gazebo_objects as go
 
 # Files pathes
 BOX_PATH = "models/box.sdf"
+TRAFFIC_LIGHT_PATH = "model://traffic-light"
 EMPTY_WORLD_PATH = "models/empty_world.world"
 
 # Signs materials
@@ -27,6 +28,7 @@ class WorldCreator:
     # Variables:
     box_counter = 0
     sign_counter = 0
+    traffic_light_counter = 0
     
     def __init__(self, map_params: MapParams):
         """ 
@@ -54,7 +56,8 @@ class WorldCreator:
             ObjectType.WALL: self.addWall,
             ObjectType.SIGN: self.addSign,
             ObjectType.BOX: self.addBox,
-            ObjectType.SQUARE: self.addSquare
+            ObjectType.SQUARE: self.addSquare,
+            ObjectType.TRAFFIC_LIGHT: self.addTrafficLight
         }
 
         if obj.TYPE not in FUNCTIONS_MAPPING:
@@ -126,7 +129,6 @@ class WorldCreator:
         
         self.__spawnSign(pos_str, SIGN_MODEL_MAP[_type])
 
-
     def __spawnSign(self, pos_str, model_path):
         """ 
         @brief Spawn box in defined position
@@ -152,6 +154,32 @@ class WorldCreator:
 
         self.SDF_ROOT.find("world").insert(0, sign_root )
         self.sign_counter += 1
+
+    def addTrafficLight(self, trafficLight):
+        go_traf_light = go.GazeboTrafficLight(trafficLight, self.map_params)
+        pos_str = go_traf_light.get_position_str()
+        self.__spawnTrafficLight(pos_str)
+
+    def __spawnTrafficLight(self, pos_str):
+        log.debug("traf light with pos: {}".format(pos_str))
+
+        model_path = TRAFFIC_LIGHT_PATH
+        counter = self.traffic_light_counter
+        model_name = "traffic_light"
+
+        model_root = etree.Element("include")
+        uri_elem = etree.Element("uri")
+        uri_elem.text = model_path
+        name_elem = etree.Element("name")
+        name_elem.text = "{}_{}".format(model_name, counter)
+        pose_elem = etree.Element("pose")
+        pose_elem.text = pos_str
+        model_root.append(uri_elem)
+        model_root.append(name_elem)
+        model_root.append(pose_elem)
+
+        self.SDF_ROOT.find("world").insert(0, model_root)
+        self.traffic_light_counter += 1
 
     def __create_empty_world(self):
         """ 
