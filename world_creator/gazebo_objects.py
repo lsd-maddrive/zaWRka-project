@@ -19,6 +19,11 @@ class GazeboObject():
     def __init__(self, base, map_params):
         self.map_params = map_params
         self.base = base
+    def _swap_axes(self, pos):
+        pos.y = self.map_params.n_cells.y - pos.y
+    def _turn_to_physical(self, pos):
+        pos.x *= self.map_params.cell_sz.x
+        pos.y *= self.map_params.cell_sz.y
 
 
 class GazeboBox(GazeboObject):
@@ -35,10 +40,8 @@ class GazeboBox(GazeboObject):
         center.x += 0.5
         center.y += 0.5
         
-        center.y = self.map_params.n_cells.y - center.y
-    
-        center.x *= self.map_params.cell_sz.x
-        center.y *= self.map_params.cell_sz.y
+        self._swap_axes(center)
+        self._turn_to_physical(center)
         
         return '{} {} {} 0 0 0'.format(center.x, center.y, OBJECT_SPAWN_Z)
         
@@ -61,10 +64,8 @@ class GazeboWall(GazeboObject):
 
         wall_angle = m.atan2(sub.y, sub.x)
             
-        center.y = self.map_params.n_cells.y - center.y
-                
-        center.x *= self.map_params.cell_sz.x
-        center.y *= self.map_params.cell_sz.y
+        self._swap_axes(center)
+        self._turn_to_physical(center)
         
         return '{} {} {} 0 0 {}'.format(center.x, center.y, OBJECT_SPAWN_Z, -wall_angle)
 
@@ -104,12 +105,8 @@ class GazeboSquare(GazeboObject):
         
         for pos in positions:
             pillar_cntr = center + pos
-                        
-            pillar_cntr.y = self.map_params.n_cells.y - pillar_cntr.y
-        
-            pillar_cntr.x *= self.map_params.cell_sz.x
-            pillar_cntr.y *= self.map_params.cell_sz.y
-            
+            self._swap_axes(pillar_cntr)
+            self._turn_to_physical(pillar_cntr)
             results += ['{} {} {} 0 0 0'.format(pillar_cntr.x, pillar_cntr.y, OBJECT_SPAWN_Z)]
 
         return results
@@ -142,12 +139,8 @@ class GazeboSign(GazeboObject):
             pos.x += 0.25
             pos.y += 0.25
         
-        # Swap axes
-        pos.y = self.map_params.n_cells.y - pos.y
-        
-        # Turn to physical
-        pos.x *= self.map_params.cell_sz.x
-        pos.y *= self.map_params.cell_sz.y
+        self._swap_axes(pos)
+        self._turn_to_physical(pos)
 
         yaw_angle = ORIENTATIONS_2_YAW_ANGLE[self.base.orient]
 
@@ -180,12 +173,8 @@ class GazeboTrafficLight(GazeboObject):
             pos.x += 0.25
             pos.y += 0.25
         
-        # Swap axes
-        pos.y = self.map_params.n_cells.y - pos.y
-        
-        # Turn to physical
-        pos.x *= self.map_params.cell_sz.x
-        pos.y *= self.map_params.cell_sz.y
+        self._swap_axes(pos)
+        self._turn_to_physical(pos)
 
         yaw_angle = ORIENTATIONS_2_YAW_ANGLE[self.base.orient]
 
