@@ -383,7 +383,8 @@ class GuiSignsMode(BaseGuiMode):
         self.signChoiceDialog.exec_()
         
         select_idx = self.signChoiceDialog.get_result()
-        self.addSign(map_cell, orient, info[select_idx][1])
+        if select_idx >= 0:
+            self.addSign(map_cell, orient, info[select_idx][1])
 
     def processRightMousePressing(self, map_pos):
         map_cell = Canvas.getCellClicked(map_pos)
