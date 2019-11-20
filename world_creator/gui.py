@@ -228,7 +228,7 @@ class MainWindow(QWidget):
             (ModeButton('2. Create boxes', Mode.BOXES, self.model, self), GuiBoxesMode(self.model)),
             (ModeButton('3. Create signs', Mode.SIGNS, self.model, self), GuiSignsMode(self.model)),
             (ModeButton('4. Create traffic-lights', Mode.TRAFFIC_LIGHTS, self.model, self), GuiTrafficLightsMode(self.model)),
-            (ModeButton('5. Create squares', Mode.SQUARES, self.model, self), GuiSquaressMode(self.model)),
+            (ModeButton('5. Create squares', Mode.SQUARES, self.model, self), GuiSquaresMode(self.model)),
         ]        
         
         # Layout fill
@@ -304,7 +304,7 @@ class GuiBoxesMode(BaseGuiMode):
                 self.model.objects[ObjectType.BOX].remove(box)
 
 
-class GuiSquaressMode(BaseGuiMode):
+class GuiSquaresMode(BaseGuiMode):
     def processLeftMousePressing(self, map_pos):
         map_cell = Canvas.getCellClicked(map_pos)
 
