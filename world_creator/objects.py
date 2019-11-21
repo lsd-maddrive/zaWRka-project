@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-from data_structures import *
-import copy
-import logging as log
-import converter
-import math as m
-from enum import Enum
 import os
+from enum import Enum
+import logging as log
+import math as m
+from data_structures import Point2D, Size2D
 
 APP_VERSION = 1.0
 
@@ -100,7 +98,7 @@ class MapParams:
 
         
 class Object:
-    def render(self):
+    def render(self, qp):
         pass
     def serialized(self):
         pass

@@ -5,7 +5,6 @@ import copy
 import math as m
 from enum import Enum
 import converter
-from data_structures import *
 from objects import *
 import gazebo_objects as go
 
@@ -53,11 +52,11 @@ class WorldCreator:
 
     def addObject(self, obj: Object):
         FUNCTIONS_MAPPING = {
-            ObjectType.WALL: self.addWall,
-            ObjectType.SIGN: self.addSign,
-            ObjectType.BOX: self.addBox,
-            ObjectType.SQUARE: self.addSquare,
-            ObjectType.TRAFFIC_LIGHT: self.addTrafficLight
+            ObjectType.WALL: self.__addWall,
+            ObjectType.SIGN: self.__addSign,
+            ObjectType.BOX: self.__addBox,
+            ObjectType.SQUARE: self.__addSquare,
+            ObjectType.TRAFFIC_LIGHT: self.__addTrafficLight
         }
 
         if obj.TYPE not in FUNCTIONS_MAPPING:
@@ -66,7 +65,7 @@ class WorldCreator:
 
         FUNCTIONS_MAPPING[obj.TYPE](obj)
 
-    def addWall(self, wall):
+    def __addWall(self, wall):
         gz_wall = go.GazeboWall(wall, self.map_params)
 
         pos_str = gz_wall.get_position_str()
@@ -74,7 +73,7 @@ class WorldCreator:
 
         self.__spawnBox(pos_str, size_str)
 
-    def addBox(self, box):
+    def __addBox(self, box):
         gz_box = go.GazeboBox(box, self.map_params)
 
         pos_str = gz_box.get_position_str()
@@ -82,7 +81,7 @@ class WorldCreator:
 
         self.__spawnBox(pos_str, size_str)
 
-    def addSquare(self, square):
+    def __addSquare(self, square):
         gz_square = go.GazeboSquare(square, self.map_params)
         
         size_str = gz_square.get_size_str()
@@ -103,12 +102,7 @@ class WorldCreator:
         
         self.SDF_ROOT.find("world").insert(0, box_root)
 
-    def addSign(self, sign):
-        """ 
-        @param sign - object from json
-        @note we can figure out orientation from position
-        """
-
+    def __addSign(self, sign):
         gz_sign = go.GazeboSign(sign, self.map_params)
 
         pos_str = gz_sign.get_position_str()
@@ -130,14 +124,6 @@ class WorldCreator:
         self.__spawnSign(pos_str, SIGN_MODEL_MAP[_type])
 
     def __spawnSign(self, pos_str, model_path):
-        """ 
-        @brief Spawn box in defined position
-        @param position - Point2D - position on map (high level abstraction),
-            in other words, start offset is not taken into account.
-        @param signImage - object of SignsModels class
-        @note You can spawn it in 4 variants (see SignOrientation)
-        """
-
         ### LEFT/RIGHT_BOT/TOP - in terms of rendered map
         log.debug("sign with pos: {} / {}".format(pos_str, model_path))
 
@@ -155,7 +141,7 @@ class WorldCreator:
         self.SDF_ROOT.find("world").insert(0, sign_root )
         self.sign_counter += 1
 
-    def addTrafficLight(self, trafficLight):
+    def __addTrafficLight(self, trafficLight):
         go_traf_light = go.GazeboTrafficLight(trafficLight, self.map_params)
         pos_str = go_traf_light.get_position_str()
         self.__spawnTrafficLight(pos_str)

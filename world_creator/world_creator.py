@@ -4,10 +4,10 @@
 This sript creates gui that allow to create json and sdf files.
 """
 
-from gui import *
-from data_structures import *
-
 import argparse
+
+from gui import *
+from data_structures import Size2D
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Map creation tool')
