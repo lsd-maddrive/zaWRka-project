@@ -24,6 +24,26 @@ class Vector2D:
         answer.y = self.y + other.y
         return answer
         
+    def __iadd__(self, other):
+        self.x += other.x
+        self.y += other.y
+        return self
+
+    def __isub__(self, other):
+        self.x -= other.x
+        self.y -= other.y
+        return self
+
+    def __imul__(self, scalar):
+        self.x *= scalar
+        self.y *= scalar
+        return self
+
+    def __idiv__(self, scalar):
+        self.x /= scalar
+        self.y /= scalar
+        return self
+
     def __str__(self):
         return "[{0}, {1}]".format(self.x, self.y)
     

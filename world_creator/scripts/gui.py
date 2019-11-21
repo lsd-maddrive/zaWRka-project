@@ -117,10 +117,10 @@ class Canvas(QWidget):
         
     def get_canvas_pos(self, x, y):
         if x >= self.canvasSz.x:
-            x = self.canvasSz.x-1
+            x = self.canvasSz.x - 1
         
         if y >= self.canvasSz.y:
-            y = self.canvasSz.y-1
+            y = self.canvasSz.y - 1
         
         return Point2D(x, y)
         

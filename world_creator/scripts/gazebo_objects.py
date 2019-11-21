@@ -35,11 +35,7 @@ class GazeboBox(GazeboObject):
 
     def get_position_str(self):
         # Maybe better to realize and use Box object method like 'get_pos()' with deep copy
-        center = deepcopy(self.base.pos)
-        
-        center.x += 0.5
-        center.y += 0.5
-        
+        center = self.base.pos + ds.Point2D(0.5, 0.5)
         self._swap_axes(center)
         self._turn_to_physical(center)
         
@@ -57,17 +53,15 @@ class GazeboWall(GazeboObject):
             raise Exception('Invalid class passed')
         
     def get_position_str(self):
-        center = ds.Point2D((self.base.p1.x + self.base.p2.x)/2,
-                                 (self.base.p1.y + self.base.p2.y)/2)
-
+        center = (self.base.p1 + self.base.p2) / 2
         sub = self.base.p2 - self.base.p1
-
         wall_angle = m.atan2(sub.y, sub.x)
             
         self._swap_axes(center)
         self._turn_to_physical(center)
         
-        return '{} {} {} 0 0 {}'.format(center.x, center.y, OBJECT_SPAWN_Z, -wall_angle)
+        return '{} {} {} 0 0 {}'.format(center.x, center.y,
+                                        OBJECT_SPAWN_Z, -wall_angle)
 
     def get_size_str(self):
         sub = self.base.p2 - self.base.p1
@@ -81,10 +75,7 @@ class GazeboWall(GazeboObject):
 class GazeboSquare(GazeboObject):
     def __init__(self, base, map_params):
         super().__init__(base, map_params)
-
-        self.pillar_width = ds.Size2D(map_params.cell_sz.x / 10, 
-                                      map_params.cell_sz.y / 10)
-
+        self.pillar_width = map_params.cell_sz / 10
         if type(base) is not objects.Square:
             raise Exception('Invalid class passed')
 
@@ -127,17 +118,13 @@ class GazeboSign(GazeboObject):
 
         # Apply small shift
         if self.base.orient == objects.CellQuarter.RIGHT_TOP:
-            pos.x += 0.75
-            pos.y += 0.25
+            pos += ds.Point2D(0.75, 0.25)
         elif self.base.orient == objects.CellQuarter.RIGHT_BOT:
-            pos.x += 0.75
-            pos.y += 0.75
+            pos += ds.Point2D(0.75, 0.75)
         elif self.base.orient == objects.CellQuarter.LEFT_BOT:
-            pos.x += 0.25
-            pos.y += 0.75
+            pos += ds.Point2D(0.25, 0.75)
         elif self.base.orient == objects.CellQuarter.LEFT_TOP:
-            pos.x += 0.25
-            pos.y += 0.25
+            pos += ds.Point2D(0.25, 0.25)
         
         self._swap_axes(pos)
         self._turn_to_physical(pos)
@@ -161,17 +148,13 @@ class GazeboTrafficLight(GazeboObject):
 
         # Apply small shift
         if self.base.orient == objects.CellQuarter.RIGHT_TOP:
-            pos.x += 0.75
-            pos.y += 0.25
+            pos += ds.Point2D(0.75, 0.25)
         elif self.base.orient == objects.CellQuarter.RIGHT_BOT:
-            pos.x += 0.75
-            pos.y += 0.75
+            pos += ds.Point2D(0.75, 0.75)
         elif self.base.orient == objects.CellQuarter.LEFT_BOT:
-            pos.x += 0.25
-            pos.y += 0.75
+            pos += ds.Point2D(0.25, 0.75)
         elif self.base.orient == objects.CellQuarter.LEFT_TOP:
-            pos.x += 0.25
-            pos.y += 0.25
+            pos += ds.Point2D(0.25, 0.25)
         
         self._swap_axes(pos)
         self._turn_to_physical(pos)
