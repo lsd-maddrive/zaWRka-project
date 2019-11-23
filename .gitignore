@@ -5,3 +5,4 @@ wr8_gui_server/smart_vehicle_gui
 elp_stereo_camera
 **/.vscode
 **/*.bag
+**/madproto
