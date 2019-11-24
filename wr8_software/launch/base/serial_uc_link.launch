@@ -4,7 +4,6 @@
 <!-- https://answers.ros.org/question/41446/a-is-not-in-your-ssh-known_hosts-file/?answer=42629#post-id-42629 -->
 
 <launch>
-    <arg name="lidar" default="true" />
     <!-- <arg name="device" default="/dev/ttyACM1" /> -->
 	<!-- <arg name="device" default="/dev/serial/by-id/usb-STMicroelectronics_ChibiOS_RT_Virtual_COM_Port_400-if00" /> -->
 	<!-- <arg name="device" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0" /> -->
@@ -12,15 +11,16 @@
 
 
     <group ns="robot">
-
-        <node pkg="rosserial_python" type="serial_node.py" name="quadro_node" output="screen" respawn="true">
+        <!-- <node pkg="rosserial_python" type="serial_node.py" name="ros_link" output="screen" respawn="true"> -->
+        <node pkg="wr8_software" type="uc_ros_link" name="uc_ros_link" output="screen" respawn="false">
             <param name="port" value="$(arg device)" /> 
             <!-- Because USB! -->
             <!-- <param name="baud" value="9600" />  -->
         </node>
 
-        <node pkg="wr8_software" type="odometry_pub.py" name="odometry_node" output="screen" respawn="false">
-        </node>    
+        <!-- TODO - move logic to uc_ros_link -->
+        <!-- <node pkg="wr8_software" type="odometry_pub.py" name="odometry_node" output="screen" respawn="false"> -->
+        <!-- </node>     -->
     </group>
 
 

@@ -178,6 +178,8 @@ void testButtonRoutine( void );
 void testRosRoutineADCCalib( void );
 
 
+void testMprotoConnection( void );
+
 
 static inline void testsRoutines( void )
 {
@@ -273,6 +275,10 @@ static inline void testsRoutines( void )
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LED_MATRIX )
 
     testLedMatrixRoutine( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_MPROTO )
+
+    testMprotoConnection( );
 
 #endif
 }

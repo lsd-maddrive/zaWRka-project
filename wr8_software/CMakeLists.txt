@@ -10,7 +10,10 @@ project(wr8_software)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
+  tf
 )
+
+find_package(Boost REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -114,7 +117,8 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-	include
+  ${CMAKE_SOURCE_DIR}/../madproto/src
+	${CMAKE_SOURCE_DIR}/../controller_wr_driver/include
 	${catkin_INCLUDE_DIRS}
 )
 
@@ -152,6 +156,13 @@ set(CAMERA_SENSER_NODE_NAME action_cam)
 set(CAMERA_SENSER_NODE_SRC src/action_cam.cpp)
 
 
+set(UC_ROS_LINK_NODE_NAME uc_ros_link)
+set(UC_ROS_LINK_NODE_SRC src/uc_ros_link.cpp ${CMAKE_SOURCE_DIR}/../madproto/src/mproto.c)
+
+add_executable(${UC_ROS_LINK_NODE_NAME} ${UC_ROS_LINK_NODE_SRC})
+target_link_libraries(${UC_ROS_LINK_NODE_NAME}
+  ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##
