@@ -140,12 +140,13 @@ static THD_FUNCTION(Spinner, arg)
     (void)arg;
     chRegSetThreadName("Spinner");
 
-    systime_t time = chVTGetSystemTimeX();
-
     while (true)
     {
+        systime_t time = chVTGetSystemTimeX();
+
         mproto_spin( mproto_ctx, 15 );
-        time = chThdSleepUntilWindowed( time, time + MS2ST( 20 ) );
+        
+        chThdSleepUntilWindowed( time, time + MS2ST( 20 ) );
     }
 }
 
