@@ -4,6 +4,7 @@
 #include <chrono>
 #include <queue>
 #include <thread>
+#include <condition_variable>
 using namespace std;
 
 #include <boost/asio.hpp>
@@ -20,6 +21,8 @@ namespace asio = boost::asio;
 
 #include "uc_pc_link_defs.h"
 #include "mproto.h"
+
+mproto_ctx_t mproto_ctx = NULL;
 
 class SerialMadProto
 {
@@ -48,6 +51,8 @@ public:
         boost::thread t(boost::bind(&asio::io_service::run, &io_));
 
         async_read_some_();
+
+        pollerThread_ = make_shared<thread>(&SerialMadProto::run, this);
 
         return true;
     }
@@ -100,6 +105,12 @@ public:
                 asio::placeholders::bytes_transferred));
     }
 
+    void wait_for_data()
+    {
+        unique_lock<mutex> lock(portMutex_);
+        confvarNotifier_.wait(lock);
+    }
+
     void on_receive_(const boost::system::error_code& ec, size_t bytes_transferred)
     {
         unique_lock<mutex> lock(portMutex_);
@@ -117,7 +128,23 @@ public:
             fromSerialBytes_.push(readBuffer_[i]);
         }
 
+// cout << "Read" << endl;
+        confvarNotifier_.notify_all();
         async_read_some_();
+    }
+
+    void run()
+    {
+        isPollerActive_ = true;
+        ROS_INFO_STREAM("Poller thread started");
+        
+        while ( isPollerActive_ )
+        {
+            while ( bytes_available() == 0 ) {
+                wait_for_data();
+            }
+            mproto_spin(mproto_ctx, 0);
+        }
     }
 
 
@@ -125,7 +152,11 @@ private:
     asio::io_service                io_;
     shared_ptr<asio::serial_port>   port_;
     std::mutex                      portMutex_;
+    std::condition_variable         confvarNotifier_;
     uint8_t                         readBuffer_[256];
+
+    shared_ptr<thread>              pollerThread_;
+    bool                            isPollerActive_;
 
     queue<uint8_t>                  fromSerialBytes_;
 };
@@ -133,6 +164,14 @@ private:
 shared_ptr<tf::TransformBroadcaster>    br;
 ros::Publisher                          odom_pub;
 ros::Publisher                          raw_steer_pub;
+ros::Publisher                          steer_pub;
+
+void publishSteerData(float value)
+{
+    std_msgs::Float32 msg;
+    msg.data = value;
+    steer_pub.publish(msg);
+}
 
 void publishRawSteerData(float value)
 {
@@ -185,6 +224,8 @@ void publishOdometryData(float data[5])
 
 void mproto_cmd_cb(mpcmd_t cmd, uint8_t *data, size_t len)
 {
+// cout << "Command: " << to_string(cmd) << endl;
+
     if ( cmd == WR_OUT_CMD_ODOM_DATA ) {
         if ( len != sizeof(float[5]) )
             return;
@@ -196,7 +237,12 @@ void mproto_cmd_cb(mpcmd_t cmd, uint8_t *data, size_t len)
             return;
 
         publishRawSteerData(*((float *)data));
-    } 
+    } else if ( cmd == WR_OUT_CMD_STEER_ANGLE ) {
+        if ( len != sizeof(float) )
+            return;
+
+        publishSteerData(*((float *)data));
+    }
 }
 
 
@@ -232,7 +278,6 @@ mproto_func_ctx_t funcs_ctx = {
     .get_time = get_time
 };
 
-mproto_ctx_t mproto_ctx = NULL;
 
 void cmdVelCb(const geometry_msgs::Twist &msg)
 {
@@ -255,6 +300,7 @@ int main (int argc, char **argv)
     br = make_shared<tf::TransformBroadcaster>();
 
     raw_steer_pub = n.advertise<std_msgs::Float32>("steer_raw_adc", 50);
+    steer_pub = n.advertise<std_msgs::Float32>("steer_angle", 50);
     odom_pub = n.advertise<nav_msgs::Odometry>("odom", 50);
 
     ros::Subscriber sub = n.subscribe("cmd_vel", 50, cmdVelCb);
@@ -282,21 +328,17 @@ int main (int argc, char **argv)
 
     mproto_ctx = mproto_init(&funcs_ctx);
     mproto_register_command(mproto_ctx, WR_OUT_CMD_ODOM_DATA, mproto_cmd_cb);
+    mproto_register_command(mproto_ctx, WR_OUT_CMD_STEER_RAW, mproto_cmd_cb);
+    mproto_register_command(mproto_ctx, WR_OUT_CMD_STEER_ANGLE, mproto_cmd_cb);
+    mproto_register_command(mproto_ctx, WR_OUT_CMD_STATE, mproto_cmd_cb);
+    mproto_register_command(mproto_ctx, WR_OUT_CMD_ENCODER_VALUE, mproto_cmd_cb);
+    mproto_register_command(mproto_ctx, WR_OUT_CMD_ENCODER_SPEED, mproto_cmd_cb);
 
-    while ( true )
-    {
-        /* This thread works as ROS receiver side */
-        /* Subscribers will send data to serial comminucator */
-        try {
-            ros::spinOnce();
-        } catch (const exception &e) {
-            cerr << e.what() << endl;
-            break;
-        }
-
-        mproto_spin(mproto_ctx, 20);
+    try {
+        ros::spin();
+    } catch (const exception &e) {
+        cerr << e.what() << endl;
     }
-
 
     g_serial.close();
 
