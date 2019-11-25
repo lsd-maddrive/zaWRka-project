@@ -69,19 +69,23 @@ public:
 
     size_t bytes_available()
     {
+        unique_lock<mutex> lock(portMutex_);
+
         return fromSerialBytes_.size();
     }
 
     uint8_t get_byte()
     {
+        unique_lock<mutex> lock(portMutex_);
+
         uint8_t data = fromSerialBytes_.front();
         fromSerialBytes_.pop();
         return data;
     }
 
-    void send_byte(uint8_t data)
+    void send_bytes(uint8_t *data, size_t len)
     {
-
+        port_->write_some(boost::asio::buffer(data, len));
     }
 
     void async_read_some_()
@@ -207,13 +211,9 @@ static int16_t read_byte()
     return -1;
 }
 
-static void write_byte(uint8_t data)
-{
-    g_serial.send_byte(data);
-}
-
 static void write_bytes(uint8_t *data, size_t len)
 {
+    g_serial.send_bytes(data, len);
 }
 
 static mptime_t get_time()
@@ -228,7 +228,7 @@ static mptime_t get_time()
 
 mproto_func_ctx_t funcs_ctx = {
     .get_byte = read_byte,
-    .put_byte = write_byte,
+    .put_bytes = write_bytes,
     .get_time = get_time
 };
 
@@ -240,7 +240,7 @@ void cmdVelCb(const geometry_msgs::Twist &msg)
     float data[2];
 
     data[0] = msg.linear.x;
-    data[1] = msg.angular.z;
+    data[1] = msg.angular.z * 180 / M_PI;
 
     mproto_send_data(mproto_ctx, WR_IN_CMD_VEL, (uint8_t *)data, sizeof(data));
 }
@@ -251,10 +251,13 @@ int main (int argc, char **argv)
     ros::NodeHandle n_pr("~");
     ros::NodeHandle n;
 
+    /* Publishers - subscribers */
     br = make_shared<tf::TransformBroadcaster>();
 
     raw_steer_pub = n.advertise<std_msgs::Float32>("steer_raw_adc", 50);
     odom_pub = n.advertise<nav_msgs::Odometry>("odom", 50);
+
+    ros::Subscriber sub = n.subscribe("cmd_vel", 50, cmdVelCb);
 
     std::string portName;
     if ( !n_pr.getParam("port", portName) )
@@ -276,8 +279,6 @@ int main (int argc, char **argv)
         ROS_ERROR_STREAM("Failed to open port, exit");
         return EXIT_FAILURE;
     }
-
-    ros::Subscriber sub = n.subscribe("cmd_vel", 1000, cmdVelCb);
 
     mproto_ctx = mproto_init(&funcs_ctx);
     mproto_register_command(mproto_ctx, WR_OUT_CMD_ODOM_DATA, mproto_cmd_cb);

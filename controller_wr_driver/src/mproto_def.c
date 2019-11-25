@@ -76,34 +76,41 @@ mproto_driver_cb_ctx_t mproto_driver_get_new_cb_ctx( void )
 //     // }
 // }
 
-// void reset_odometry_cb( const std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &resp )
-// {
-//     (void)req;
-//     (void)resp;
+void reset_odometry_cb( void )
+{
+    if ( last_cb_ctx.reset_odometry_cb )
+    {
+        last_cb_ctx.reset_odometry_cb();
+    }
+}
 
-//     dbgprintf( "Called [%s]\n\r", __FUNCTION__ );
+void cmd_vel_cb( float data[2] )
+{
+    if ( last_cb_ctx.cmd_cb == NULL )
+        return;
 
-//     if ( last_cb_ctx.reset_odometry_cb )
-//     {
-//         last_cb_ctx.reset_odometry_cb();
-//     }
-// }
+    float *vel_data = (float *)data;
 
-// void cmd_vel_cb( const geometry_msgs::Twist &msg )
-// {
-//     if ( last_cb_ctx.cmd_cb == NULL )
-//     {
-//         return;
-//     }
+    float cmd_speed = vel_data[0];
+    float cmd_steer = vel_data[1];
 
-//     float cmd_speed = msg.linear.x;
-//     float cmd_steer = msg.angular.z * 180 / M_PI;
+    cmd_speed = CLIP_VALUE(cmd_speed, -WR_INPUT_CMD_SPEED_LIMIT_MPS, WR_INPUT_CMD_SPEED_LIMIT_MPS);
+    cmd_steer = CLIP_VALUE(cmd_steer, -WR_INPUT_CMD_STEER_LIMIT_DEG, WR_INPUT_CMD_STEER_LIMIT_DEG);
 
-//     cmd_speed = CLIP_VALUE(cmd_speed, -ROS_INPUT_CMD_SPEED_LIMIT_MPS, ROS_INPUT_CMD_SPEED_LIMIT_MPS);
-//     cmd_steer = CLIP_VALUE(cmd_steer, -ROS_INPUT_CMD_STEER_LIMIT_DEG, ROS_INPUT_CMD_STEER_LIMIT_DEG);
+    last_cb_ctx.cmd_cb( cmd_speed, cmd_steer );
+}
 
-//     last_cb_ctx.cmd_cb( cmd_speed, cmd_steer );
-// }
+void cmd_cb( mpcmd_t cmd, uint8_t *data, size_t len )
+{
+    if ( cmd == WR_IN_CMD_VEL ) {
+        if ( len != sizeof(float[2]) )
+            return;
+
+        cmd_vel_cb( data );
+    } else if ( cmd == WR_IN_CMD_RESET_ODOM) {
+        reset_odometry_cb();
+    }
+}
 
 // void raw_vel_cb( const geometry_msgs::Twist &msg )
 // {
@@ -137,7 +144,7 @@ static THD_FUNCTION(Spinner, arg)
 
     while (true)
     {
-        mproto_spin( mproto_ctx, 20 );
+        mproto_spin( mproto_ctx, 15 );
         time = chThdSleepUntilWindowed( time, time + MS2ST( 20 ) );
     }
 }
@@ -147,12 +154,17 @@ static THD_FUNCTION(Spinner, arg)
 
 void mproto_driver_send_state( int8_t state )
 {
-
+    mproto_send_data(mproto_ctx, WR_OUT_CMD_STATE, (uint8_t *)&state, sizeof(state));
 }
 
 void mproto_driver_send_steering( float steer_angle )
 {
+    mproto_send_data(mproto_ctx, WR_OUT_CMD_STEER_ANGLE, (uint8_t *)&steer_angle, sizeof(steer_angle));
+}
 
+void mproto_driver_send_raw_steering( uint16_t raw_steering )
+{
+    mproto_send_data(mproto_ctx, WR_OUT_CMD_STEER_RAW, (uint8_t *)&raw_steering, sizeof(raw_steering));
 }
 
 void mproto_driver_send_pose( float x, float y, float dir, float vx, float uz )
@@ -170,19 +182,13 @@ void mproto_driver_send_pose( float x, float y, float dir, float vx, float uz )
 
 void mproto_driver_send_encoder_raw( int32_t value )
 {
-
+    mproto_send_data(mproto_ctx, WR_OUT_CMD_ENCODER_VALUE, (uint8_t *)&value, sizeof(value));
 }
 
 void mproto_driver_send_encoder_speed( float value )
 {
-
+    mproto_send_data(mproto_ctx, WR_OUT_CMD_ENCODER_SPEED, (uint8_t *)&value, sizeof(value));
 }
-
-void mproto_driver_send_raw_adc( uint16_t raw_adc )
-{
-
-}
-
 
 /*===========================================================================*/
 /* SDU relative                                                              */
@@ -205,14 +211,9 @@ extern SerialUSBDriver SDU1;
 static BaseChannel  *ros_sd_ptr = (BaseChannel *)&SDU1;
 static float        st2ms       = 1000.0 / CH_CFG_ST_FREQUENCY;;
 
-static int16_t read_byte()
+static int16_t read_byte(void)
 {
     return chnGetTimeout(ros_sd_ptr, TIME_IMMEDIATE);
-}
-
-static void write_byte(uint8_t data)
-{
-    chnPutTimeout(ros_sd_ptr, data, TIME_IMMEDIATE);
 }
 
 static void write_bytes(uint8_t *data, size_t len)
@@ -220,7 +221,7 @@ static void write_bytes(uint8_t *data, size_t len)
     chnWrite(ros_sd_ptr, data, len);
 }
 
-static mptime_t get_time()
+static mptime_t get_time(void)
 {
     /* TODO --- this function may be critical as uses floats */
     /* replaces ST2MS as it overflows on (2^32 / 1000) */
@@ -232,7 +233,7 @@ static mptime_t get_time()
 
 mproto_func_ctx_t funcs_ctx = {
     .get_byte = read_byte,
-    .put_byte = write_byte,
+    .put_bytes = write_bytes,
     .get_time = get_time
 };
 
@@ -257,6 +258,9 @@ void mproto_driver_init( tprio_t prio, mproto_driver_cb_ctx_t *ctx )
     usbConnectBus( serusbcfg.usbp );
 
     mproto_ctx = mproto_init(&funcs_ctx);
+
+    mproto_register_command( mproto_ctx, WR_IN_CMD_VEL, cmd_cb );
+    mproto_register_command( mproto_ctx, WR_IN_CMD_RESET_ODOM, cmd_cb );
 
     chThdCreateStatic( waSpinner, sizeof(waSpinner), prio, Spinner, NULL );
 }

@@ -10,6 +10,11 @@ static void update_encoder( void )
 	encoder_value += 10;
 }
 
+static void update_input( float speed, float steer )
+{
+	dbgprintf("Control data: %d / %d\n", (int)(speed*10), (int)(steer*10));
+}
+
 /*
  * @brief   Test odometry, speed and steering control via ROS
  * @note    Frequency = 50 Hz
@@ -20,7 +25,9 @@ void testMprotoConnection( void )
 	/*
 	 * Fill callbacks here
 	 */
-	mproto_driver_init( NORMALPRIO, &cb_ctx );
+	cb_ctx.cmd_cb = update_input;
+
+	mproto_driver_init( NORMALPRIO+1, &cb_ctx );
 
 	debug_stream_init();
 	dbgprintf("Start mproto test\n");
@@ -65,10 +72,8 @@ void testMprotoConnection( void )
 		mproto_driver_send_steering( 30 * sin( time / 100000 ) );
 		mproto_driver_send_pose( 5, 4, 3, 2, 1 );
 
-
 		chThdSleepMilliseconds( 100 );
 
 		palToggleLine( LINE_LED1 );
-		dbgprintf("Hello!\n");
 	}
 }

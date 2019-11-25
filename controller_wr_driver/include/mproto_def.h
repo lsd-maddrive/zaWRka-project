@@ -9,10 +9,6 @@
 extern "C" {
 #endif
 
-/*============================================================================*/
-/* ROS 																		  */
-/*============================================================================*/
-
 /**
  * @brief	Send current wheel rotation state
  * @param
@@ -55,19 +51,19 @@ void mproto_driver_send_pose( float x, float y, float dir, float vx, float uz );
 void mproto_driver_send_state( int8_t state );
 
 /**
- * @brief	Send raw ADC value
+ * @brief	Send raw Steering value
  * @param
- * 			raw_adc - value from ADC [0; 4096] (12-bit)
+ * 			raw_adc - steering value [0; 4096] (12-bit)
  */
-void mproto_driver_send_raw_adc( uint16_t raw_adc );
+void mproto_driver_send_raw_steering( uint16_t raw_steering );
 
 /***
  * WARNING! Never create this structure by yourself, use ros_driver_get_new_cb_ctx() instead
  */
 typedef struct
 {
-	#define ROS_INPUT_CMD_SPEED_LIMIT_MPS	1
-	#define ROS_INPUT_CMD_STEER_LIMIT_DEG	25
+	#define WR_INPUT_CMD_SPEED_LIMIT_MPS	1
+	#define WR_INPUT_CMD_STEER_LIMIT_DEG	25
 	/*
 	 * Cb returned arguments:
 	 * 		speed - Speed task (-0.5;0.5) [m/s]
