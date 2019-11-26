@@ -15,7 +15,7 @@ static const mproto_driver_cb_ctx_t default_cb_ctx = {
     // .set_control_params_cb  = NULL
 };
 
-static mproto_driver_cb_ctx_t last_cb_ctx = default_cb_ctx;
+static mproto_driver_cb_ctx_t last_cb_ctx;
 
 mproto_driver_cb_ctx_t mproto_driver_get_new_cb_ctx( void )
 {

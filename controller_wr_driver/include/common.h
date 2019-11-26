@@ -49,7 +49,7 @@ extern "C" {
 
 #define     PROGRAM_ROUTINE_TEST_MPROTO                 70
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_MPROTO
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ROS_CONTROL
 
 
 /*============================================================================*/

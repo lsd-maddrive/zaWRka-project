@@ -25,6 +25,8 @@ sudo apt install ros-$ROS_DISTRO-base-local-planner \
 					ros-$ROS_DISTRO-interactive-markers \
 					ros-$ROS_DISTRO-key-teleop \
 					ros-$ROS_DISTRO-gmapping \
+					ros-$ROS_DISTRO-camera-info-manager \
+					ros-$ROS_DISTRO-roslint \
 					qt4-default \
 					libsuitesparse-dev 
 
