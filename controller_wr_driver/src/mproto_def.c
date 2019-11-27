@@ -219,7 +219,7 @@ static int16_t read_byte(void)
 
 static void write_bytes(uint8_t *data, size_t len)
 {
-    chnWrite(ros_sd_ptr, data, len);
+    chnWriteTimeout(ros_sd_ptr, data, len, TIME_IMMEDIATE);
 }
 
 static mptime_t get_time(void)

@@ -43,13 +43,12 @@ public:
         }
 
         port_->set_option(asio::serial_port_base::baud_rate(baud_rate));
-        port_->set_option(asio::serial_port_base::character_size(8));
-        port_->set_option(asio::serial_port_base::stop_bits(asio::serial_port_base::stop_bits::one));
-        port_->set_option(asio::serial_port_base::parity(asio::serial_port_base::parity::none));
-        port_->set_option(asio::serial_port_base::flow_control(asio::serial_port_base::flow_control::none));
+        // port_->set_option(asio::serial_port_base::character_size(8));
+        // port_->set_option(asio::serial_port_base::stop_bits(asio::serial_port_base::stop_bits::one));
+        // port_->set_option(asio::serial_port_base::parity(asio::serial_port_base::parity::none));
+        // port_->set_option(asio::serial_port_base::flow_control(asio::serial_port_base::flow_control::none));
 
         boost::thread t(boost::bind(&asio::io_service::run, &io_));
-
         async_read_some_();
 
         pollerThread_ = make_shared<thread>(&SerialMadProto::run, this);
@@ -95,7 +94,12 @@ public:
 
     void async_read_some_()
     {
-        if (port_.get() == NULL || !port_->is_open()) return;
+        ROS_INFO_STREAM("Start reading");
+
+        if (port_.get() == NULL || !port_->is_open()) {
+            ROS_ERROR_STREAM("Failed to test port (1)");
+            return;
+        }
 
         port_->async_read_some( 
             asio::buffer(readBuffer_, sizeof(readBuffer_)),
@@ -115,14 +119,21 @@ public:
     {
         unique_lock<mutex> lock(portMutex_);
 
-        if ( port_.get() == NULL || !port_->is_open() ) 
+        if ( port_.get() == NULL || !port_->is_open() ) {
+            ROS_ERROR_STREAM("Failed to test port (2)");
             return;
+        }
         
         if ( ec ) {
             ROS_ERROR_STREAM("Failed to read / info: " << ec.message().c_str());
-            async_read_some_();
+            // async_read_some_();
+            isPollerActive_ = false;
+            this_thread::sleep_for(1s);
+            ros::shutdown();
             return;
         }
+
+        ROS_INFO_STREAM("Readed " << to_string(bytes_transferred));
 
         for (size_t i = 0; i < bytes_transferred; ++i) {
             fromSerialBytes_.push(readBuffer_[i]);
@@ -141,12 +152,12 @@ public:
         while ( isPollerActive_ )
         {
             while ( bytes_available() == 0 ) {
+                ROS_INFO_STREAM("Wait for data");
                 wait_for_data();
             }
             mproto_spin(mproto_ctx, 0);
         }
     }
-
 
 private:
     asio::io_service                io_;
@@ -323,6 +334,7 @@ int main (int argc, char **argv)
     if ( !g_serial.open(portName, baudRate) )
     {
         ROS_ERROR_STREAM("Failed to open port, exit");
+        this_thread::sleep_for(1s);
         return EXIT_FAILURE;
     }
 

@@ -12,7 +12,7 @@
 
     <group ns="robot">
         <!-- <node pkg="rosserial_python" type="serial_node.py" name="ros_link" output="screen" respawn="true"> -->
-        <node pkg="wr8_software" type="uc_ros_link" name="uc_ros_link" output="screen" respawn="false">
+        <node pkg="wr8_software" type="uc_ros_link" name="uc_ros_link" output="screen" respawn="true">
             <param name="port" value="$(arg device)" /> 
             <!-- Because USB! -->
             <!-- <param name="baud" value="9600" />  -->
