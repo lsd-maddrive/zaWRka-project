@@ -48,8 +48,9 @@ public:
         // port_->set_option(asio::serial_port_base::parity(asio::serial_port_base::parity::none));
         // port_->set_option(asio::serial_port_base::flow_control(asio::serial_port_base::flow_control::none));
 
-        boost::thread t(boost::bind(&asio::io_service::run, &io_));
         async_read_some_();
+
+        t_ = boost::thread(boost::bind(&asio::io_service::run, &io_));
 
         pollerThread_ = make_shared<thread>(&SerialMadProto::run, this);
 
@@ -74,7 +75,6 @@ public:
     size_t bytes_available()
     {
         unique_lock<mutex> lock(portMutex_);
-
         return fromSerialBytes_.size();
     }
 
@@ -94,7 +94,7 @@ public:
 
     void async_read_some_()
     {
-        ROS_INFO_STREAM("Start reading");
+        // ROS_INFO_STREAM("Start reading");
 
         if (port_.get() == NULL || !port_->is_open()) {
             ROS_ERROR_STREAM("Failed to test port (1)");
@@ -133,7 +133,7 @@ public:
             return;
         }
 
-        ROS_INFO_STREAM("Readed " << to_string(bytes_transferred));
+        // ROS_INFO_STREAM("Readed " << to_string(bytes_transferred));
 
         for (size_t i = 0; i < bytes_transferred; ++i) {
             fromSerialBytes_.push(readBuffer_[i]);
@@ -152,7 +152,6 @@ public:
         while ( isPollerActive_ )
         {
             while ( bytes_available() == 0 ) {
-                ROS_INFO_STREAM("Wait for data");
                 wait_for_data();
             }
             mproto_spin(mproto_ctx, 0);
@@ -161,6 +160,8 @@ public:
 
 private:
     asio::io_service                io_;
+    boost::thread                   t_; 
+    
     shared_ptr<asio::serial_port>   port_;
     std::mutex                      portMutex_;
     std::condition_variable         confvarNotifier_;
