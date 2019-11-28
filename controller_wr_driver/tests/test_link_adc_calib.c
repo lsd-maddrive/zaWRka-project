@@ -2,7 +2,7 @@
 #include <lld_odometry.h>
 #include <drive_cs.h>
 
-#include <ros_protos.h>
+#include "link_def.h"
 
 static controlValue_t          test_steer_cntr = 0;
 static controlValue_t          test_speed_cntr = 0;
@@ -25,18 +25,16 @@ static void alive( void )
 
 static void cntrl_handler (float speed, float steer)
 {
-    systime_t ros_time = chVTGetSystemTimeX();
     test_speed_cntr = speed;
     test_steer_cntr = steer;
-    dbgprintf( "Time:%d\n\r", (int)(ros_time * 1000.0 / CH_CFG_ST_FREQUENCY) );
-    alive( );
+    alive();
 }
 
 /**
  * @brief   ADC calibration process
  * @note    Frequency = 50 Hz
 */
-void testRosRoutineADCCalib( void )
+void testLinkADCCalib( void )
 {
     mproto_driver_cb_ctx_t cb_ctx      = mproto_driver_get_new_cb_ctx();
     cb_ctx.raw_cmd_cb               = cntrl_handler;

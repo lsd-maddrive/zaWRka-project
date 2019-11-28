@@ -6,7 +6,7 @@
 #include <remote_control.h>
 #include <lld_light.h>
 
-#include <ros_protos.h>
+#include "link_def.h"
 
 
 #define VT_ROS_CHECK_PERIOD_MS     500

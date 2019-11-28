@@ -40,17 +40,69 @@ extern "C" {
 #define		PROGRAM_ROUTINE_TEST_LED_MATRIX				19
 /***    BUTTON RELATED                  ***/
 #define     PROGRAM_ROUTINE_TEST_BUTTON_STATE           20
-/***    ROS RELATED                     ***/
-#define     PROGRAM_ROUTINE_TEST_ROS_ODOMETRY           30
-#define     PROGRAM_ROUTINE_TEST_ROS_CONTROL            35
-#define     PROGRAM_ROUTINE_TEST_GUI_SERVER             40
-#define     PROGRAM_ROUTINE_TEST_ROS                    60
-#define     PROGRAM_ROUTINE_TEST_ROS_ADC_CALIB          61
+/***    LINK RELATED                     ***/
+#define     PROGRAM_ROUTINE_TEST_LINK_CONTROL           61
+#define     PROGRAM_ROUTINE_TEST_LINK                   62
+#define     PROGRAM_ROUTINE_TEST_LINK_ADC_CALIB         63
 
-#define     PROGRAM_ROUTINE_TEST_MPROTO                 70
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_LINK_CONTROL
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_ROS_CONTROL
+#include "tests.h"
 
+static inline void testsRoutines( void )
+{
+#if (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LL_DRIVER)
+    testWheelsControlRoutines( );
+#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RAW_LL_DRIVE)
+    testRawWheelsControlRoutine( );
+#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_LIMIT_CALIB )
+    testSpeedLimitsCalibrationRoutine( );
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ESC_CALIBRATION )
+    testDrivingWheelsESCCalibration( );
+
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ENCODER )
+    testEncoderCommonRoutine( );
+
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RC )
+    testRemoteControlRoutine( );
+
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ODOMETRY )
+    testOdometryRoutine( );
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_ODOMETRY_RC )
+    testRCOdodmetry( ); 
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_X_DIST_ODOMETRY )
+    testXdistanceOdometry( );
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RESET_ODOMETRY )
+    testResetOdometryRoutine( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND )
+    testSteerAngleSendData( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEERING_CS )
+    testSteeringCS( );
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_CS )
+    testSpeedCS( );
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_FILTER )
+    testSpeedFilter( );
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_UART_CS)
+    testUARTControl( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LIGHT )
+    testLightRoutine( );
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LED_MATRIX )
+    testLedMatrixRoutine( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_BUTTON_STATE)
+    testButtonRoutine( );
+
+#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LINK_CONTROL )
+    testLinkControl( );
+#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LINK_ADC_CALIB)
+    testLinkADCCalib( );
+#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LINK)
+    testLinkConnection( );
+#endif
+}
 
 /*============================================================================*/
 /* MACROS 																	  */

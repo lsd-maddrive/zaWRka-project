@@ -2,13 +2,12 @@
 #include <lld_odometry.h>
 #include <drive_cs.h>
 
-#include "mproto_def.h"
+#include "link_def.h"
 
 controlValue_t          test_steer_cntr = 0;
 float                   test_speed_cntr = 0;
 
 virtual_timer_t         checker_vt;
-
 
 static void dead_cb( void *arg )
 {
@@ -26,18 +25,16 @@ void alive( void )
 
 void cntrl_handler (float speed, float steer)
 {
-    systime_t ros_time = chVTGetSystemTimeX();
     test_speed_cntr = speed;
     test_steer_cntr = steer;
-    dbgprintf( "Time:%d\n\r", (int)(ros_time * 1000.0 / CH_CFG_ST_FREQUENCY) );
-    alive( );
+    alive();
 }
 
 /*
  * @brief   Test odometry, speed and steering control via ROS
  * @note    Frequency = 50 Hz
 */
-void testRosRoutineControl( void )
+void testLinkControl( void )
 {
     mproto_driver_cb_ctx_t cb_ctx      = mproto_driver_get_new_cb_ctx();
     cb_ctx.cmd_cb                   = cntrl_handler;

@@ -1,5 +1,4 @@
 #include <common.h>
-#include <tests.h>
 #include <chprintf.h>
 
 int main(void)
@@ -8,16 +7,9 @@ int main(void)
     halInit();
 
     #if (MAIN_PROGRAM_ROUTINE != PROGRAM_ROUTINE_MASTER)
-
         testsRoutines();
-
     #else
-
         mainUnitsInit( );
-
         mainControlTask( );
-
-
-
     #endif
 }

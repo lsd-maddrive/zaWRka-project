@@ -1,6 +1,7 @@
-#include "mproto_def.h"
 #include "common.h"
 #include <math.h>
+
+#include "link_def.h"
 
 static int32_t 	encoder_value 	= 0;
 static float 	encoder_2_m		= 0.001; // [ticks/m]
@@ -19,7 +20,7 @@ static void update_input( float speed, float steer )
  * @brief   Test odometry, speed and steering control via ROS
  * @note    Frequency = 50 Hz
 */
-void testMprotoConnection( void )
+void testLinkConnection( void )
 {
 	mproto_driver_cb_ctx_t cb_ctx = mproto_driver_get_new_cb_ctx();
 	/*

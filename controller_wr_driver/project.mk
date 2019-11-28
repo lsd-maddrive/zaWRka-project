@@ -22,14 +22,11 @@ PROJECT_TESTS   = tests/test_lld_control.c     		\
 				  tests/test_lld_encoder.c			\
 				  tests/test_lld_odometry.c			\
 				  tests/test_lld_steer_angle_fb.c	\
-				  tests/test_ros.c					\
-				  tests/test_gui_server.c			\
-				  tests/test_ros_odometry.c			\
-				  tests/test_ros_control.c			\
 				  tests/test_lld_start_button.c		\
 				  tests/test_lld_light.c 			\
-				  tests/test_ros_adc_calib.c 		\
-				  tests/test_mproto.c 		\
+				  tests/test_link.c					\
+				  tests/test_link_control.c			\
+				  tests/test_link_adc_calib.c 		\
 				  		
 PROJECT_CSRC    = src/main.c src/common.c src/debug.c src/usbcfg.c $(MPROTO_SRC) \
     				$(PROJECT_MODULES) $(PROJECT_TESTS)
