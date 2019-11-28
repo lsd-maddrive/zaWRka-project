@@ -47,6 +47,8 @@ void testRosRoutineControl( void )
 
     lldOdometryInit( );
     driverCSInit( NORMALPRIO );
+    driverIsEnableCS( true );
+
     debug_stream_init( );
 
     chVTObjectInit(&checker_vt);
@@ -81,8 +83,12 @@ void testRosRoutineControl( void )
         test_y_pos          = lldGetOdometryObjY( OBJ_DIST_M );
         test_tetta_deg      = lldGetOdometryObjTettaDeg( );
 
+        steerAngleDegValue_t steering_deg  = lldGetSteerAngleDeg();
+
         mproto_driver_send_encoder_speed( test_enc_speed_rps );
         mproto_driver_send_pose( test_x_pos, test_y_pos, test_tetta_deg, test_speed_lpf_mps, test_speed_radps );
+        mproto_driver_send_steering( steering_deg );
+
 
         time = chThdSleepUntilWindowed( time, time + MS2ST( 20 ) );
 

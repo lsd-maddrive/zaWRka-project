@@ -93,8 +93,8 @@ odometrySpeedValue_t lldOdometryGetObjCSSpeedMPS( void )
 }
 #endif
 
-static float correction_k_left  = 0.65;
-static float correction_k_right = 0.6;
+static float correction_k_left  = 1; // 0.65;
+static float correction_k_right = 1; // 0.6;
 
 /*
  * @brief   Set correction coeffitients 
@@ -170,7 +170,7 @@ static void odom_update_vt_cb( void *arg )
     /*** NOTE!! 0 = 360       ***/
     if(tetta_rad_angle > ( 2 * M_PI ) )
     {
-            tetta_rad_angle   = tetta_rad_angle - ( 2 * M_PI );
+        tetta_rad_angle   = tetta_rad_angle - ( 2 * M_PI );
     }
     if( tetta_rad_angle < 0 )
     {
