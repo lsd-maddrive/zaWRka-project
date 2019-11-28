@@ -16,7 +16,6 @@ extern "C" {
 /***    DRIVE CONTROL RELATED           ***/
 #define     PROGRAM_ROUTINE_TEST_LL_DRIVER              1
 #define     PROGRAM_ROUTINE_TEST_RAW_LL_DRIVE           2
-#define     PROGRAM_ROUTINE_TEST_ESC_CALIBRATION        3
 /***    ENCODER / ODOMETRY RELATED      ***/
 #define     PROGRAM_ROUTINE_TEST_ENCODER                4
 #define     PROGRAM_ROUTINE_TEST_ODOMETRY               5
@@ -55,17 +54,9 @@ static inline void testsRoutines( void )
     testWheelsControlRoutines( );
 #elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RAW_LL_DRIVE)
     testRawWheelsControlRoutine( );
-#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_LIMIT_CALIB )
-    testSpeedLimitsCalibrationRoutine( );
-#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ESC_CALIBRATION )
-    testDrivingWheelsESCCalibration( );
 
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ENCODER )
     testEncoderCommonRoutine( );
-
-#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RC )
-    testRemoteControlRoutine( );
-
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ODOMETRY )
     testOdometryRoutine( );
 #elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_ODOMETRY_RC )
@@ -77,15 +68,20 @@ static inline void testsRoutines( void )
 
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND )
     testSteerAngleSendData( );
-
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEERING_CS )
     testSteeringCS( );
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_CS )
     testSpeedCS( );
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_FILTER )
     testSpeedFilter( );
+#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_LIMIT_CALIB )
+    testSpeedLimitsCalibrationRoutine( );
+
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_UART_CS)
     testUARTControl( );
+
+#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RC )
+    testRemoteControlRoutine( );
 
 #elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LIGHT )
     testLightRoutine( );

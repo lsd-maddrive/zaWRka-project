@@ -120,7 +120,6 @@ void testSteerAngleSendData( void )
 #ifdef STEER_FB_MATLAB
         if( steer_start_flag == 1)
         {
-
             sdWrite( &SD7, (uint8_t*) &matlab_time, 2);
             sdWrite( &SD7, (uint8_t*) &test_raw_steer, 2);
             sdWrite( &SD7, (uint8_t*) &test_filtr_raw_steer, 2);
