@@ -13,6 +13,8 @@ namespace asio = boost::asio;
 
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Int8.h>
+#include <std_msgs/Empty.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Pose.h>
 #include <nav_msgs/Odometry.h>
@@ -177,6 +179,30 @@ shared_ptr<tf::TransformBroadcaster>    br;
 ros::Publisher                          odom_pub;
 ros::Publisher                          raw_steer_pub;
 ros::Publisher                          steer_pub;
+ros::Publisher                          state_pub;
+ros::Publisher                          encoder_rotation_pub;
+ros::Publisher                          encoder_speed_pub;
+
+void publishEncoderSpeed(float value)
+{
+    std_msgs::Float32 msg;
+    msg.data = value;
+    encoder_speed_pub.publish(msg);
+}
+
+void publishEncoderValue(float value)
+{
+    std_msgs::Float32 msg;
+    msg.data = value;
+    encoder_rotation_pub.publish(msg);
+}
+
+void publishStateData(int8_t value)
+{
+    std_msgs::Int8 msg;
+    msg.data = value;
+    state_pub.publish(msg);
+}
 
 void publishSteerData(float value)
 {
@@ -254,9 +280,23 @@ void mproto_cmd_cb(mpcmd_t cmd, uint8_t *data, size_t len)
             return;
 
         publishSteerData(*((float *)data));
+    } else if ( cmd == WR_OUT_CMD_STATE ) {
+        if ( len != sizeof(int8_t) )
+            return;
+
+        publishStateData(*((int8_t *)data));
+    } else if ( cmd == WR_OUT_CMD_ENCODER_VALUE ) {
+        if ( len != sizeof(float) )
+            return;
+
+        publishEncoderValue(*((float *)data));
+    } else if ( cmd == WR_OUT_CMD_ENCODER_SPEED ) {
+        if ( len != sizeof(float) )
+            return;
+
+        publishEncoderSpeed(*((float *)data));
     }
 }
-
 
 /* Global to be used in class */
 SerialMadProto g_serial;
@@ -290,6 +330,16 @@ mproto_func_ctx_t funcs_ctx = {
     .get_time = get_time
 };
 
+void rawCmdVelCb(const geometry_msgs::Twist &msg)
+{
+    // msg
+    float data[2];
+
+    data[0] = msg.linear.x;
+    data[1] = msg.angular.z;
+
+    mproto_send_data(mproto_ctx, WR_IN_CMD_RAW_VEL, (uint8_t *)data, sizeof(data));
+}
 
 void cmdVelCb(const geometry_msgs::Twist &msg)
 {
@@ -300,6 +350,11 @@ void cmdVelCb(const geometry_msgs::Twist &msg)
     data[1] = msg.angular.z * 180 / M_PI;
 
     mproto_send_data(mproto_ctx, WR_IN_CMD_VEL, (uint8_t *)data, sizeof(data));
+}
+
+void resetOdomCb(const std_msgs::Empty &msg)
+{
+    mproto_send_data(mproto_ctx, WR_IN_CMD_RESET_ODOM, NULL, 0);
 }
 
 int main (int argc, char **argv)
@@ -314,9 +369,15 @@ int main (int argc, char **argv)
     raw_steer_pub = n.advertise<std_msgs::Float32>("steer_raw_adc", 50);
     steer_pub = n.advertise<std_msgs::Float32>("steer_angle", 50);
     odom_pub = n.advertise<nav_msgs::Odometry>("odom", 50);
+    state_pub = n.advertise<std_msgs::Int8>("state", 50);
+    encoder_rotation_pub = n.advertise<std_msgs::Float32>("enc_rot", 50);
+    encoder_speed_pub = n.advertise<std_msgs::Float32>("enc_speed", 50);
 
-    ros::Subscriber sub = n.subscribe("cmd_vel", 50, cmdVelCb);
+    ros::Subscriber sub_cmd_vel = n.subscribe("cmd_vel", 50, cmdVelCb);
+    ros::Subscriber sub_raw_cmd_vel = n.subscribe("raw_cmd_vel", 50, rawCmdVelCb);
+    ros::Subscriber sub_rst_odom = n.subscribe("reset_odom", 50, resetOdomCb);
 
+    /* Main program */
     std::string portName;
     if ( !n_pr.getParam("port", portName) )
     {

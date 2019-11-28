@@ -89,7 +89,6 @@ void testRosRoutineControl( void )
         mproto_driver_send_pose( test_x_pos, test_y_pos, test_tetta_deg, test_speed_lpf_mps, test_speed_radps );
         mproto_driver_send_steering( steering_deg );
 
-
         time = chThdSleepUntilWindowed( time, time + MS2ST( 20 ) );
 
         if ( print_cntr == 50 ) {

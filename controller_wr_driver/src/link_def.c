@@ -100,6 +100,22 @@ void cmd_vel_cb( float data[2] )
     last_cb_ctx.cmd_cb( cmd_speed, cmd_steer );
 }
 
+void raw_cmd_vel_cb( float data[2] )
+{
+    if ( last_cb_ctx.cmd_cb == NULL )
+        return;
+
+    float *vel_data = (float *)data;
+
+    float cmd_speed = vel_data[0];
+    float cmd_steer = vel_data[1];
+
+    cmd_speed = CLIP_VALUE(cmd_speed, -100, 100);
+    cmd_steer = CLIP_VALUE(cmd_steer, -100, 100);
+
+    last_cb_ctx.raw_cmd_cb( cmd_speed, cmd_steer );
+}
+
 void cmd_cb( mpcmd_t cmd, uint8_t *data, size_t len )
 {
     if ( cmd == WR_IN_CMD_VEL ) {
@@ -109,6 +125,11 @@ void cmd_cb( mpcmd_t cmd, uint8_t *data, size_t len )
         cmd_vel_cb( data );
     } else if ( cmd == WR_IN_CMD_RESET_ODOM) {
         reset_odometry_cb();
+    } else if ( cmd == WR_IN_CMD_RAW_VEL) {
+        if ( len != sizeof(float[2]) )
+            return;
+
+        raw_cmd_vel_cb( data );
     }
 }
 

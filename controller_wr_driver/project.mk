@@ -14,7 +14,7 @@ PROJECT_MODULES = src/lld_control.c        			\
 				  src/main_control_unit.c			\
 				  src/lld_light.c 					\
 				  src/max7219.c 					\
-				  src/mproto_def.c 					\
+				  src/link_def.c 					\
 				  
 PROJECT_TESTS   = tests/test_lld_control.c     		\
 				  tests/test_remote_control.c		\

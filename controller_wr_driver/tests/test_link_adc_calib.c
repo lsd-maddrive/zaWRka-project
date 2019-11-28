@@ -4,32 +4,32 @@
 
 #include <ros_protos.h>
 
-static controlValue_t          test_ros_steer_cntr = 0;
-static controlValue_t          test_ros_speed_cntr = 0;
+static controlValue_t          test_steer_cntr = 0;
+static controlValue_t          test_speed_cntr = 0;
 
-static virtual_timer_t         ros_checker_vt;
+static virtual_timer_t         checker_vt;
 
-static void ros_is_dead_cb( void *arg )
+static void is_dead_cb( void *arg )
 {
     arg = arg; 
-    test_ros_speed_cntr = 0;
-    test_ros_steer_cntr = 0;
+    test_speed_cntr = 0;
+    test_steer_cntr = 0;
     dbgprintf( "ROS is dead\n\r" );
 }
 
-static void ros_alive( void )
+static void alive( void )
 {
     palToggleLine( LINE_LED1 ); // just to check
-    chVTSet( &ros_checker_vt, MS2ST( 2000 ), ros_is_dead_cb, NULL );
+    chVTSet( &checker_vt, MS2ST( 2000 ), is_dead_cb, NULL );
 }
 
 static void cntrl_handler (float speed, float steer)
 {
     systime_t ros_time = chVTGetSystemTimeX();
-    test_ros_speed_cntr = speed;
-    test_ros_steer_cntr = steer;
+    test_speed_cntr = speed;
+    test_steer_cntr = steer;
     dbgprintf( "Time:%d\n\r", (int)(ros_time * 1000.0 / CH_CFG_ST_FREQUENCY) );
-    ros_alive( );
+    alive( );
 }
 
 /**
@@ -38,10 +38,10 @@ static void cntrl_handler (float speed, float steer)
 */
 void testRosRoutineADCCalib( void )
 {
-    ros_driver_cb_ctx_t cb_ctx      = ros_driver_get_new_cb_ctx();
+    mproto_driver_cb_ctx_t cb_ctx      = mproto_driver_get_new_cb_ctx();
     cb_ctx.raw_cmd_cb               = cntrl_handler;
 
-    ros_driver_init( NORMALPRIO, &cb_ctx );
+    mproto_driver_init( NORMALPRIO, &cb_ctx );
 
     lldControlInit();
     lldSteerAngleFBInit();
@@ -49,7 +49,7 @@ void testRosRoutineADCCalib( void )
     debug_stream_init();
     dbgprintf( "ADC calibration test start\n" );
 
-    chVTObjectInit(&ros_checker_vt);
+    chVTObjectInit(&checker_vt);
 
     steerAngleRawValue_t    raw_adc_value       = 0;
 
@@ -62,11 +62,11 @@ void testRosRoutineADCCalib( void )
     {
         print_cntr += 1;
 
-        lldControlSetDrMotorPower( test_ros_speed_cntr );
-        lldControlSetSteerMotorPower( test_ros_steer_cntr );
+        lldControlSetDrMotorPower( test_speed_cntr );
+        lldControlSetSteerMotorPower( test_steer_cntr );
 
         raw_adc_value  = lldGetSteerAngleFiltrRawADC();
-        ros_driver_send_raw_adc( raw_adc_value );
+        mproto_driver_send_raw_adc( raw_adc_value );
 
         time = chThdSleepUntilWindowed( time, time + MS2ST( send_period_ms ) );
     }

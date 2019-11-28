@@ -13,6 +13,13 @@
  * Reset odometry command
  */
 #define WR_IN_CMD_RESET_ODOM        2
+/*
+ * Velocity command data
+ * Data:
+ *  float[0] = velocity [prc] - [-100;100]
+ *  float[1] = steering [prc] - [-100;100]
+ */
+#define WR_IN_CMD_RAW_VEL           3
 
 /*** Output data ***/
 /*
@@ -46,13 +53,13 @@
 /*
  * Encoder rotation value
  * Data:
- *  int32[0] = rotations
+ *  float[0] = rotations
  */
 #define WR_OUT_CMD_ENCODER_VALUE    5
 /*
  * Encoder rotation speed value
  * Data:
- *  float[0] = rptation speed [rot/s]
+ *  float[0] = rotation speed [rot/s]
  */
 #define WR_OUT_CMD_ENCODER_SPEED    6
 
