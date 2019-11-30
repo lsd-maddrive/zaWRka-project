@@ -64,7 +64,7 @@ void testLinkADCCalib( void )
         lldControlSetSteerMotorPower( test_steer_cntr );
 
         raw_adc_value  = lldGetSteerAngleFiltrRawADC();
-        mproto_driver_send_raw_adc( raw_adc_value );
+        mproto_driver_send_raw_steering( raw_adc_value );
 
         time = chThdSleepUntilWindowed( time, time + MS2ST( send_period_ms ) );
     }

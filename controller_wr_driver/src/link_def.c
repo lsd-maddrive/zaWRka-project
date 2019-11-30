@@ -65,14 +65,14 @@ void cmd_cb( mpcmd_t cmd, uint8_t *data, size_t len )
         if ( len != sizeof(float[2]) )
             return;
 
-        cmd_vel_cb( data );
+        cmd_vel_cb( (float *)data );
     } else if ( cmd == WR_IN_CMD_RESET_ODOM) {
         reset_odometry_cb();
     } else if ( cmd == WR_IN_CMD_RAW_VEL) {
         if ( len != sizeof(float[2]) )
             return;
 
-        raw_cmd_vel_cb( data );
+        raw_cmd_vel_cb( (float *)data );
     }
 }
 

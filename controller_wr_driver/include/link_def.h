@@ -14,7 +14,7 @@ extern "C" {
  * @param
  * 			value - Wheel rotation position [rev]
  */
-void mproto_driver_send_encoder_raw( int32_t value );
+void mproto_driver_send_encoder_raw( float value );
 
 /** 
  * @brief	Send current wheel rotation speed
