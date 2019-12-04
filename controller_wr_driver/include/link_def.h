@@ -58,7 +58,7 @@ void mproto_driver_send_state( int8_t state );
 void mproto_driver_send_raw_steering( uint16_t raw_steering );
 
 /***
- * WARNING! Never create this structure by yourself, use ros_driver_get_new_cb_ctx() instead
+ * WARNING! Never create this structure by yourself, use _driver_get_new_cb_ctx() instead
  */
 typedef struct
 {
@@ -93,16 +93,16 @@ typedef struct
 /**
  * @brief	Get callback context
  * @return
- * 			<ros_driver_cb_ctx_t> - structure with callback functions pointers
+ * 			<_cb_ctx_t> - structure with callback functions pointers
  */
 mproto_driver_cb_ctx_t mproto_driver_get_new_cb_ctx( void );
 
 /**
- * @brief	Initialize ROS module
+ * @brief	Initialize Link module
  * @param
  * 			prio - priority of polling thread
  * 			ctx  - pointer to callback context function
- * 					To get default <ros_driver_cb_ctx_t> use ros_driver_get_new_cb_ctx()
+ * 					To get default <_cb_ctx_t> use _driver_get_new_cb_ctx()
  * 					Setting this field as NULL resets all callbacks
  */
 void mproto_driver_init( tprio_t prio, mproto_driver_cb_ctx_t *ctx );
