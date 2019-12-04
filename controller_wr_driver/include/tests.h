@@ -135,12 +135,29 @@ void testUARTControl( void );
  */
 void testLightRoutine( void ); 
 
+/**
+ * @brief   Test button click state changing module 
+ */
 void testButtonRoutine( void );
 
+/**
+ * @brief   Test GUI (Android) connection via sending data to serial-mproto and showing on Android device
+ */
 void testGUIRoutineServer ( void );
-void testLinkControl( void );
-void testLinkADCCalib( void );
-void testLinkConnection( void );
 
+/**
+ * @brief   Test link (serial - mproto) connection setting CS values and showing all info about car
+ */
+void testLinkControl( void );
+
+/**
+ * @brief   Test link (serial - mproto) connection setting raw PWM values and representing raw ADC values
+ */
+void testLinkADCCalib( void );
+
+/**
+ * @brief   Test link (serial - mproto) connection sending some sample bytes
+ */
+void testLinkConnection( void );
 
 #endif /* INCLUDE_TESTS_H_ */
