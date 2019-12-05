@@ -8,12 +8,6 @@
 /*============================================================================*/
 
 /*
- * @brief	Routine of ROS connection test via USB
- * @note 	USB bus is used (for ROS activity, not test)
- */
-void testROSConnection( void );
-
-/*
  * @brief   Routine of low level driver control testing
  * @note    The routine has internal infinite loop
  * @note    Changing raw values of pwm dutycycle
@@ -141,140 +135,29 @@ void testUARTControl( void );
  */
 void testLightRoutine( void ); 
 
-/*============================================================================*/
-/* GUI tests                                                                  */
-/*============================================================================*/
-
 /**
- * @brief   Test GUI with odometry
-*/
-void testGUIRoutineServer ( void );
-
-/*============================================================================*/
-/* ROS tests                                                                  */
-/*============================================================================*/
-
-/**
- * @brief   Test odometry via ROS
- * @note    Frequency = 50 Hz
-*/
-void testRoutineROSOdometry( void );
-
-/**
- * @brief   Test odometry, speed and steering control via ROS
- * @note    Frequency = 50 Hz
-*/
-void testRosRoutineControl( void );
-
-/**
-* @brief    Test start button routine 
-*/
+ * @brief   Test button click state changing module 
+ */
 void testButtonRoutine( void );
 
 /**
- * @brief   ADC calibration process
- * @note    Frequency = 50 Hz
-*/
-void testRosRoutineADCCalib( void );
+ * @brief   Test GUI (Android) connection via sending data to serial-mproto and showing on Android device
+ */
+void testGUIRoutineServer ( void );
 
+/**
+ * @brief   Test link (serial - mproto) connection setting CS values and showing all info about car
+ */
+void testLinkControl( void );
 
+/**
+ * @brief   Test link (serial - mproto) connection setting raw PWM values and representing raw ADC values
+ */
+void testLinkADCCalib( void );
 
-static inline void testsRoutines( void )
-{
-#if (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS_ADC_CALIB)
-
-    testRosRoutineADCCalib();
-
-#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS)
-
-    testROSConnection( );
-
-#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LL_DRIVER)
-
-    testWheelsControlRoutines( );
-
-#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RAW_LL_DRIVE)
-
-    testRawWheelsControlRoutine( );
-
-#elif (MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_LIMIT_CALIB )
-
-    testSpeedLimitsCalibrationRoutine( );
-
-#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ENCODER )
-
-    testEncoderCommonRoutine( );
-
-#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RC )
-
-    testRemoteControlRoutine( );
-
-#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ODOMETRY )
-
-    testOdometryRoutine( );
-
-#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_ODOMETRY_RC )
-
-    testRCOdodmetry( ); 
-
-#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_X_DIST_ODOMETRY )
-
-    testXdistanceOdometry( );
-
-#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_RESET_ODOMETRY )
-
-    testResetOdometryRoutine( );
-
-#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEER_ANGL_SEND )
-
-    testSteerAngleSendData( );
-
-#elif ( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_GUI_SERVER )
-
-    testGUIRoutineServer( );
-
-#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS_ODOMETRY )
-
-    testRoutineROSOdometry( );
-
-#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ROS_CONTROL )
-
-    testRosRoutineControl( );
-
-#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_STEERING_CS )
-
-    testSteeringCS( );
-
-#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_CS )
-
-    testSpeedCS( );
-
-#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_SPEED_FILTER )
-
-    testSpeedFilter( );
-
-#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_UART_CS)
-
-    testUARTControl( );
-
-#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_ESC_CALIBRATION )
-
-    testDrivingWheelsESCCalibration( );
-
-
-#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_BUTTON_STATE)
-
-    testButtonRoutine( );
-
-#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LIGHT )
-
-    testLightRoutine( );
-
-#elif( MAIN_PROGRAM_ROUTINE == PROGRAM_ROUTINE_TEST_LED_MATRIX )
-
-    testLedMatrixRoutine( );
-
-#endif
-}
+/**
+ * @brief   Test link (serial - mproto) connection sending some sample bytes
+ */
+void testLinkConnection( void );
 
 #endif /* INCLUDE_TESTS_H_ */

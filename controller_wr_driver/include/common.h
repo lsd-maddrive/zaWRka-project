@@ -16,7 +16,6 @@ extern "C" {
 /***    DRIVE CONTROL RELATED           ***/
 #define     PROGRAM_ROUTINE_TEST_LL_DRIVER              1
 #define     PROGRAM_ROUTINE_TEST_RAW_LL_DRIVE           2
-#define     PROGRAM_ROUTINE_TEST_ESC_CALIBRATION        3
 /***    ENCODER / ODOMETRY RELATED      ***/
 #define     PROGRAM_ROUTINE_TEST_ENCODER                4
 #define     PROGRAM_ROUTINE_TEST_ODOMETRY               5
@@ -40,15 +39,12 @@ extern "C" {
 #define		PROGRAM_ROUTINE_TEST_LED_MATRIX				19
 /***    BUTTON RELATED                  ***/
 #define     PROGRAM_ROUTINE_TEST_BUTTON_STATE           20
-/***    ROS RELATED                     ***/
-#define     PROGRAM_ROUTINE_TEST_ROS_ODOMETRY           30
-#define     PROGRAM_ROUTINE_TEST_ROS_CONTROL            35
-#define     PROGRAM_ROUTINE_TEST_GUI_SERVER             40
-#define     PROGRAM_ROUTINE_TEST_ROS                    60
-#define     PROGRAM_ROUTINE_TEST_ROS_ADC_CALIB          61
+/***    LINK RELATED                     ***/
+#define     PROGRAM_ROUTINE_TEST_LINK_CONTROL           61
+#define     PROGRAM_ROUTINE_TEST_LINK                   62
+#define     PROGRAM_ROUTINE_TEST_LINK_ADC_CALIB         63
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_MASTER
-
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_LINK_CONTROL
 
 /*============================================================================*/
 /* MACROS 																	  */

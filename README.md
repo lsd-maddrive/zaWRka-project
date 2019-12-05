@@ -69,28 +69,16 @@
 - [wr8_software/rviz](wr8_software/rviz) - сохраненные параметры представлений Rviz
 - [wr8_software/scripts](wr8_software/scripts) - папка со скриптами для Python
 
-## How to work on kinect?
+## How to work on kinetic?
 
 - `teb_local_planner` must be checkouted to `kinetic-devel`
 
 ## How to work on real robot?
 
-1) Установите переменные [*или проверьте, что они уже стоят*] на целевой машине (компьютере на заварке) и рабочей машине (вашей) переменные `ROS_IP` и `ROS_MASTER_URI`:
-    - `ROS_IP` - указывается IP машины (на целевой машине - IP компьютера на заварке, на рабочей машине - IP самой машины).
-    - `ROS_MASTER_URI` - URI строка с указание IP адреса машины, на которой работает мастер, и порта 11311.
+1) На целевой машине (заварке) запустите (через `source`) скрипт `setup_me_master.sh`.
+2) На инструментальной машине (компьютере) запустите (через `source`) скрипт `setup_nuc_master.sh` (если работаете на NUC).
 
-    Установленные переменные должны иметь следующий вид (пример):
-    ```bash
-    # Если у вас на компе IP (проверьте через `ifconfig`) - 10.139.0.147, а на заварке работает мастер и IP - 10.139.0.189, то переменные должны стоять следующим образом:
-    ROS_IP=10.139.0.147
-    ROS_MASTER_URI=http://10.139.0.189:11311
-
-    # Для компа, на котором вертится мастер, переменные имеют похожий вид:
-    ROS_IP=10.139.0.189
-    ROS_MASTER_URI=http://10.139.0.189:11311
-    ```
-
-2) Запустите основные компоненты скриптом `wr8_software/base_start.launch`, это запускает:
+3) Запустите основные компоненты скриптом `wr8_software/base_start.launch`, это запускает:
     - аргумент `uc` - связь с контроллером
     - аргумент `lidar` - драйвер лидара
     - аргумент `solver` - решатель лабиринта (применяется только на соревнованиях)
@@ -110,12 +98,3 @@
 [Форум, посвящённый вопросам по регламенту](http://russianrobotics.ru/competition/autonet/autonet-18/)
 
 [Список участников](https://docs.google.com/spreadsheets/d/e/2PACX-1vQQ2zzrAAbFCBXrUEgEfghzuqSvDOwywB9XMI6uXnDfj5rw4qsn_r54UXMksgU4Eq0onv_xA9ydmw2O/pubhtml?gid=363203216&single=true)
-
-Полезные ссылки:
-* [F767ZI Reference manual (RM)](http://www.st.com/content/ccc/resource/technical/document/reference_manual/group0/96/8b/0d/ec/16/22/43/71/DM00224583/files/DM00224583.pdf/jcr:content/translations/en.DM00224583.pdf)
-* [F767ZI Datasheet (DS)](http://www.st.com/content/ccc/resource/technical/document/datasheet/group3/c5/37/9c/1d/a6/09/4e/1a/DM00273119/files/DM00273119.pdf/jcr:content/translations/en.DM00273119.pdf)
-* [F767ZI Nucleo pinout](https://os.mbed.com/platforms/ST-Nucleo-F767ZI/)
----
-* [F767ZI Alternate functions](http://www.st.com/content/ccc/resource/technical/document/datasheet/group3/c5/37/9c/1d/a6/09/4e/1a/DM00273119/files/DM00273119.pdf/jcr:content/translations/en.DM00273119.pdf#page=89)
-* [F767ZI Pins assignment (+analogs)](http://www.st.com/content/ccc/resource/technical/document/datasheet/group3/c5/37/9c/1d/a6/09/4e/1a/DM00273119/files/DM00273119.pdf/jcr:content/translations/en.DM00273119.pdf#page=65)
-* [F767ZI Timer triggers](http://www.st.com/content/ccc/resource/technical/document/reference_manual/group0/96/8b/0d/ec/16/22/43/71/DM00224583/files/DM00224583.pdf/jcr:content/translations/en.DM00224583.pdf#page=452)

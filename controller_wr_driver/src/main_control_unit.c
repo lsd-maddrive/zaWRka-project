@@ -6,12 +6,12 @@
 #include <remote_control.h>
 #include <lld_light.h>
 
-#include <ros_protos.h>
+#include "link_def.h"
 
 
 #define VT_ROS_CHECK_PERIOD_MS     500
 
-virtual_timer_t         ros_check_vt;
+virtual_timer_t         link_check_vt;
 
 #define VT_IDLE_MS                  10
 #define VT_WAIT_MS                  10
@@ -21,8 +21,8 @@ systime_t               time_checker_vt = 0;
 
 //system_state            state_now      = IDLE;
 
-float                   ros_steer_control   = 0;
-float                   ros_speed_control   = 0;
+float                   _steer_control   = 0;
+float                   _speed_control   = 0;
 
 odometryValue_t         x_pos          = 0;
 odometryValue_t         y_pos          = 0;
@@ -39,26 +39,26 @@ float                   odom_speed_lpf_mps  = 0;
  * Check if ROS is spamming with control values,
  * if not, stops the car
  */
-static void is_ros_dead_cb( void *arg )
+static void link_dead_cb( void *arg )
 {
     arg = arg;  // to avoid warnings
 
-    ros_speed_control = 0;
-    ros_steer_control = 0;
+    _speed_control = 0;
+    _steer_control = 0;
 
     dbgprintf( "ROS is dead!\n\r", time_checker_vt);
 }
 
-void ros_is_alive( void )
+void link_alive( void )
 {
-    chVTSet( &ros_check_vt, MS2ST( VT_ROS_CHECK_PERIOD_MS ), is_ros_dead_cb, NULL );
+    chVTSet( &link_check_vt, MS2ST( VT_ROS_CHECK_PERIOD_MS ), link_dead_cb, NULL );
 }
 
-void ros_control_handler( float speed, float steer )
+void _control_handler( float speed, float steer )
 {
-    ros_speed_control = speed;
-    ros_steer_control = steer;
-    ros_is_alive( );
+    _speed_control = speed;
+    _steer_control = steer;
+    link_alive( );
 }
 
 static THD_WORKING_AREA(waStateSender, 128); // 128 - stack size
@@ -69,7 +69,7 @@ static THD_FUNCTION(StateSender, arg)
     while(1)
     {
         system_state state_now  = lldGetSystemState( );
-        ros_driver_send_state( state_now );
+        mproto_driver_send_state( state_now );
 
         chThdSleepMilliseconds( 200 );
     }
@@ -87,27 +87,18 @@ void mainUnitsInit( void )
     remoteControlInit( NORMALPRIO );
     lldLightInit( NORMALPRIO - 1 );
 
-    ros_driver_cb_ctx_t cb_ctx      = ros_driver_get_new_cb_ctx();
-    cb_ctx.cmd_cb                   = ros_control_handler;
+    mproto_driver_cb_ctx_t cb_ctx   = mproto_driver_get_new_cb_ctx();
+    cb_ctx.cmd_cb                   = _control_handler;
     cb_ctx.reset_odometry_cb        = lldResetOdometry;
-    cb_ctx.set_odom_params_cb       = lldOdometrySetCorrectionRates;
 
-    ros_driver_init( NORMALPRIO, &cb_ctx );
+    mproto_driver_init( NORMALPRIO, &cb_ctx );
 
     chThdCreateStatic(waStateSender, sizeof(waStateSender), NORMALPRIO - 1, StateSender, NULL);
 
-    chVTObjectInit(&ros_check_vt);
+    chVTObjectInit(&link_check_vt);
 
     dbgprintf( "INIT done!\n\r");
 }
-
-void setRosControl( void )
-{
-    driveSteerCSSetPosition( ros_steer_control );
-    driveSpeedCSSetSpeed( ros_speed_control );
-
-}
-
 
 void sendOdometryToRos( void )
 {
@@ -121,7 +112,7 @@ void sendOdometryToRos( void )
     y_pos          = lldGetOdometryObjY( OBJ_DIST_M );
     tetta_deg      = lldGetOdometryObjTettaDeg( );
 
-    ros_driver_send_pose( x_pos, y_pos, tetta_deg, speed_mps, speed_radps );
+    mproto_driver_send_pose( x_pos, y_pos, tetta_deg, speed_mps, speed_radps );
 }
 
 #define SHOW_PERIOD 20
@@ -142,8 +133,8 @@ void mainControlTask( void )
         system_state state_now  = lldGetSystemState( );
 
         sendOdometryToRos( );
-        ros_driver_send_steering( lldGetSteerAngleDeg() );
-        ros_driver_send_encoder_raw( lldGetEncoderRawRevs() );
+        mproto_driver_send_steering( lldGetSteerAngleDeg() );
+        mproto_driver_send_encoder_raw( lldGetEncoderRawRevs() );
 
         if( state_now == IDLE )
         {
@@ -170,14 +161,15 @@ void mainControlTask( void )
             }
             else
             {
-                  driverIsEnableCS( true );
-                  setRosControl( );
-                  // if( print_cntr == SHOW_PERIOD-1 )
-                  // {
-                  //     dbgprintf( "ROS_SP:(%d)\tROS_ST:(%d)\n\r",
-                  //              (int)(ros_speed_control*100), (int)ros_steer_control );
-                  //     print_cntr = 0; 
-                  // }
+                driverIsEnableCS( true );
+                driveSteerCSSetPosition( _steer_control );
+                driveSpeedCSSetSpeed( _speed_control );
+                // if( print_cntr == SHOW_PERIOD-1 )
+                // {
+                //     dbgprintf( "ROS_SP:(%d)\tROS_ST:(%d)\n\r",
+                //              (int)(_speed_control*100), (int)_steer_control );
+                //     print_cntr = 0; 
+                // }
             }
         }
         else if( state_now == RUN )
@@ -189,8 +181,9 @@ void mainControlTask( void )
                 dbgprintf( "RUN\n\r" );
             }
 
-            setRosControl( );
-            lldLightDetectTurnState( ros_steer_control, ros_speed_control, state_now );
+            driveSteerCSSetPosition( _steer_control );
+            driveSpeedCSSetSpeed( _speed_control );
+            lldLightDetectTurnState( _steer_control, _speed_control, state_now );
         }
 
         state_prev = state_now; 
