@@ -117,8 +117,8 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  ${CMAKE_SOURCE_DIR}/../madproto/src
-	${CMAKE_SOURCE_DIR}/../controller_wr_driver/include
+  ${PROJECT_SOURCE_DIR}/../madproto/src
+	${PROJECT_SOURCE_DIR}/../controller_wr_driver/include
 	${catkin_INCLUDE_DIRS}
 )
 
@@ -157,7 +157,7 @@ set(CAMERA_SENSER_NODE_SRC src/action_cam.cpp)
 
 
 set(UC_ROS_LINK_NODE_NAME uc_ros_link)
-set(UC_ROS_LINK_NODE_SRC src/uc_ros_link.cpp ${CMAKE_SOURCE_DIR}/../madproto/src/mproto.c)
+set(UC_ROS_LINK_NODE_SRC src/uc_ros_link.cpp ${PROJECT_SOURCE_DIR}/../madproto/src/mproto.c)
 
 add_executable(${UC_ROS_LINK_NODE_NAME} ${UC_ROS_LINK_NODE_SRC})
 target_link_libraries(${UC_ROS_LINK_NODE_NAME}
