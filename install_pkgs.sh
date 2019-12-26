@@ -27,6 +27,9 @@ sudo apt install ros-$ROS_DISTRO-base-local-planner \
 					ros-$ROS_DISTRO-gmapping \
 					ros-$ROS_DISTRO-camera-info-manager \
 					ros-$ROS_DISTRO-roslint \
+					ros-$ROS_DISTRO-image-view \
+					ros-$ROS_DISTRO-uvc-camera \
+					ros-$ROS_DISTRO-usb-cam \
 					libsuitesparse-dev 
 
 
