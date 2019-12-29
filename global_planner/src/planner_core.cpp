@@ -135,6 +135,7 @@ void GlobalPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap,
 
         plan_pub_ = private_nh.advertise<nav_msgs::Path>("plan", 1);
         potential_pub_ = private_nh.advertise<nav_msgs::OccupancyGrid>("potential", 1);
+        waypoint_sub_ = private_nh.subscribe("/clicked_point", 100, &GlobalPlanner::waypointCallback, this);
 
         private_nh.param("allow_unknown", allow_unknown_, true);
         planner_->setHasUnknown(allow_unknown_);
@@ -208,14 +209,13 @@ bool GlobalPlanner::worldToMap(double wx, double wy, double& mx, double& my) {
 
 bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
                            std::vector<geometry_msgs::PoseStamped>& plan) {
-    ROS_INFO("Kek, it's work! 1");
     return makePlan(start, goal, default_tolerance_, plan);
 }
 
 bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
                            double tolerance, std::vector<geometry_msgs::PoseStamped>& plan) {
     boost::mutex::scoped_lock lock(mutex_);
-    ROS_INFO("Kek, it's work! 2");
+    ROS_INFO("Kek, it's working! 2");
     if (!initialized_) {
         ROS_ERROR(
                 "This planner has not been initialized yet, but it is being used, please call initialize() before use");
@@ -289,7 +289,7 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
 
     bool found_legal = planner_->calculatePotentials(costmap_->getCharMap(), start_x, start_y, goal_x, goal_y,
                                                     nx * ny * 2, potential_array_);
-
+    ROS_INFO("nx=%f, ny=%f", nx, ny);
     if(!old_navfn_behavior_)
         planner_->clearEndpoint(costmap_->getCharMap(), potential_array_, goal_x_i, goal_y_i, 2);
     if(publish_potential_)
@@ -313,6 +313,26 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
     orientation_filter_->processPath(start, plan);
 
     //publish the plan for visualization purposes
+
+    // Modification here
+    plan.clear();
+    if(waypoints_.empty())
+    {
+        plan.push_back(start);
+        plan.push_back(goal);
+    }
+    else
+    {
+        plan.push_back(start);
+        plan.push_back(waypoints_.back());
+        plan.push_back(goal);
+    }
+    for(auto it = plan.begin(); it < plan.end(); it++)
+    {
+        ROS_INFO("it is %f / %f", it->pose.position.x, it->pose.position.y);
+    }
+    // Modification here
+
     publishPlan(plan);
     delete potential_array_;
     return !plan.empty();
@@ -425,6 +445,17 @@ void GlobalPlanner::publishPotential(float* potential)
             grid.data[i] = potential_array_[i] * publish_scale_ / max;
     }
     potential_pub_.publish(grid);
+}
+
+void GlobalPlanner::waypointCallback(const geometry_msgs::PointStamped::ConstPtr& waypoint)
+{
+    ROS_INFO("Point detected!");
+    if(waypoints_.empty())
+    {
+        waypoints_.push_back(geometry_msgs::PoseStamped());
+    }
+    waypoints_.back().header = waypoint->header;
+    waypoints_.back().pose.position = waypoint->point;
 }
 
 } //end namespace global_planner

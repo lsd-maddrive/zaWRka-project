@@ -41,6 +41,7 @@
 #include <ros/ros.h>
 #include <costmap_2d/costmap_2d.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/Point.h>
 #include <nav_msgs/Path.h>
 #include <vector>
@@ -202,6 +203,10 @@ class GlobalPlanner : public nav_core::BaseGlobalPlanner {
 
         dynamic_reconfigure::Server<global_planner::GlobalPlannerConfig> *dsrv_;
         void reconfigureCB(global_planner::GlobalPlannerConfig &config, uint32_t level);
+
+        ros::Subscriber waypoint_sub_;                        //!< subscriber of manually inserted waypoints
+        std::vector<geometry_msgs::PoseStamped> waypoints_;   //!< container for the manually inserted waypoints
+        void waypointCallback(const geometry_msgs::PointStamped::ConstPtr& waypoint);
 
 };
 
