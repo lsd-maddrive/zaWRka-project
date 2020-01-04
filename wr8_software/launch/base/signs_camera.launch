@@ -15,9 +15,12 @@
 		<param name="camera_frame_id" value="$(arg frame_id)" />
 		<param name="io_method" value="mmap"/>
 		<param name="framerate" value="30"/>
+		<param name="autoexposure" value="true"/>
+		<!-- <param name="exposure" value="500"/> -->
+		<param name="gain" value="4"/>
 	</node>
 
-    <!-- <node pkg="robofest_nuc" type="action_cam_driver.py" name="action_cam_driver" output="screen" respawn="true"> 
+    <!-- <node pkg="robofest_nuc" type="action_cam_driver.py" name="action_cam_driver" output="screen" respawn="true">
     	<remap from="image_raw" to="$(arg frame_id)/image_raw" />
     	<remap from="image_raw/compressed" to="$(arg frame_id)/image_raw/compressed" />
     </node> -->
