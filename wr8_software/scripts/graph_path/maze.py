@@ -25,6 +25,9 @@ class Point:
     def __str__(self):
         return '[{}; {}]'.format(self.x, self.y)
 
+    def __repr__(self):
+        return '[{}; {}]'.format(self.x, self.y)
+
     def __add__(self, other):
         return Point(self.x + other.x, self.y + other.y)
 
@@ -189,14 +192,21 @@ class Node:
 
 
     def setMainNode(self):
-        self.idx            = Node.node_idx_cntr
+        self.idx = Node.node_idx_cntr
         Node.node_idx_cntr  += 1
+
+    def update_state(self):
+        neig_sum = sum(self.map_neighbours)
+
+        if neig_sum == 2 and \
+            ((self.map_neighbours[0] + self.map_neighbours[2] == 2) or \
+             (self.map_neighbours[1] + self.map_neighbours[3] == 2)):
+            return
+
+        self.setMainNode()
 
 
 class Maze:
-
-    START_NODE_ID   = 1
-    END_NODE_ID     = 2
 
     def __init__(self, structure):
         self.height, self.width = structure.shape
@@ -208,6 +218,8 @@ class Maze:
         self.node_cntr = 0
 
         self.screen = None
+
+        self.new_nodes_list = {}
 
         for x in range(self.height):
             for y in range(self.width):
@@ -224,39 +236,37 @@ class Maze:
                         if neighbour is not None and self.is_element_vacant(neighbour):
                             node.map_neighbours[i] = 1
 
-                        # if self.is_element_vacant(neighbour):
-                        #     drctn = node.getSrcDir(neighbour_pnt, point)
-                        #     if drctn is None:
-                        #         print('Fault')
+                    node.update_state()
+                    self.edges[point] = node
 
-                    if elem == Maze.START_NODE_ID:
-                        self.start_node = node
-                        self.nodes[point] = node
-                        node.setMainNode()
-                        continue
+        node_points = list(self.edges.keys())
+        first_node = None
+        for i_p in range(1, len(self.edges.keys())):
+            prv_pnt = node_points[i_p-1]
+            cur_pnt = node_points[i_p]
 
-                    if elem == Maze.END_NODE_ID:
-                        self.end_node   = node
-                        self.nodes[point] = node
-                        node.setMainNode()
-                        continue
+            diff_pnt = cur_pnt - prv_pnt
+            for to_dir in to_directions:
+                if diff_pnt == to_dir:
+                    first_node = (prv_pnt, to_dir)
+                    break
 
-                    if sum(node.map_neighbours) == 2 and \
-                        ((node.map_neighbours[0] == 1 and node.map_neighbours[2] == 1) or \
-                            (node.map_neighbours[1] == 1 and node.map_neighbours[3] == 1)):
-                        self.edges[point] = node
-                    else:
-                        self.nodes[point] = node
-                        node.setMainNode()
+            if first_node is not None:
+                break
 
-        self.new_nodes_list = {}
+        if first_node is None:
+            raise('Invalid value!')
+
+        first_pnt, to_dir = first_node
+        print('Start with: {} -> {}'.format(first_pnt, to_dir))
+        self._update_neighbours(first_pnt + to_dir, to_dir)       
 
     # Convert to extended nodes
-    def getDirNeighbours(self, pnt, fromDirPnt):
+    def _update_neighbours(self, pnt, fromDirPnt):
 
         if pnt in self.edges:
-            # print('Edge found, skip it from {} to {}'.format(pnt, pnt + fromDirPnt))
-            return self.getDirNeighbours(pnt + fromDirPnt, fromDirPnt)
+            print('Edge found, skip it from {} to {}'.format(pnt, pnt + fromDirPnt))
+            return self._update_neighbours(pnt + fromDirPnt, fromDirPnt)
 
         currNode = self.nodes[pnt]
 
@@ -287,21 +297,21 @@ class Maze:
         rightDir = self.getRightDirPnt(fromDirPnt)
         nextPnt = pnt + rightDir
         if self.isPntValid(nextPnt):
-            newNode.dirNeighbours[0] = self.getDirNeighbours(nextPnt, rightDir)
+            newNode.dirNeighbours[0] = self._update_neighbours(nextPnt, rightDir)
         else:
             newNode.dirNeighbours[0] = None
 
         forwardDir = self.getForwardDirPnt(fromDirPnt)
         nextPnt = pnt + forwardDir
         if self.isPntValid(nextPnt):
-            newNode.dirNeighbours[1] = self.getDirNeighbours(nextPnt, forwardDir)
+            newNode.dirNeighbours[1] = self._update_neighbours(nextPnt, forwardDir)
         else:
             newNode.dirNeighbours[1] = None
 
         leftDir = self.getLeftDirPnt(fromDirPnt)
         nextPnt = pnt + leftDir
         if self.isPntValid(nextPnt):
-            newNode.dirNeighbours[2] = self.getDirNeighbours(nextPnt, leftDir)
+            newNode.dirNeighbours[2] = self._update_neighbours(nextPnt, leftDir)
         else:
             newNode.dirNeighbours[2] = None
 
@@ -328,8 +338,6 @@ class Maze:
 
         # for elem in self.new_nodes_list:
             # self.new_nodes_list[elem].show_info()
-
-
 
     def is_element_vacant(self, elem):
         if elem == 0 or elem == 1 or elem == 2:
@@ -423,3 +431,16 @@ class Maze:
 
         # Render possible directions
 
+
+if __name__ == "__main__":
+    structure = [[0, 0, 0, 0, 0, 0, 0],
+                 [0, 8, 0, 8, 0, 8, 0],
+                 [0, 8, 0, 8, 0, 0, 0],
+                 [0, 0, 0, 0, 0, 8, 8],
+                 [0, 8, 0, 8, 0, 8, 8],
+                 [0, 8, 0, 8, 0, 0, 2],
+                 [1, 8, 0, 0, 0, 8, 8]]
+    structure = np.array(structure, np.uint8)
+    self.maze = Maze(structure)
+
+    print('Done')
