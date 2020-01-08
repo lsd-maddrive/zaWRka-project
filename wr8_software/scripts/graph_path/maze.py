@@ -15,6 +15,9 @@ class Point:
     def get_array(self):
         return np.array([self.x, self.y])
 
+    def invert_direction(self):
+        return Point(-self.x, -self.y)
+
     # local TF -> ROS: (x1, y1) = (2*y, -2*x)
     # ROS -> local TF: (x, y) = (-y1/2, x1/2)
     def get_ros_point(self):
@@ -190,6 +193,11 @@ class Node:
         # else:
             # print('  Neighbour L: None')
 
+    def is_main(self):
+        return self.idx >= 0
+
+    def has_only_way(self):
+        return sum(self.map_neighbours) == 1
 
     def setMainNode(self):
         self.idx = Node.node_idx_cntr
@@ -237,28 +245,19 @@ class Maze:
                             node.map_neighbours[i] = 1
 
                     node.update_state()
-                    self.edges[point] = node
+                    # print('Value for point: {} / {} / {}'.format(point, node.map_neighbours, node.is_main()))
+                    if node.is_main():
+                        self.nodes[point] = node
+                    else:
+                        self.edges[point] = node
 
-        node_points = list(self.edges.keys())
-        first_node = None
-        for i_p in range(1, len(self.edges.keys())):
-            prv_pnt = node_points[i_p-1]
-            cur_pnt = node_points[i_p]
+        node_points = list(self.nodes.keys())
+        first_node = self.nodes[node_points[0]]
 
-            diff_pnt = cur_pnt - prv_pnt
-            for to_dir in to_directions:
-                if diff_pnt == to_dir:
-                    first_node = (prv_pnt, to_dir)
-                    break
+        nonzero_index = first_node.map_neighbours.index(filter(lambda x: x!=0, first_node.map_neighbours)[0])
 
-            if first_node is not None:
-                break
-
-        if first_node is None:
-            raise('Invalid value!')
-
-        first_pnt, to_dir = first_node
-        print('Start with: {} -> {}'.format(first_pnt, to_dir))
+        first_pnt, to_dir = first_node.coord, to_directions[nonzero_index]
+        # print('Start with: {} -> {}'.format(first_pnt, to_dir))
         self._update_neighbours(first_pnt + to_dir, to_dir)       
 
     # Convert to extended nodes
@@ -270,11 +269,8 @@ class Maze:
 
         currNode = self.nodes[pnt]
 
-        if currNode == self.start_node:
-            return None
-
         fromDirLtr = getLetterFromDirPnt(fromDirPnt)
-        # print('Node "{}" //{}" found on {}'.format(currNode, fromDirLtr, pnt))
+        print('Node "{} / {}" found on {}'.format(currNode, fromDirLtr, pnt))
         
         newPntDir = PointDir(pnt.x, pnt.y, fromDirLtr)
         
@@ -285,12 +281,6 @@ class Maze:
         newNode = Node(pnt)
         newNode.idx = currNode.idx
         newNode.dirLetr = fromDirLtr
-
-        # Update target node definition
-        if newNode.idx == self.end_node.idx:
-            self.end_node = newNode
-
-        # time.sleep(2)
 
         self.new_nodes_list[newPntDir] = newNode
 
@@ -314,6 +304,10 @@ class Maze:
             newNode.dirNeighbours[2] = self._update_neighbours(nextPnt, leftDir)
         else:
             newNode.dirNeighbours[2] = None
+
+        if all(v is None for v in newNode.dirNeighbours):
+            # No return as we start new stream back
+            self._update_neighbours(pnt, fromDirPnt.invert_direction())
 
         return newNode
 
@@ -441,6 +435,6 @@ if __name__ == "__main__":
                  [0, 8, 0, 8, 0, 0, 2],
                  [1, 8, 0, 0, 0, 8, 8]]
     structure = np.array(structure, np.uint8)
-    self.maze = Maze(structure)
+    maze = Maze(structure)
 
     print('Done')
