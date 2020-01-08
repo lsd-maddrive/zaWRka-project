@@ -171,25 +171,25 @@ class Node:
         return hash((self.idx, self.dirLetr))
 
     def show_info(self):
-        print('id: {}/{}:'.format(self.idx, self.dirLetr))
+        print('id: {}/{}/{}:'.format(self.idx, self.dirLetr, self.coord))
         
         nghbr = self.dirNeighbours[0]
         if nghbr:
-            print('  Neighbour R: {}/{}'.format(nghbr.idx, nghbr.dirLetr))
+            print('  Neighbour R: {}/{}/{}'.format(nghbr.idx, nghbr.dirLetr, nghbr.coord))
         # else:
             # print('  Neighbour R: None')
 
         
         nghbr = self.dirNeighbours[1]
         if nghbr:
-            print('  Neighbour F: {}/{}'.format(nghbr.idx, nghbr.dirLetr))
+            print('  Neighbour F: {}/{}/{}'.format(nghbr.idx, nghbr.dirLetr, nghbr.coord))
         # else:
             # print('  Neighbour F: None')
 
         
         nghbr = self.dirNeighbours[2]
         if nghbr:
-            print('  Neighbour L: {}/{}'.format(nghbr.idx, nghbr.dirLetr))
+            print('  Neighbour L: {}/{}/{}'.format(nghbr.idx, nghbr.dirLetr, nghbr.coord))
         # else:
             # print('  Neighbour L: None')
 
@@ -260,6 +260,11 @@ class Maze:
         # print('Start with: {} -> {}'.format(first_pnt, to_dir))
         self._update_neighbours(first_pnt + to_dir, to_dir)       
 
+
+        for elem in self.new_nodes_list:
+            self.new_nodes_list[elem].show_info()
+
+
     # Convert to extended nodes
     def _update_neighbours(self, pnt, fromDirPnt):
 
@@ -326,12 +331,6 @@ class Maze:
 
     def calcHeuristic(self, nextNode):
         return getManhattanDistance(nextNode, self.end_node)
-
-    def nextPreprocessing(self):
-        self.start_node.dirNeighbours[1] = self.getDirNeighbours(self.start_node.coord + to_directions[0], to_directions[0])
-
-        # for elem in self.new_nodes_list:
-            # self.new_nodes_list[elem].show_info()
 
     def is_element_vacant(self, elem):
         if elem == 0 or elem == 1 or elem == 2:
@@ -432,8 +431,8 @@ if __name__ == "__main__":
                  [0, 8, 0, 8, 0, 0, 0],
                  [0, 0, 0, 0, 0, 8, 8],
                  [0, 8, 0, 8, 0, 8, 8],
-                 [0, 8, 0, 8, 0, 0, 2],
-                 [1, 8, 0, 0, 0, 8, 8]]
+                 [0, 8, 0, 8, 0, 0, 0],
+                 [0, 8, 0, 0, 0, 8, 8]]
     structure = np.array(structure, np.uint8)
     maze = Maze(structure)
 
