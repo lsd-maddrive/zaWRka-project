@@ -289,26 +289,14 @@ class Maze:
 
         self.new_nodes_list[newPntDir] = newNode
 
-        rightDir = self.getRightDirPnt(fromDirPnt)
-        nextPnt = pnt + rightDir
-        if self.isPntValid(nextPnt):
-            newNode.dirNeighbours[0] = self._update_neighbours(nextPnt, rightDir)
-        else:
-            newNode.dirNeighbours[0] = None
-
-        forwardDir = self.getForwardDirPnt(fromDirPnt)
-        nextPnt = pnt + forwardDir
-        if self.isPntValid(nextPnt):
-            newNode.dirNeighbours[1] = self._update_neighbours(nextPnt, forwardDir)
-        else:
-            newNode.dirNeighbours[1] = None
-
-        leftDir = self.getLeftDirPnt(fromDirPnt)
-        nextPnt = pnt + leftDir
-        if self.isPntValid(nextPnt):
-            newNode.dirNeighbours[2] = self._update_neighbours(nextPnt, leftDir)
-        else:
-            newNode.dirNeighbours[2] = None
+        # Right, Forward, Left
+        direction_pnts = self.get_direction_points(fromDirPnt)
+        for i, dir_pnt in enumerate(direction_pnts):
+            nextPnt = pnt + dir_pnt
+            if self.isPntValid(nextPnt):
+                newNode.dirNeighbours[i] = self._update_neighbours(nextPnt, dir_pnt)
+            else:
+                newNode.dirNeighbours[i] = None
 
         if all(v is None for v in newNode.dirNeighbours):
             # No return as we start new stream back
@@ -316,18 +304,8 @@ class Maze:
 
         return newNode
 
-
-    def getRightDirPnt(self, fromDirPnt):
-        toDirPnt = Point(fromDirPnt.y, -fromDirPnt.x)
-        return toDirPnt
-
-    def getLeftDirPnt(self, fromDirPnt):
-        toDirPnt = Point(-fromDirPnt.y, fromDirPnt.x)
-        return toDirPnt
-
-    def getForwardDirPnt(self, fromDirPnt):
-        toDirPnt = fromDirPnt
-        return toDirPnt
+    def get_direction_points(self, fromDirPnt):
+        return [Point(fromDirPnt.y, -fromDirPnt.x), fromDirPnt, Point(-fromDirPnt.y, fromDirPnt.x)]
 
     def calcHeuristic(self, nextNode):
         return getManhattanDistance(nextNode, self.end_node)
@@ -409,10 +387,10 @@ class Maze:
             coord = pnt.get_array()
             rect = render_get_cell_rect(coord, self)
 
-            if self.nodes[pnt] == self.start_node or self.nodes[pnt] == self.end_node:
-                self.screen.fill(cell_colors[2], rect)
-            else:
-                self.screen.fill(cell_colors[1], rect)
+            #if self.nodes[pnt] == self.start_node or self.nodes[pnt] == self.end_node:
+            #    self.screen.fill(cell_colors[2], rect)
+            #else:
+            self.screen.fill(cell_colors[1], rect)
 
             text = font.render("{}".format(self.nodes[pnt].idx), True, (0, 0, 0))
             text_rect = text.get_rect()
@@ -426,6 +404,8 @@ class Maze:
 
 
 if __name__ == "__main__":
+    pygame.init()
+
     structure = [[0, 0, 0, 0, 0, 0, 0],
                  [0, 8, 0, 8, 0, 8, 0],
                  [0, 8, 0, 8, 0, 0, 0],
@@ -435,5 +415,9 @@ if __name__ == "__main__":
                  [0, 8, 0, 0, 0, 8, 8]]
     structure = np.array(structure, np.uint8)
     maze = Maze(structure)
+
+    maze.render_maze()
+
+    time.sleep(3)
 
     print('Done')
