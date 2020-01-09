@@ -35,33 +35,51 @@
  * Author: Eitan Marder-Eppstein
  *         David V. Lu!!
  *********************************************************************/
-#ifndef _TRACEBACK_H
-#define _TRACEBACK_H
-#include<vector>
-#include<global_planner/potential_calculator.h>
+#include <global_planner/grid_path.h>
+#include <algorithm>
+#include <stdio.h>
+namespace wp_global_planner {
 
-namespace global_planner {
+bool GridPath::getPath(float* potential, double start_x, double start_y, double end_x, double end_y, std::vector<std::pair<float, float> >& path) {
+    std::pair<float, float> current;
+    current.first = end_x;
+    current.second = end_y;
 
-class Traceback {
-    public:
-        Traceback(PotentialCalculator* p_calc) : p_calc_(p_calc) {}
+    int start_index = getIndex(start_x, start_y);
 
-        virtual bool getPath(float* potential, double start_x, double start_y, double end_x, double end_y, std::vector<std::pair<float, float> >& path) = 0;
-        virtual void setSize(int xs, int ys) {
-            xs_ = xs;
-            ys_ = ys;
+    path.push_back(current);
+    int c = 0;
+    int ns = xs_ * ys_;
+    
+    while (getIndex(current.first, current.second) != start_index) {
+        float min_val = 1e10;
+        int min_x = 0, min_y = 0;
+        for (int xd = -1; xd <= 1; xd++) {
+            for (int yd = -1; yd <= 1; yd++) {
+                if (xd == 0 && yd == 0)
+                    continue;
+                int x = current.first + xd, y = current.second + yd;
+                int index = getIndex(x, y);
+                if (potential[index] < min_val) {
+                    min_val = potential[index];
+                    min_x = x;
+                    min_y = y;
+                }
+            }
         }
-        inline int getIndex(int x, int y) {
-            return x + y * xs_;
+        if (min_x == 0 && min_y == 0)
+            return false;
+        current.first = min_x;
+        current.second = min_y;
+        path.push_back(current);
+        
+        if(c++>ns*4){
+            return false;
         }
-        void setLethalCost(unsigned char lethal_cost) {
-            lethal_cost_ = lethal_cost;
-        }
-    protected:
-        int xs_, ys_;
-        unsigned char lethal_cost_;
-        PotentialCalculator* p_calc_;
-};
 
-} //end namespace global_planner
-#endif
+    }
+    return true;
+}
+
+} //end namespace wp_global_planner
+

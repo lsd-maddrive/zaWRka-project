@@ -40,7 +40,7 @@
 #include <stdio.h>
 #include <global_planner/planner_core.h>
 
-namespace global_planner {
+namespace wp_global_planner {
 
 GradientPath::GradientPath(PotentialCalculator* p_calc) :
         Traceback(p_calc), pathStep_(0.5) {
@@ -311,5 +311,5 @@ float GradientPath::gradCell(float* potential, int n) {
     return norm;
 }
 
-} //end namespace global_planner
+} //end namespace wp_global_planner
 

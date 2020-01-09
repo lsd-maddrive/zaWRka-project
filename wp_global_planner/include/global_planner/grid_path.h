@@ -35,43 +35,18 @@
  * Author: Eitan Marder-Eppstein
  *         David V. Lu!!
  *********************************************************************/
-#ifndef _GRADIENT_PATH_H
-#define _GRADIENT_PATH_H
-
+#ifndef _GRID_PATH_H
+#define _GRID_PATH_H
+#include<vector>
 #include<global_planner/traceback.h>
-#include <math.h>
 
-namespace global_planner {
+namespace wp_global_planner {
 
-class GradientPath : public Traceback {
+class GridPath : public Traceback {
     public:
-        GradientPath(PotentialCalculator* p_calc);
-        ~GradientPath();
-
-        void setSize(int xs, int ys);
-
-        //
-        // Path construction
-        // Find gradient at array points, interpolate path
-        // Use step size of pathStep, usually 0.5 pixel
-        //
-        // Some sanity checks:
-        //  1. Stuck at same index position
-        //  2. Doesn't get near goal
-        //  3. Surrounded by high potentials
-        //
+        GridPath(PotentialCalculator* p_calc): Traceback(p_calc){}
         bool getPath(float* potential, double start_x, double start_y, double end_x, double end_y, std::vector<std::pair<float, float> >& path);
-    private:
-        inline int getNearestPoint(int stc, float dx, float dy) {
-            int pt = stc + (int)round(dx) + (int)(xs_ * round(dy));
-            return std::max(0, std::min(xs_ * ys_ - 1, pt));
-        }
-        float gradCell(float* potential, int n);
-
-        float *gradx_, *grady_; /**< gradient arrays, size of potential array */
-
-        float pathStep_; /**< step size for following gradient */
 };
 
-} //end namespace global_planner
+} //end namespace wp_global_planner
 #endif

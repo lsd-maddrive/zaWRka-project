@@ -35,20 +35,33 @@
  * Author: Eitan Marder-Eppstein
  *         David V. Lu!!
  *********************************************************************/
-#ifndef _QUADRATIC_CALCULATOR_H
-#define _QUADRATIC_CALCULATOR_H
+#ifndef _TRACEBACK_H
+#define _TRACEBACK_H
 #include<vector>
 #include<global_planner/potential_calculator.h>
 
-namespace global_planner {
+namespace wp_global_planner {
 
-class QuadraticCalculator : public PotentialCalculator {
+class Traceback {
     public:
-        QuadraticCalculator(int nx, int ny): PotentialCalculator(nx,ny) {}
+        Traceback(PotentialCalculator* p_calc) : p_calc_(p_calc) {}
 
-        float calculatePotential(float* potential, unsigned char cost, int n, float prev_potential);
+        virtual bool getPath(float* potential, double start_x, double start_y, double end_x, double end_y, std::vector<std::pair<float, float> >& path) = 0;
+        virtual void setSize(int xs, int ys) {
+            xs_ = xs;
+            ys_ = ys;
+        }
+        inline int getIndex(int x, int y) {
+            return x + y * xs_;
+        }
+        void setLethalCost(unsigned char lethal_cost) {
+            lethal_cost_ = lethal_cost;
+        }
+    protected:
+        int xs_, ys_;
+        unsigned char lethal_cost_;
+        PotentialCalculator* p_calc_;
 };
 
-
-} //end namespace global_planner
+} //end namespace wp_global_planner
 #endif

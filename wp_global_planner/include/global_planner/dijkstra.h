@@ -52,7 +52,7 @@
 #define push_next(n) { if (n>=0 && n<ns_ && !pending_[n] && getCost(costs, n)<lethal_cost_ &&    nextEnd_<PRIORITYBUFSIZE){    nextBuffer_[   nextEnd_++]=n; pending_[n]=true; }}
 #define push_over(n) { if (n>=0 && n<ns_ && !pending_[n] && getCost(costs, n)<lethal_cost_ &&    overEnd_<PRIORITYBUFSIZE){    overBuffer_[   overEnd_++]=n; pending_[n]=true; }}
 
-namespace global_planner {
+namespace wp_global_planner {
 class DijkstraExpansion : public Expander {
     public:
         DijkstraExpansion(PotentialCalculator* p_calc, int nx, int ny);
@@ -106,5 +106,5 @@ class DijkstraExpansion : public Expander {
         float priorityIncrement_; /**< priority threshold increment */
 
 };
-} //end namespace global_planner
+} //end namespace wp_global_planner
 #endif

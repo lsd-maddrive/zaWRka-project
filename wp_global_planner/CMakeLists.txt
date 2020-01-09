@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(global_planner)
+project(wp_global_planner)
 
 find_package(catkin REQUIRED
   COMPONENTS

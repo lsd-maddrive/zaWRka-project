@@ -35,51 +35,43 @@
  * Author: Eitan Marder-Eppstein
  *         David V. Lu!!
  *********************************************************************/
-#include <global_planner/grid_path.h>
-#include <algorithm>
-#include <stdio.h>
-namespace global_planner {
+#ifndef _GRADIENT_PATH_H
+#define _GRADIENT_PATH_H
 
-bool GridPath::getPath(float* potential, double start_x, double start_y, double end_x, double end_y, std::vector<std::pair<float, float> >& path) {
-    std::pair<float, float> current;
-    current.first = end_x;
-    current.second = end_y;
+#include<global_planner/traceback.h>
+#include <math.h>
 
-    int start_index = getIndex(start_x, start_y);
+namespace wp_global_planner {
 
-    path.push_back(current);
-    int c = 0;
-    int ns = xs_ * ys_;
-    
-    while (getIndex(current.first, current.second) != start_index) {
-        float min_val = 1e10;
-        int min_x = 0, min_y = 0;
-        for (int xd = -1; xd <= 1; xd++) {
-            for (int yd = -1; yd <= 1; yd++) {
-                if (xd == 0 && yd == 0)
-                    continue;
-                int x = current.first + xd, y = current.second + yd;
-                int index = getIndex(x, y);
-                if (potential[index] < min_val) {
-                    min_val = potential[index];
-                    min_x = x;
-                    min_y = y;
-                }
-            }
+class GradientPath : public Traceback {
+    public:
+        GradientPath(PotentialCalculator* p_calc);
+        ~GradientPath();
+
+        void setSize(int xs, int ys);
+
+        //
+        // Path construction
+        // Find gradient at array points, interpolate path
+        // Use step size of pathStep, usually 0.5 pixel
+        //
+        // Some sanity checks:
+        //  1. Stuck at same index position
+        //  2. Doesn't get near goal
+        //  3. Surrounded by high potentials
+        //
+        bool getPath(float* potential, double start_x, double start_y, double end_x, double end_y, std::vector<std::pair<float, float> >& path);
+    private:
+        inline int getNearestPoint(int stc, float dx, float dy) {
+            int pt = stc + (int)round(dx) + (int)(xs_ * round(dy));
+            return std::max(0, std::min(xs_ * ys_ - 1, pt));
         }
-        if (min_x == 0 && min_y == 0)
-            return false;
-        current.first = min_x;
-        current.second = min_y;
-        path.push_back(current);
-        
-        if(c++>ns*4){
-            return false;
-        }
+        float gradCell(float* potential, int n);
 
-    }
-    return true;
-}
+        float *gradx_, *grady_; /**< gradient arrays, size of potential array */
 
-} //end namespace global_planner
+        float pathStep_; /**< step size for following gradient */
+};
 
+} //end namespace wp_global_planner
+#endif

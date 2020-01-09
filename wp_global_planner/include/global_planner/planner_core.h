@@ -54,7 +54,7 @@
 #include <global_planner/orientation_filter.h>
 #include <global_planner/GlobalPlannerConfig.h>
 
-namespace global_planner {
+namespace wp_global_planner {
 
 class Expander;
 class GridPath;
@@ -64,12 +64,12 @@ class GridPath;
  * @brief Provides a ROS wrapper for the global_planner planner which runs a fast, interpolated navigation function on a costmap.
  */
 
-class GlobalPlanner : public nav_core::BaseGlobalPlanner {
+class WPGlobalPlanner : public nav_core::BaseGlobalPlanner {
     public:
         /**
          * @brief  Default constructor for the PlannerCore object
          */
-        GlobalPlanner();
+        WPGlobalPlanner();
 
         /**
          * @brief  Constructor for the PlannerCore object
@@ -77,12 +77,12 @@ class GlobalPlanner : public nav_core::BaseGlobalPlanner {
          * @param  costmap A pointer to the costmap to use
          * @param  frame_id Frame of the costmap
          */
-        GlobalPlanner(std::string name, costmap_2d::Costmap2D* costmap, std::string frame_id);
+        WPGlobalPlanner(std::string name, costmap_2d::Costmap2D* costmap, std::string frame_id);
 
         /**
          * @brief  Default deconstructor for the PlannerCore object
          */
-        ~GlobalPlanner();
+        ~WPGlobalPlanner();
 
         /**
          * @brief  Initialization function for the PlannerCore object
@@ -210,6 +210,6 @@ class GlobalPlanner : public nav_core::BaseGlobalPlanner {
 
 };
 
-} //end namespace global_planner
+} //end namespace wp_global_planner
 
 #endif

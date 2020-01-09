@@ -7,6 +7,7 @@
   <arg name="odom_topic"   default="odom" />
   <arg name="laser_topic"  default="scan" />
   <arg name="config_dir"   default="config" />
+  <arg name="base_global_planner" default="global_planner/GlobalPlanner" doc="[global_planner/GlobalPlanner, wp_global_planner/WPGlobalPlanner]"/>
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <rosparam file="$(find wr8_software)/$(arg config_dir)/costmap_common_params.yaml" command="load" ns="global_costmap" />
@@ -22,10 +23,8 @@
     <param name="local_costmap/global_frame" value="$(arg global_frame)"/>
     <param name="local_costmap/robot_base_frame" value="$(arg base_frame)"/>
 
-    <param name="base_global_planner" value="global_planner/GlobalPlanner"/>
+    <param name="base_global_planner" value="$(arg base_global_planner)"/>
     <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
-
-    
 
     <remap from="cmd_vel" to="$(arg cmd_topic)"/>
     <remap from="odom" to="$(arg odom_topic)"/>

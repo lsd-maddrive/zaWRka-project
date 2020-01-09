@@ -50,9 +50,9 @@ using std::string;
 using cm::Costmap2D;
 using cm::Costmap2DROS;
 
-namespace global_planner {
+namespace wp_global_planner {
 
-class PlannerWithCostmap : public GlobalPlanner {
+class PlannerWithCostmap : public WPGlobalPlanner {
     public:
         PlannerWithCostmap(string name, Costmap2DROS* cmap);
         bool makePlanService(navfn::MakeNavPlan::Request& req, navfn::MakeNavPlan::Response& resp);
@@ -86,7 +86,7 @@ void PlannerWithCostmap::poseCallback(const rm::PoseStamped::ConstPtr& goal) {
 }
 
 PlannerWithCostmap::PlannerWithCostmap(string name, Costmap2DROS* cmap) :
-        GlobalPlanner(name, cmap->getCostmap(), cmap->getGlobalFrameID()) {
+        WPGlobalPlanner(name, cmap->getCostmap(), cmap->getGlobalFrameID()) {
     ros::NodeHandle private_nh("~");
     cmap_ = cmap;
     make_plan_service_ = private_nh.advertiseService("make_plan", &PlannerWithCostmap::makePlanService, this);
@@ -96,14 +96,14 @@ PlannerWithCostmap::PlannerWithCostmap(string name, Costmap2DROS* cmap) :
 } // namespace
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "global_planner");
+    ros::init(argc, argv, "wp_global_planner");
 
     tf2_ros::Buffer buffer(ros::Duration(10));
     tf2_ros::TransformListener tf(buffer);
 
     costmap_2d::Costmap2DROS lcr("costmap", buffer);
 
-    global_planner::PlannerWithCostmap pppp("planner", &lcr);
+    wp_global_planner::PlannerWithCostmap pppp("planner", &lcr);
 
     ros::spin();
     return 0;

@@ -38,7 +38,7 @@
 #include<global_planner/astar.h>
 #include<costmap_2d/cost_values.h>
 
-namespace global_planner {
+namespace wp_global_planner {
 
 AStarExpansion::AStarExpansion(PotentialCalculator* p_calc, int xs, int ys) :
         Expander(p_calc, xs, ys) {
@@ -95,4 +95,4 @@ void AStarExpansion::add(unsigned char* costs, float* potential, float prev_pote
     std::push_heap(queue_.begin(), queue_.end(), greater1());
 }
 
-} //end namespace global_planner
+} //end namespace wp_global_planner

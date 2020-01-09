@@ -29,7 +29,7 @@
 
 #include <global_planner/quadratic_calculator.h>
 
-namespace global_planner {
+namespace wp_global_planner {
 float QuadraticCalculator::calculatePotential(float* potential, unsigned char cost, int n, float prev_potential) {
     // get neighbors
     float u, d, l, r;

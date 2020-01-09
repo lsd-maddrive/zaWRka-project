@@ -43,7 +43,7 @@
 #include <vector>
 #include <algorithm>
 
-namespace global_planner {
+namespace wp_global_planner {
 class Index {
     public:
         Index(int a, float b) {
@@ -70,6 +70,6 @@ class AStarExpansion : public Expander {
         std::vector<Index> queue_;
 };
 
-} //end namespace global_planner
+} //end namespace wp_global_planner
 #endif
 

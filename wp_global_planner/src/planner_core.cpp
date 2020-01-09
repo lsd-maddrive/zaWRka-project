@@ -47,11 +47,11 @@
 #include <global_planner/quadratic_calculator.h>
 
 //register this planner as a BaseGlobalPlanner plugin
-PLUGINLIB_EXPORT_CLASS(global_planner::GlobalPlanner, nav_core::BaseGlobalPlanner)
+PLUGINLIB_EXPORT_CLASS(wp_global_planner::WPGlobalPlanner, nav_core::BaseGlobalPlanner)
 
-namespace global_planner {
+namespace wp_global_planner {
 
-void GlobalPlanner::outlineMap(unsigned char* costarr, int nx, int ny, unsigned char value) {
+void WPGlobalPlanner::outlineMap(unsigned char* costarr, int nx, int ny, unsigned char value) {
     unsigned char* pc = costarr;
     for (int i = 0; i < nx; i++)
         *pc++ = value;
@@ -66,17 +66,17 @@ void GlobalPlanner::outlineMap(unsigned char* costarr, int nx, int ny, unsigned 
         *pc = value;
 }
 
-GlobalPlanner::GlobalPlanner() :
+WPGlobalPlanner::WPGlobalPlanner() :
         costmap_(NULL), initialized_(false), allow_unknown_(true) {
 }
 
-GlobalPlanner::GlobalPlanner(std::string name, costmap_2d::Costmap2D* costmap, std::string frame_id) :
+WPGlobalPlanner::WPGlobalPlanner(std::string name, costmap_2d::Costmap2D* costmap, std::string frame_id) :
         costmap_(NULL), initialized_(false), allow_unknown_(true) {
     //initialize the planner
     initialize(name, costmap, frame_id);
 }
 
-GlobalPlanner::~GlobalPlanner() {
+WPGlobalPlanner::~WPGlobalPlanner() {
     if (p_calc_)
         delete p_calc_;
     if (planner_)
@@ -87,11 +87,11 @@ GlobalPlanner::~GlobalPlanner() {
         delete dsrv_;
 }
 
-void GlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DROS* costmap_ros) {
+void WPGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2DROS* costmap_ros) {
     initialize(name, costmap_ros->getCostmap(), costmap_ros->getGlobalFrameID());
 }
 
-void GlobalPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap, std::string frame_id) {
+void WPGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap, std::string frame_id) {
     if (!initialized_) {
         ros::NodeHandle private_nh("~/" + name);
         costmap_ = costmap;
@@ -135,7 +135,7 @@ void GlobalPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap,
 
         plan_pub_ = private_nh.advertise<nav_msgs::Path>("plan", 1);
         potential_pub_ = private_nh.advertise<nav_msgs::OccupancyGrid>("potential", 1);
-        waypoint_sub_ = private_nh.subscribe("/clicked_point", 100, &GlobalPlanner::waypointCallback, this);
+        waypoint_sub_ = private_nh.subscribe("/clicked_point", 100, &WPGlobalPlanner::waypointCallback, this);
 
         private_nh.param("allow_unknown", allow_unknown_, true);
         planner_->setHasUnknown(allow_unknown_);
@@ -144,11 +144,11 @@ void GlobalPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap,
         private_nh.param("default_tolerance", default_tolerance_, 0.0);
         private_nh.param("publish_scale", publish_scale_, 100);
 
-        make_plan_srv_ = private_nh.advertiseService("make_plan", &GlobalPlanner::makePlanService, this);
+        make_plan_srv_ = private_nh.advertiseService("make_plan", &WPGlobalPlanner::makePlanService, this);
 
         dsrv_ = new dynamic_reconfigure::Server<global_planner::GlobalPlannerConfig>(ros::NodeHandle("~/" + name));
         dynamic_reconfigure::Server<global_planner::GlobalPlannerConfig>::CallbackType cb = boost::bind(
-                &GlobalPlanner::reconfigureCB, this, _1, _2);
+                &WPGlobalPlanner::reconfigureCB, this, _1, _2);
         dsrv_->setCallback(cb);
 
         initialized_ = true;
@@ -156,7 +156,7 @@ void GlobalPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap,
         ROS_WARN("This planner has already been initialized, you can't call it twice, doing nothing");
 }
 
-void GlobalPlanner::reconfigureCB(global_planner::GlobalPlannerConfig& config, uint32_t level) {
+void WPGlobalPlanner::reconfigureCB(global_planner::GlobalPlannerConfig& config, uint32_t level) {
     planner_->setLethalCost(config.lethal_cost);
     path_maker_->setLethalCost(config.lethal_cost);
     planner_->setNeutralCost(config.neutral_cost);
@@ -166,7 +166,7 @@ void GlobalPlanner::reconfigureCB(global_planner::GlobalPlannerConfig& config, u
     orientation_filter_->setWindowSize(config.orientation_window_size);
 }
 
-void GlobalPlanner::clearRobotCell(const geometry_msgs::PoseStamped& global_pose, unsigned int mx, unsigned int my) {
+void WPGlobalPlanner::clearRobotCell(const geometry_msgs::PoseStamped& global_pose, unsigned int mx, unsigned int my) {
     if (!initialized_) {
         ROS_ERROR(
                 "This planner has not been initialized yet, but it is being used, please call initialize() before use");
@@ -177,7 +177,7 @@ void GlobalPlanner::clearRobotCell(const geometry_msgs::PoseStamped& global_pose
     costmap_->setCost(mx, my, costmap_2d::FREE_SPACE);
 }
 
-bool GlobalPlanner::makePlanService(nav_msgs::GetPlan::Request& req, nav_msgs::GetPlan::Response& resp) {
+bool WPGlobalPlanner::makePlanService(nav_msgs::GetPlan::Request& req, nav_msgs::GetPlan::Response& resp) {
     makePlan(req.start, req.goal, resp.plan.poses);
 
     resp.plan.header.stamp = ros::Time::now();
@@ -186,12 +186,12 @@ bool GlobalPlanner::makePlanService(nav_msgs::GetPlan::Request& req, nav_msgs::G
     return true;
 }
 
-void GlobalPlanner::mapToWorld(double mx, double my, double& wx, double& wy) {
+void WPGlobalPlanner::mapToWorld(double mx, double my, double& wx, double& wy) {
     wx = costmap_->getOriginX() + (mx+convert_offset_) * costmap_->getResolution();
     wy = costmap_->getOriginY() + (my+convert_offset_) * costmap_->getResolution();
 }
 
-bool GlobalPlanner::worldToMap(double wx, double wy, double& mx, double& my) {
+bool WPGlobalPlanner::worldToMap(double wx, double wy, double& mx, double& my) {
     double origin_x = costmap_->getOriginX(), origin_y = costmap_->getOriginY();
     double resolution = costmap_->getResolution();
 
@@ -207,12 +207,12 @@ bool GlobalPlanner::worldToMap(double wx, double wy, double& mx, double& my) {
     return false;
 }
 
-bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
+bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
                            std::vector<geometry_msgs::PoseStamped>& plan) {
     return makePlan(start, goal, default_tolerance_, plan);
 }
 
-bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
+bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
                            double tolerance, std::vector<geometry_msgs::PoseStamped>& plan) {
     boost::mutex::scoped_lock lock(mutex_);
     ROS_INFO("Kek, it's working! 2");
@@ -338,7 +338,7 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geom
     return !plan.empty();
 }
 
-void GlobalPlanner::publishPlan(const std::vector<geometry_msgs::PoseStamped>& path) {
+void WPGlobalPlanner::publishPlan(const std::vector<geometry_msgs::PoseStamped>& path) {
     if (!initialized_) {
         ROS_ERROR(
                 "This planner has not been initialized yet, but it is being used, please call initialize() before use");
@@ -360,7 +360,7 @@ void GlobalPlanner::publishPlan(const std::vector<geometry_msgs::PoseStamped>& p
     plan_pub_.publish(gui_path);
 }
 
-bool GlobalPlanner::getPlanFromPotential(double start_x, double start_y, double goal_x, double goal_y,
+bool WPGlobalPlanner::getPlanFromPotential(double start_x, double start_y, double goal_x, double goal_y,
                                       const geometry_msgs::PoseStamped& goal,
                                        std::vector<geometry_msgs::PoseStamped>& plan) {
     if (!initialized_) {
@@ -406,7 +406,7 @@ bool GlobalPlanner::getPlanFromPotential(double start_x, double start_y, double 
     return !plan.empty();
 }
 
-void GlobalPlanner::publishPotential(float* potential)
+void WPGlobalPlanner::publishPotential(float* potential)
 {
     int nx = costmap_->getSizeInCellsX(), ny = costmap_->getSizeInCellsY();
     double resolution = costmap_->getResolution();
@@ -447,7 +447,7 @@ void GlobalPlanner::publishPotential(float* potential)
     potential_pub_.publish(grid);
 }
 
-void GlobalPlanner::waypointCallback(const geometry_msgs::PointStamped::ConstPtr& waypoint)
+void WPGlobalPlanner::waypointCallback(const geometry_msgs::PointStamped::ConstPtr& waypoint)
 {
     ROS_INFO("Point detected!");
     if(waypoints_.empty())
@@ -458,4 +458,4 @@ void GlobalPlanner::waypointCallback(const geometry_msgs::PointStamped::ConstPtr
     waypoints_.back().pose.position = waypoint->point;
 }
 
-} //end namespace global_planner
+} //end namespace wp_global_planner

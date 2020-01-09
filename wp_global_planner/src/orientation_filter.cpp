@@ -40,7 +40,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <angles/angles.h>
 
-namespace global_planner {
+namespace wp_global_planner {
 
 void set_angle(geometry_msgs::PoseStamped* pose, double angle)
 {
