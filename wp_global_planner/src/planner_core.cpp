@@ -242,19 +242,14 @@ void WPGlobalPlanner::makeWaypointPlan(const geometry_msgs::PoseStamped& start,
                       std::vector<geometry_msgs::PoseStamped>& plan){
     analyzeWaypoints(start);
     plan.clear();
-    if(!waypoints_.empty())
-    {
+    if(!waypoints_.empty()){
         plan.push_back(start);
         for(auto iter = waypoints_.begin(); iter != waypoints_.end(); iter++)
-        {
             plan.push_back(*iter);
-        }
         plan.push_back(goal);
     }
     for(auto it = plan.begin(); it < plan.end(); it++)
-    {
         ROS_INFO("it is %f / %f", it->pose.position.x, it->pose.position.y);
-    }
 }
 
 void WPGlobalPlanner::makeDefaultPlan(const geometry_msgs::PoseStamped& start,
@@ -460,37 +455,27 @@ void WPGlobalPlanner::publishPotential(float* potential)
 }
 
 // Delete first waypoint if passed 
-void WPGlobalPlanner::analyzeWaypoints(const geometry_msgs::PoseStamped& start)
-{
-    if(waypoints_.size() > 1)
-    {
+void WPGlobalPlanner::analyzeWaypoints(const geometry_msgs::PoseStamped& start){
+    if(waypoints_.size() > 1){
         const double offsetCoef = 2.0;  // 1.0^2 + 1.0^2
-
         double Px = start.pose.position.x;
         double Py = -start.pose.position.y;
-        double Ax = waypoints_[0].pose.position.x;
-        double Ay = -waypoints_[0].pose.position.y;
+        double Ax = waypoints_.begin()->pose.position.x;
+        double Ay = -waypoints_.begin()->pose.position.y;
         double PAsquare = (Px - Ax) * (Px - Ax) + (Py - Ay) * (Py - Ay);
 
-        if(PAsquare < offsetCoef)
-        {
+        if(PAsquare < offsetCoef){
             waypoints_.erase(waypoints_.begin());
-            ROS_INFO("One waypoint was erased: start[%f, %f], A = [%f, %f], B = [%f, %f]", 
-                     Px, Py, Ax, Ay, waypoints_[1].pose.position.x, waypoints_[1].pose.position.y);
-        }
-        else
-        {
-            ROS_INFO("go!");
+            ROS_INFO("One waypoint was erased: start[%f, %f], A = [%f, %f]", 
+                     Px, Py, Ax, Ay);
         }
     }
 }
 
 //
-void WPGlobalPlanner::waypointCallback(const geometry_msgs::PointStamped::ConstPtr& waypoint)
-{
+void WPGlobalPlanner::waypointCallback(const geometry_msgs::PointStamped::ConstPtr& waypoint){
     ROS_INFO("Point detected!");
-    if(waypoints_.empty())
-    {
+    if(waypoints_.empty()){
         waypoints_.push_back(geometry_msgs::PoseStamped());
     }
     waypoints_.back().header = waypoint->header;
@@ -498,20 +483,21 @@ void WPGlobalPlanner::waypointCallback(const geometry_msgs::PointStamped::ConstP
 }
 
 //
-void WPGlobalPlanner::pathCallback(const nav_msgs::Path::ConstPtr& path)
-{
+void WPGlobalPlanner::fragmentWaypoints(){
+    
+}
+
+//
+void WPGlobalPlanner::pathCallback(const nav_msgs::Path::ConstPtr& path){
     ROS_INFO("Path detected!");
     waypoints_.clear();
-    if(path->poses.size() < 100)
-    {
-        for(auto iter = path->poses.begin(); iter != path->poses.end(); iter++)
-        {
+    if(path->poses.size() < 100){
+        for(auto iter = path->poses.begin(); iter != path->poses.end(); iter++){
             waypoints_.push_back(geometry_msgs::PoseStamped());
             waypoints_.back().header = iter->header;
             waypoints_.back().pose.position = iter->pose.position;
         }
     }
-
 }
 
 } //end namespace wp_global_planner

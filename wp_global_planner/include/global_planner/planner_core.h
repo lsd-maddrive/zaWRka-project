@@ -45,6 +45,7 @@
 #include <geometry_msgs/Point.h>
 #include <nav_msgs/Path.h>
 #include <vector>
+#include <list>
 #include <nav_core/base_global_planner.h>
 #include <nav_msgs/GetPlan.h>
 #include <dynamic_reconfigure/server.h>
@@ -211,13 +212,14 @@ class WPGlobalPlanner : public nav_core::BaseGlobalPlanner {
         void makeWaypointPlan(const geometry_msgs::PoseStamped& start,
                               const geometry_msgs::PoseStamped& goal,
                               std::vector<geometry_msgs::PoseStamped>& plan);
+        void fragmentWaypoints();
         void analyzeWaypoints(const geometry_msgs::PoseStamped& start);
         void waypointCallback(const geometry_msgs::PointStamped::ConstPtr& waypoint);
         void pathCallback(const nav_msgs::Path::ConstPtr& path);
 
         ros::Subscriber waypoint_sub_;
         ros::Subscriber path_sub_;
-        std::vector<geometry_msgs::PoseStamped> waypoints_;
+        std::list<geometry_msgs::PoseStamped> waypoints_;
 
 };
 
