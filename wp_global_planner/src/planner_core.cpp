@@ -215,8 +215,10 @@ bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const ge
     return makePlan(start, goal, default_tolerance_, plan);
 }
 
-bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
-                           double tolerance, std::vector<geometry_msgs::PoseStamped>& plan) {
+bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start,
+                      const geometry_msgs::PoseStamped& goal,
+                      double tolerance,
+                      std::vector<geometry_msgs::PoseStamped>& plan) {
     boost::mutex::scoped_lock lock(mutex_);
     ROS_INFO("Waypoint global planner makePlan has been called.");
     if (!initialized_) {
@@ -224,10 +226,41 @@ bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const ge
                 "This planner has not been initialized yet, but it is being used, please call initialize() before use");
         return false;
     }
-
-    //clear the plan, just in case
     plan.clear();
 
+    if(waypoints_.empty())
+        makeDefaultPlan(start, goal, tolerance, plan);
+    else
+        makeWaypointPlan(start, goal, plan);
+
+    publishPlan(plan);
+    return !plan.empty();
+}
+
+void WPGlobalPlanner::makeWaypointPlan(const geometry_msgs::PoseStamped& start, 
+                      const geometry_msgs::PoseStamped& goal,
+                      std::vector<geometry_msgs::PoseStamped>& plan){
+    analyzeWaypoints(start);
+    plan.clear();
+    if(!waypoints_.empty())
+    {
+        plan.push_back(start);
+        for(auto iter = waypoints_.begin(); iter != waypoints_.end(); iter++)
+        {
+            plan.push_back(*iter);
+        }
+        plan.push_back(goal);
+    }
+    for(auto it = plan.begin(); it < plan.end(); it++)
+    {
+        ROS_INFO("it is %f / %f", it->pose.position.x, it->pose.position.y);
+    }
+}
+
+void WPGlobalPlanner::makeDefaultPlan(const geometry_msgs::PoseStamped& start,
+                      const geometry_msgs::PoseStamped& goal,
+                      double tolerance,
+                      std::vector<geometry_msgs::PoseStamped>& plan) {
     ros::NodeHandle n;
     std::string global_frame = frame_id_;
 
@@ -235,13 +268,13 @@ bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const ge
     if (goal.header.frame_id != global_frame) {
         ROS_ERROR(
                 "The goal pose passed to this planner must be in the %s frame.  It is instead in the %s frame.", global_frame.c_str(), goal.header.frame_id.c_str());
-        return false;
+        return;
     }
 
     if (start.header.frame_id != global_frame) {
         ROS_ERROR(
                 "The start pose passed to this planner must be in the %s frame.  It is instead in the %s frame.", global_frame.c_str(), start.header.frame_id.c_str());
-        return false;
+        return;
     }
 
     double wx = start.pose.position.x;
@@ -253,7 +286,7 @@ bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const ge
     if (!costmap_->worldToMap(wx, wy, start_x_i, start_y_i)) {
         ROS_WARN(
                 "The robot's start position is off the global costmap. Planning will always fail, are you sure the robot has been properly localized?");
-        return false;
+        return;
     }
     if(old_navfn_behavior_){
         start_x = start_x_i;
@@ -268,7 +301,7 @@ bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const ge
     if (!costmap_->worldToMap(wx, wy, goal_x_i, goal_y_i)) {
         ROS_WARN_THROTTLE(1.0,
                 "The goal sent to the global planner is off the global costmap. Planning will always fail to this goal.");
-        return false;
+        return;
     }
     if(old_navfn_behavior_){
         goal_x = goal_x_i;
@@ -314,33 +347,7 @@ bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const ge
     // add orientations if needed
     orientation_filter_->processPath(start, plan);
 
-    // Modification here
-    analyzeWaypoints(start);
-    plan.clear();
-    if(waypoints_.empty())
-    {
-        plan.push_back(start);
-        plan.push_back(goal);
-    }
-    else
-    {
-        plan.push_back(start);
-        for(auto iter = waypoints_.begin(); iter != waypoints_.end(); iter++)
-        {
-            plan.push_back(*iter);
-        }
-        plan.push_back(goal);
-    }
-    for(auto it = plan.begin(); it < plan.end(); it++)
-    {
-        ROS_INFO("it is %f / %f", it->pose.position.x, it->pose.position.y);
-    }
-    // Modification here
-
-    //publish the plan for visualization purposes
-    publishPlan(plan);
     delete potential_array_;
-    return !plan.empty();
 }
 
 void WPGlobalPlanner::publishPlan(const std::vector<geometry_msgs::PoseStamped>& path) {
@@ -494,9 +501,9 @@ void WPGlobalPlanner::waypointCallback(const geometry_msgs::PointStamped::ConstP
 void WPGlobalPlanner::pathCallback(const nav_msgs::Path::ConstPtr& path)
 {
     ROS_INFO("Path detected!");
-    if(path->poses.size() > 0 && path->poses.size() < 100)
+    waypoints_.clear();
+    if(path->poses.size() < 100)
     {
-        waypoints_.clear();
         for(auto iter = path->poses.begin(); iter != path->poses.end(); iter++)
         {
             waypoints_.push_back(geometry_msgs::PoseStamped());
