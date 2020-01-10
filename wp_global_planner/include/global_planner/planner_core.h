@@ -204,9 +204,12 @@ class WPGlobalPlanner : public nav_core::BaseGlobalPlanner {
         dynamic_reconfigure::Server<global_planner::GlobalPlannerConfig> *dsrv_;
         void reconfigureCB(global_planner::GlobalPlannerConfig &config, uint32_t level);
 
+        void analyzeWaypoints(const geometry_msgs::PoseStamped& start);
         ros::Subscriber waypoint_sub_;                        //!< subscriber of manually inserted waypoints
+        ros::Subscriber path_sub_;                        	  //!< subscriber of path
         std::vector<geometry_msgs::PoseStamped> waypoints_;   //!< container for the manually inserted waypoints
         void waypointCallback(const geometry_msgs::PointStamped::ConstPtr& waypoint);
+        void pathCallback(const nav_msgs::Path::ConstPtr& path);
 
 };
 

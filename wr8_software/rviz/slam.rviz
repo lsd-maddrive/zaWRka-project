@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /TF1/Frames1
+        - /Path3
       Splitter Ratio: 0.5
     Tree Height: 478
   - Class: rviz/Selection
@@ -322,7 +323,7 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /trajectory
+      Topic: /path
       Unreliable: false
       Value: true
     - Alpha: 1

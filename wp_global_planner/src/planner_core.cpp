@@ -46,6 +46,8 @@
 #include <global_planner/gradient_path.h>
 #include <global_planner/quadratic_calculator.h>
 
+#include <stdlib.h>
+
 //register this planner as a BaseGlobalPlanner plugin
 PLUGINLIB_EXPORT_CLASS(wp_global_planner::WPGlobalPlanner, nav_core::BaseGlobalPlanner)
 
@@ -136,6 +138,7 @@ void WPGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2D* costma
         plan_pub_ = private_nh.advertise<nav_msgs::Path>("plan", 1);
         potential_pub_ = private_nh.advertise<nav_msgs::OccupancyGrid>("potential", 1);
         waypoint_sub_ = private_nh.subscribe("/clicked_point", 100, &WPGlobalPlanner::waypointCallback, this);
+        path_sub_ = private_nh.subscribe("/path", 100, &WPGlobalPlanner::pathCallback, this);
 
         private_nh.param("allow_unknown", allow_unknown_, true);
         planner_->setHasUnknown(allow_unknown_);
@@ -215,7 +218,7 @@ bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const ge
 bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal,
                            double tolerance, std::vector<geometry_msgs::PoseStamped>& plan) {
     boost::mutex::scoped_lock lock(mutex_);
-    ROS_INFO("Kek, it's working! 2");
+    ROS_INFO("Waypoint global planner makePlan has been called.");
     if (!initialized_) {
         ROS_ERROR(
                 "This planner has not been initialized yet, but it is being used, please call initialize() before use");
@@ -289,7 +292,6 @@ bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const ge
 
     bool found_legal = planner_->calculatePotentials(costmap_->getCharMap(), start_x, start_y, goal_x, goal_y,
                                                     nx * ny * 2, potential_array_);
-    ROS_INFO("nx=%f, ny=%f", nx, ny);
     if(!old_navfn_behavior_)
         planner_->clearEndpoint(costmap_->getCharMap(), potential_array_, goal_x_i, goal_y_i, 2);
     if(publish_potential_)
@@ -312,9 +314,8 @@ bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const ge
     // add orientations if needed
     orientation_filter_->processPath(start, plan);
 
-    //publish the plan for visualization purposes
-
     // Modification here
+    analyzeWaypoints(start);
     plan.clear();
     if(waypoints_.empty())
     {
@@ -324,7 +325,10 @@ bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const ge
     else
     {
         plan.push_back(start);
-        plan.push_back(waypoints_.back());
+        for(auto iter = waypoints_.begin(); iter != waypoints_.end(); iter++)
+        {
+            plan.push_back(*iter);
+        }
         plan.push_back(goal);
     }
     for(auto it = plan.begin(); it < plan.end(); it++)
@@ -333,6 +337,7 @@ bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start, const ge
     }
     // Modification here
 
+    //publish the plan for visualization purposes
     publishPlan(plan);
     delete potential_array_;
     return !plan.empty();
@@ -447,6 +452,33 @@ void WPGlobalPlanner::publishPotential(float* potential)
     potential_pub_.publish(grid);
 }
 
+// Delete first waypoint if passed 
+void WPGlobalPlanner::analyzeWaypoints(const geometry_msgs::PoseStamped& start)
+{
+    if(waypoints_.size() > 1)
+    {
+        const double offsetCoef = 2.0;  // 1.0^2 + 1.0^2
+
+        double Px = start.pose.position.x;
+        double Py = -start.pose.position.y;
+        double Ax = waypoints_[0].pose.position.x;
+        double Ay = -waypoints_[0].pose.position.y;
+        double PAsquare = (Px - Ax) * (Px - Ax) + (Py - Ay) * (Py - Ay);
+
+        if(PAsquare < offsetCoef)
+        {
+            waypoints_.erase(waypoints_.begin());
+            ROS_INFO("One waypoint was erased: start[%f, %f], A = [%f, %f], B = [%f, %f]", 
+                     Px, Py, Ax, Ay, waypoints_[1].pose.position.x, waypoints_[1].pose.position.y);
+        }
+        else
+        {
+            ROS_INFO("go!");
+        }
+    }
+}
+
+//
 void WPGlobalPlanner::waypointCallback(const geometry_msgs::PointStamped::ConstPtr& waypoint)
 {
     ROS_INFO("Point detected!");
@@ -456,6 +488,23 @@ void WPGlobalPlanner::waypointCallback(const geometry_msgs::PointStamped::ConstP
     }
     waypoints_.back().header = waypoint->header;
     waypoints_.back().pose.position = waypoint->point;
+}
+
+//
+void WPGlobalPlanner::pathCallback(const nav_msgs::Path::ConstPtr& path)
+{
+    ROS_INFO("Path detected!");
+    if(path->poses.size() > 0 && path->poses.size() < 100)
+    {
+        waypoints_.clear();
+        for(auto iter = path->poses.begin(); iter != path->poses.end(); iter++)
+        {
+            waypoints_.push_back(geometry_msgs::PoseStamped());
+            waypoints_.back().header = iter->header;
+            waypoints_.back().pose.position = iter->pose.position;
+        }
+    }
+
 }
 
 } //end namespace wp_global_planner
