@@ -47,6 +47,7 @@
 #include <global_planner/quadratic_calculator.h>
 
 #include <stdlib.h>
+#include <algorithm>
 
 //register this planner as a BaseGlobalPlanner plugin
 PLUGINLIB_EXPORT_CLASS(wp_global_planner::WPGlobalPlanner, nav_core::BaseGlobalPlanner)
@@ -456,18 +457,19 @@ void WPGlobalPlanner::publishPotential(float* potential)
 
 // Delete first waypoint if passed 
 void WPGlobalPlanner::analyzeWaypoints(const geometry_msgs::PoseStamped& start){
-    if(waypoints_.size() > 1){
-        const double offsetCoef = 2.0;  // 1.0^2 + 1.0^2
+    const double OFFSET_COEF = 2.0;  // 1.0^2 + 1.0^2
+    while(waypoints_.size() > 1){
         double Px = start.pose.position.x;
         double Py = -start.pose.position.y;
         double Ax = waypoints_.begin()->pose.position.x;
         double Ay = -waypoints_.begin()->pose.position.y;
         double PAsquare = (Px - Ax) * (Px - Ax) + (Py - Ay) * (Py - Ay);
 
-        if(PAsquare < offsetCoef){
-            waypoints_.erase(waypoints_.begin());
-            ROS_INFO("One waypoint was erased: start[%f, %f], A = [%f, %f]", 
-                     Px, Py, Ax, Ay);
+        if(PAsquare < OFFSET_COEF){
+            waypoints_.pop_front();
+            ROS_INFO("Waypoint was erased: start[%f, %f], A[%f, %f]", Px, Py, Ax, Ay);
+        }else{
+            return;
         }
     }
 }
@@ -489,13 +491,31 @@ void WPGlobalPlanner::fragmentWaypoints(){
 
 //
 void WPGlobalPlanner::pathCallback(const nav_msgs::Path::ConstPtr& path){
+    const double MIN_OFFSET = 0.25;
+    const size_t MAX_PATH_SIZE = 100;
     ROS_INFO("Path detected!");
     waypoints_.clear();
-    if(path->poses.size() < 100){
+    if(path->poses.size() < MAX_PATH_SIZE){
         for(auto iter = path->poses.begin(); iter != path->poses.end(); iter++){
             waypoints_.push_back(geometry_msgs::PoseStamped());
             waypoints_.back().header = iter->header;
             waypoints_.back().pose.position = iter->pose.position;
+            if((iter + 1) != path->poses.end()){
+                double initialDeltaX = (iter + 1)->pose.position.x - iter->pose.position.x;
+                double initialDeltaY = (iter + 1)->pose.position.y - iter->pose.position.y;
+                uint8_t parts = std::max(abs(initialDeltaX), abs(initialDeltaY)) / MIN_OFFSET;
+                double dx = initialDeltaX/parts;
+                double dy = initialDeltaY/parts;
+                while(parts != 0){
+                    parts--;
+                    double newX = waypoints_.back().pose.position.x + dx;
+                    double newY = waypoints_.back().pose.position.y + dy;
+                    waypoints_.push_back(geometry_msgs::PoseStamped());
+                    waypoints_.back().header = iter->header;
+                    waypoints_.back().pose.position.x = newX;
+                    waypoints_.back().pose.position.y = newY;
+                }
+            }
         }
     }
 }
