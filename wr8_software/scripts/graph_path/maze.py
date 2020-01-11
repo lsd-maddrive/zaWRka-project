@@ -4,6 +4,9 @@ import itertools as it
 from pygame.locals import *
 import time
 
+#from Queue import PriorityQueue
+from queue import PriorityQueue
+
 class Point:
     def __init__(self, x=0, y=0):
         self.x = x
@@ -12,7 +15,7 @@ class Point:
     def get_tuple(self):
         return (self.x, self.y)
 
-    def get_array(self):
+    def as_array(self):
         return np.array([self.x, self.y])
 
     def invert_direction(self):
@@ -59,11 +62,11 @@ from_direction_letters = [
                             '-'
                         ]
 
-direction_angle = { 
+g_direction_angle = { 
                 from_direction_letters[0] : 180,
                 from_direction_letters[1] : 90,
                 from_direction_letters[2] : 0,
-                from_direction_letters[3] : -90
+                from_direction_letters[3] : 270
         }
             
 from_directions = { 
@@ -90,6 +93,12 @@ class PointDir:
     def get_tuple(self):
         return (self.x, self.y, self.d)
 
+    def as_point(self):
+        return Point(self.x, self.y)
+
+    def as_array(self):
+        return np.array([self.x, self.y])
+
     # local TF -> ROS: (x1, y1) = (2*y, -2*x)
     # ROS -> local TF: (x, y) = (-y1/2, x1/2)
     def get_ros_point(self):
@@ -99,7 +108,7 @@ class PointDir:
         if self.d == from_direction_letters[-1]:
             print('Invalid direction in get_ros_point()!')
 
-        ros_angle_deg = direction_angle[self.d]
+        ros_angle_deg = g_direction_angle[self.d]
 
         return np.array([ros_x, ros_y, ros_angle_deg])
 
@@ -114,7 +123,7 @@ class PointDir:
 
 
 def getManhattanDistance(cNode, oNode):
-    dist = np.absolute(oNode.coord.get_array() - cNode.coord.get_array())
+    dist = np.absolute(oNode.coord.as_array() - cNode.coord.as_array())
     return dist[0] + dist[1]
 
 
@@ -146,7 +155,7 @@ class Node:
         self.signChecked = False
 
     def __str__(self):
-        return 'id: {}/{} ({}/{})'.format(self.idx, self.dirLetr, self.signChecked, self.coord.get_array())
+        return 'id: {}/{} ({}/{})'.format(self.idx, self.dirLetr, self.signChecked, self.coord.as_array())
 
     def getSrcDir(self, cPnt, pPnt):
         for direction in from_directions:
@@ -222,12 +231,16 @@ class Maze:
         self.maze_array = structure
 
         self.nodes = {}
+        self.directed_nodes = {}
+
         self.edges = {}
         self.node_cntr = 0
 
         self.screen = None
 
-        self.new_nodes_list = {}
+        self._target_node = None
+        self._current_node = None
+
 
         for x in range(self.height):
             for y in range(self.width):
@@ -254,43 +267,44 @@ class Maze:
         node_points = list(self.nodes.keys())
         first_node = self.nodes[node_points[0]]
 
-        nonzero_index = first_node.map_neighbours.index(filter(lambda x: x!=0, first_node.map_neighbours)[0])
+        nonzero_index = np.nonzero(first_node.map_neighbours)[0][0]
+        print(nonzero_index)
+
+        # nonzero_index = first_node.map_neighbours.index(filter(lambda x: x!=0, first_node.map_neighbours)[0])
 
         first_pnt, to_dir = first_node.coord, to_directions[nonzero_index]
         # print('Start with: {} -> {}'.format(first_pnt, to_dir))
         self._update_neighbours(first_pnt + to_dir, to_dir)       
 
-
-        for elem in self.new_nodes_list:
-            self.new_nodes_list[elem].show_info()
-
-
+        # for elem in self.directed_nodes:
+        #     self.directed_nodes[elem].show_info()
+        
     # Convert to extended nodes
     def _update_neighbours(self, pnt, fromDirPnt):
 
         if pnt in self.edges:
-            print('Edge found, skip it from {} to {}'.format(pnt, pnt + fromDirPnt))
+            # print('Edge found, skip it from {} to {}'.format(pnt, pnt + fromDirPnt))
             return self._update_neighbours(pnt + fromDirPnt, fromDirPnt)
 
         currNode = self.nodes[pnt]
 
         fromDirLtr = getLetterFromDirPnt(fromDirPnt)
-        print('Node "{} / {}" found on {}'.format(currNode, fromDirLtr, pnt))
+        # print('Node "{} / {}" found on {}'.format(currNode, fromDirLtr, pnt))
         
         newPntDir = PointDir(pnt.x, pnt.y, fromDirLtr)
         
-        if newPntDir in self.new_nodes_list:
+        if newPntDir in self.directed_nodes:
             # print('But already found on dictionary')
-            return self.new_nodes_list[newPntDir]
+            return self.directed_nodes[newPntDir]
 
         newNode = Node(pnt)
         newNode.idx = currNode.idx
         newNode.dirLetr = fromDirLtr
 
-        self.new_nodes_list[newPntDir] = newNode
+        self.directed_nodes[newPntDir] = newNode
 
         # Right, Forward, Left
-        direction_pnts = self.get_direction_points(fromDirPnt)
+        direction_pnts = self._get_direction_points(fromDirPnt)
         for i, dir_pnt in enumerate(direction_pnts):
             nextPnt = pnt + dir_pnt
             if self.isPntValid(nextPnt):
@@ -304,11 +318,150 @@ class Maze:
 
         return newNode
 
-    def get_direction_points(self, fromDirPnt):
+    def set_target(self, point: Point):
+        min_dist = 1e9
+        nearest_pnt = None
+
+        for _pnt in self.nodes:
+            dist = self._calc_distance(_pnt, point)
+            if dist < min_dist:
+                min_dist = dist
+                nearest_pnt = _pnt
+            
+        if nearest_pnt is None:
+            raise Exception('Failed to find nearest node')
+        
+        self._target_node = self.nodes[nearest_pnt]
+
+        print('Target is set to: {}'.format(self._target_node))
+
+    def set_state(self, pointdir: PointDir):
+        min_dist = 1e9
+        nearest_pntdir = None
+
+        for _pntdir in self.directed_nodes:
+            dist = self._calc_distance(_pntdir, pointdir)
+            if dist < min_dist and _pntdir.d == pointdir.d:
+                min_dist = dist
+                nearest_pntdir = _pntdir
+    
+        if nearest_pntdir is None:
+            raise Exception('Failed to find nearest node')
+        
+        self._current_node = self.directed_nodes[nearest_pntdir]
+
+        print('State is set to: {}'.format(self._current_node))
+
+    def get_path(self):
+        if self._target_node is None:
+            raise Exception('Solver / Target not set')
+        
+        if self._current_node is None:
+            raise Exception('Solver / State not set')
+
+        print('Attempt to find path from node: {}'.format(self._current_node))
+
+        frontier = PriorityQueue()
+        frontier.put((0, self._current_node))
+
+        cost_so_far = {}
+        cost_so_far[self._current_node] = 0
+
+        cameFrom = {}
+        cameFrom[self._current_node] = None
+
+        path = []
+
+        while not frontier.empty():
+            _, cNode = frontier.get()
+            # print('Next node: {}'.format(cNode))
+
+            currentWays = cNode.dirNeighbours
+            for way in currentWays:
+                if way is None:
+                    continue
+
+                if way.idx == self._target_node.idx:
+                    print('Got it!')
+                    path.append(self._target_node.coord)
+                    
+                    node = cNode
+                    while True:
+                        if cameFrom[node] is None:
+                            break
+
+                        path.append(node.coord)
+                        node = cameFrom[node]
+
+                    return path
+
+                    # cameFrom[self.targetNode] = cNode
+                    # self.cameFrom = cameFrom
+                    # return True
+
+                new_cost = getManhattanDistance(cNode, way) + cost_so_far[cNode]
+                print('Neighbour found: {} / g = {}'.format(way, new_cost))
+
+                if way not in cost_so_far or new_cost < cost_so_far[way]:
+                    
+                    cost_so_far[way] = new_cost
+
+                    prio_f = new_cost + self.calc_heuristic(way, self._target_node)
+                    # print('    goes in frontier f = {}'.format(prio_f))
+                    frontier.put((prio_f, way))
+
+                    cameFrom[way] = cNode
+
+        return path
+
+
+    # local TF -> ROS: (x1, y1) = (2*y, -2*x)
+    # ROS -> local TF: (x, y) = (-y1/2, x1/2)
+    @staticmethod
+    def _ext_point_2_point(ext_point: list) -> Point:
+        return Point(-ext_point[1]/2., ext_point[0]/2.)
+
+    @staticmethod
+    def _ext_point_2_pointdir(ext_point: list, ext_angle: float) -> PointDir:
+        fromdir_ltr = Maze._angle_2_fromdir(ext_angle)
+        pnt = Maze._ext_point_2_point(ext_point)
+        return PointDir(pnt.x, pnt.y, fromdir_ltr)
+
+    @staticmethod
+    def _angle_2_fromdir(ext_angle):
+        angle = Maze._normalize_angle(ext_angle)
+
+        angle_idx = round(angle / 90.)
+        if angle_idx > 3:
+            angle_idx = 0
+
+        result_fromdir = None
+
+        for fromdir_ltr in g_direction_angle:
+            if int(angle_idx*90) == g_direction_angle[fromdir_ltr]:
+                result_fromdir = fromdir_ltr
+        
+        if result_fromdir is None:
+            raise Exception('Failed to get fromdir info')
+
+        return result_fromdir
+
+    @staticmethod
+    def _normalize_angle(angle_deg):
+        angle = int(angle_deg)
+        angle = angle % 360
+        angle = (angle + 360) % 360 
+
+        return angle
+
+    def _get_direction_points(self, fromDirPnt):
         return [Point(fromDirPnt.y, -fromDirPnt.x), fromDirPnt, Point(-fromDirPnt.y, fromDirPnt.x)]
 
-    def calcHeuristic(self, nextNode):
-        return getManhattanDistance(nextNode, self.end_node)
+    def _calc_distance(self, pnt1, pnt2):
+        return np.linalg.norm(pnt1.as_array()-pnt2.as_array())
+
+    def calc_heuristic(self, next_node, target_node):
+        return getManhattanDistance(next_node, target_node)
 
     def is_element_vacant(self, elem):
         if elem == 0 or elem == 1 or elem == 2:
@@ -379,12 +532,12 @@ class Maze:
 
         # White for edges
         for pnt in self.edges:
-            coord = pnt.get_array()
+            coord = pnt.as_array()
             self.screen.fill(cell_colors[0], render_get_cell_rect(coord, self))
 
         # Green for nodes
         for pnt in self.nodes:
-            coord = pnt.get_array()
+            coord = pnt.as_array()
             rect = render_get_cell_rect(coord, self)
 
             #if self.nodes[pnt] == self.start_node or self.nodes[pnt] == self.end_node:
@@ -418,6 +571,17 @@ if __name__ == "__main__":
 
     maze.render_maze()
 
-    time.sleep(3)
+    maze.set_target(Point(6.5, 1))
+
+    initial_pose = Maze._ext_point_2_pointdir([0, 0], 0)
+    maze.set_state(initial_pose)
+
+    path = maze.get_path()
+
+    print('Path:')
+    for node in path:
+        print(node)
+
+    time.sleep(10)
 
     print('Done')
