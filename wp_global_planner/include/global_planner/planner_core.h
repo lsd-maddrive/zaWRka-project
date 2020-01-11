@@ -211,9 +211,9 @@ class WPGlobalPlanner : public nav_core::BaseGlobalPlanner {
                              std::vector<geometry_msgs::PoseStamped>& plan);
         void makeWaypointPlan(const geometry_msgs::PoseStamped& start,
                               const geometry_msgs::PoseStamped& goal,
-                              std::vector<geometry_msgs::PoseStamped>& plan);
+                              std::vector<geometry_msgs::PoseStamped>& plan) const;
         void fragmentWaypoints();
-        void analyzeWaypoints(const geometry_msgs::PoseStamped& start);
+        void deletePassedWaypoints(const geometry_msgs::PoseStamped& start);
         void waypointCallback(const geometry_msgs::PointStamped::ConstPtr& waypoint);
         void pathCallback(const nav_msgs::Path::ConstPtr& path);
 

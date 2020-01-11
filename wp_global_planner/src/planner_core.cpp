@@ -221,14 +221,14 @@ bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start,
                       double tolerance,
                       std::vector<geometry_msgs::PoseStamped>& plan) {
     boost::mutex::scoped_lock lock(mutex_);
-    ROS_INFO("Waypoint global planner makePlan has been called.");
     if (!initialized_) {
-        ROS_ERROR(
-                "This planner has not been initialized yet, but it is being used, please call initialize() before use");
+        ROS_ERROR("This planner has not been initialized yet, but it is being \
+                   used, please call initialize() before use");
         return false;
     }
-    plan.clear();
 
+    plan.clear();
+    deletePassedWaypoints(start);
     if(waypoints_.empty())
         makeDefaultPlan(start, goal, tolerance, plan);
     else
@@ -240,17 +240,11 @@ bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start,
 
 void WPGlobalPlanner::makeWaypointPlan(const geometry_msgs::PoseStamped& start, 
                       const geometry_msgs::PoseStamped& goal,
-                      std::vector<geometry_msgs::PoseStamped>& plan){
-    analyzeWaypoints(start);
-    plan.clear();
-    if(!waypoints_.empty()){
-        plan.push_back(start);
-        for(auto iter = waypoints_.begin(); iter != waypoints_.end(); iter++)
-            plan.push_back(*iter);
-        plan.push_back(goal);
-    }
-    for(auto it = plan.begin(); it < plan.end(); it++)
-        ROS_INFO("it is %f / %f", it->pose.position.x, it->pose.position.y);
+                      std::vector<geometry_msgs::PoseStamped>& plan) const{
+    plan.push_back(start);
+    for(auto iter = waypoints_.begin(); iter != waypoints_.end(); iter++)
+        plan.push_back(*iter);
+    plan.push_back(goal);
 }
 
 void WPGlobalPlanner::makeDefaultPlan(const geometry_msgs::PoseStamped& start,
@@ -455,10 +449,10 @@ void WPGlobalPlanner::publishPotential(float* potential)
     potential_pub_.publish(grid);
 }
 
-// Delete first waypoint if passed 
-void WPGlobalPlanner::analyzeWaypoints(const geometry_msgs::PoseStamped& start){
+//
+void WPGlobalPlanner::deletePassedWaypoints(const geometry_msgs::PoseStamped& start){
     const double OFFSET_COEF = 2.0;  // 1.0^2 + 1.0^2
-    while(waypoints_.size() > 1){
+    while(!waypoints_.empty()){
         double Px = start.pose.position.x;
         double Py = -start.pose.position.y;
         double Ax = waypoints_.begin()->pose.position.x;
@@ -467,9 +461,10 @@ void WPGlobalPlanner::analyzeWaypoints(const geometry_msgs::PoseStamped& start){
 
         if(PAsquare < OFFSET_COEF){
             waypoints_.pop_front();
-            ROS_INFO("Waypoint was erased: start[%f, %f], A[%f, %f]", Px, Py, Ax, Ay);
+            ROS_INFO("Waypoint was removed: current is [%f, %f], deleted is [%f, %f]",
+                     Px, Py, Ax, Ay);
         }else{
-            return;
+            break;
         }
     }
 }
