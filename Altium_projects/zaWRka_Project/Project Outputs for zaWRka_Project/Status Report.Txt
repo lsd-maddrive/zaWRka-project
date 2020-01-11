@@ -1,0 +1,12 @@
+Output: NC Drill Files
+Type  : NC Drill
+From  : Project [zaWRka_Project.PrjPcb]
+   Generated File[cross_stm_PCB.TXT]
+   Generated File[cross_stm_PCB.LDP]
+   Generated File[cross_stm_PCB.DRR]
+
+
+Files Generated   : 3
+Documents Printed : 0
+
+Finished Output Generation At 15:51:40 On 11.01.2020
