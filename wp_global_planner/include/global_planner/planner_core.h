@@ -212,7 +212,9 @@ class WPGlobalPlanner : public nav_core::BaseGlobalPlanner {
         void makeWaypointPlan(const geometry_msgs::PoseStamped& start,
                               const geometry_msgs::PoseStamped& goal,
                               std::vector<geometry_msgs::PoseStamped>& plan) const;
-        void fragmentWaypoints();
+        void createPointPath();
+        void fragmentWaypoints(std::list<geometry_msgs::PoseStamped>::iterator current_wp,
+                               std::list<geometry_msgs::PoseStamped>::iterator next_wp);
         void deletePassedWaypoints(const geometry_msgs::PoseStamped& start);
         void waypointCallback(const geometry_msgs::PointStamped::ConstPtr& waypoint);
         void pathCallback(const nav_msgs::Path::ConstPtr& path);
@@ -220,9 +222,12 @@ class WPGlobalPlanner : public nav_core::BaseGlobalPlanner {
         ros::Subscriber waypoint_sub_;
         ros::Subscriber path_sub_;
         std::list<geometry_msgs::PoseStamped> waypoints_;
+        std::list<geometry_msgs::PoseStamped> path_;
 
         double FRAGMENTATION_SIZE_;
         double POINT_RADIUS_SQUARE_;
+
+        bool is_path_should_be_updated_;
 
 };
 
