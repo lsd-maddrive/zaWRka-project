@@ -6,3 +6,4 @@ elp_stereo_camera
 **/.vscode
 **/*.bag
 **/madproto
+deps

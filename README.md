@@ -6,7 +6,7 @@
 2. Install all dependencies with `install_pkgs.sh`
 3. Install all python modules with `requirements.txt` (`pip install -r requirements.txt`)
 
-> Don't forget to do `git submodule update --init` along with `git pull` to get updates of submodules 
+> Don't forget to do `git submodule update --init` along with `git pull` to get updates of submodules
 
 ## Requirements
 
@@ -16,16 +16,14 @@
 ## Contents of repository
 
 - `wr8_description` - описание моделей робота для симуляции в Gazebo
-- `wr8_ai` - ПО для распознавания разметки и знаков (на доработке)
-- `wr8_gui_server` - backend (серверная часть) для коммуникации с фронтом на Android (закрыто - переименова package.xml)
-- `wr8_msgs` - свои типы сообщений и сервисов 
+- `wr8_gui_server` - backend (серверная часть) для коммуникации с фронтом на Android (закрыто - переименован package.xml)
 - `wr8_software` - основные скрипты и launch-файлы проекта
+- `world_creator` - утилиты для создания миров для Gazebo
 
 Дополнительные пакеты, добавленные как подмодули:
 - [ydlidar](https://github.com/EAIBOT/ydlidar) - драйвер для используемого лидара
 - [hector_slam](http://wiki.ros.org/hector_slam) - пакет метода hector_slam со всеми сопутствующими
 - [teb_local_planner](http://wiki.ros.org/teb_local_planner) - локальный планнер, который рассчитывает локальный маршрут с учетом минимального радиуса поворота (то ,что требуется для автомобилей)
-- [rosserial](http://wiki.ros.org/rosserial) - пакет коммуникации по последовательному интерфейсу (Serial)
 
 > Стягиваются и собираются они по причине совместимости или наличия в репозиториях (некоторых пакетов нет, а некоторые не работают при скачивании через `apt`).
 
@@ -43,7 +41,7 @@
 
 <!-- Must be `uc` instead of `open` in link! -->
 <p align="center">
-<img src="https://drive.google.com/uc?id=1yt5R27NiCiPxm_0cHMFDlkMnkKW3JOjO">
+<img src="https://drive.google.com/uc?id=17bvjXzOOoAnjZa1fIjD3zP6hjynYqXl7">
 </p>
 
 ## Start notes
@@ -89,7 +87,7 @@
 
 ## Some information
 
-Проект под командной разработкой, направленный на участие в ежегодных соревнованиях Profest AutoNet 18+ (18 - 20 марта 2020 г.Москва) 
+Проект под командной разработкой, направленный на участие в ежегодных соревнованиях Profest AutoNet 18+ (18 - 20 марта 2020 г.Москва)
 
 Некоторые [правила оформления](https://github.com/serykhelena/AutoNetChallenge/blob/develop/controller_wr_driver/docs/dev_rules.md)
 

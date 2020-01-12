@@ -62,8 +62,6 @@ static void extcb_null(EXTDriver *extp, expchannel_t channel)
 
     if( enc_dir_state == 0 )  enc_null_revs_cntr -= 1;
     else                      enc_null_revs_cntr += 1;
-
-
 }
 
 static bool         isInitialized       = false;
