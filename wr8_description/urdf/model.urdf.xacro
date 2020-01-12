@@ -313,7 +313,7 @@
   </gazebo>
 
   <!-- Stereo camera macro -->
-  <xacro:macro name="single_camera" params="name xyz rpy">
+  <xacro:macro name="single_camera" params="name xyz rpy fov">
     <link name="${name}_frame">
       <xacro:solid_cylinder_inertial
           r="${camera_radius}" h="${camera_height}"
@@ -347,10 +347,10 @@
         <!-- required FPS -->
         <update_rate>30.0</update_rate>
         <camera name="${name}">
-          <horizontal_fov>1.3962634</horizontal_fov>
+          <horizontal_fov>${fov}</horizontal_fov>
           <image>
             <width>800</width>
-            <height>800</height>
+            <height>600</height>
             <format>R8G8B8</format>
           </image>
           <clip>
@@ -361,16 +361,16 @@
             <type>gaussian</type>
             <mean>0.0</mean>
             <stddev>0.007</stddev>
-        </noise>
+          </noise>
         </camera>
         <plugin name="${name}_controller" filename="libgazebo_ros_camera.so">
           <alwaysOn>true</alwaysOn>
           <updateRate>0.0</updateRate>
           <cameraName>$(arg robot_name)/${name}</cameraName>
-          <imageTopicName>cam_image_raw</imageTopicName>
-          <cameraInfoTopicName>cam_info</cameraInfoTopicName>
+          <imageTopicName>image_raw</imageTopicName>
+          <cameraInfoTopicName>camera_info</cameraInfoTopicName>
           <frameName>lcam_frame</frameName>
-          <hackBaseline>0.07</hackBaseline>
+          <hackBaseline>0.3</hackBaseline>
           <distortionK1>0.0</distortionK1>
           <distortionK2>0.0</distortionK2>
           <distortionK3>0.0</distortionK3>
@@ -381,10 +381,10 @@
     </gazebo>
   </xacro:macro>
 
-  <xacro:single_camera name="lcam" xyz="${stereo_base_link_lcam_xyz}" rpy="0 0 0" />
-  <xacro:single_camera name="rcam" xyz="${stereo_base_link_rcam_xyz}" rpy="0 0 0" />
+  <xacro:single_camera name="left_cam" xyz="${stereo_base_link_lcam_xyz}" rpy="0 0 0" fov="1.3962634" />
+  <xacro:single_camera name="right_cam" xyz="${stereo_base_link_rcam_xyz}" rpy="0 0 0" fov="1.3962634" />
 
-  <xacro:single_camera name="signs_cam" xyz="1 0 1" rpy="0 ${degrees_30} 0" />
+  <xacro:single_camera name="signs_cam" xyz="1 0 1" rpy="0 ${degrees_30} 0" fov="2.094" />
 
 </robot>
 
