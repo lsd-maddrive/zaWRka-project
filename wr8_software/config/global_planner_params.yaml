@@ -1,5 +1,5 @@
 
-GlobalPlanner:                                  # Also see: http://wiki.ros.org/global_planner
+WPGlobalPlanner:                                # Also see: http://wiki.ros.org/global_planner
   old_navfn_behavior: false                     # Exactly mirror behavior of navfn, use defaults for other boolean parameters, default false
   use_quadratic: true                           # Use the quadratic approximation of the potential. Otherwise, use a simpler calculation, default true
   use_dijkstra: true                            # Use dijkstra's algorithm. Otherwise, A*, default true
@@ -12,6 +12,7 @@ GlobalPlanner:                                  # Also see: http://wiki.ros.org/
   default_tolerance: 0.3                        # If goal in obstacle, plan to the closest point in radius default_tolerance, default 0.0
   
   publish_scale: 100                            # Scale by which the published potential gets multiplied, default 100
+
   planner_costmap_publish_frequency: 0.0        # default 0.0
   
   lethal_cost: 253                              # default 253
@@ -19,3 +20,5 @@ GlobalPlanner:                                  # Also see: http://wiki.ros.org/
   cost_factor: 3.0                              # Factor to multiply each cost from costmap by, default 3.0
   publish_potential: false                      # Publish Potential Costmap (this is not like the navfn pointcloud2 potential), default true
   
+  fragmentation_size: 0.20                      # Fragmentation size
+  point_radius: 1.41                            # Point raduis

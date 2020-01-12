@@ -148,6 +148,28 @@ void WPGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2D* costma
         private_nh.param("default_tolerance", default_tolerance_, 0.0);
         private_nh.param("publish_scale", publish_scale_, 100);
 
+        private_nh.param("fragmentation_size", FRAGMENTATION_SIZE_, 0.25);
+        if(FRAGMENTATION_SIZE_ < 0.05){
+            ROS_WARN("Parameter fragmentation_size is too little!");
+            FRAGMENTATION_SIZE_ = 0.25;
+        }
+        else if(FRAGMENTATION_SIZE_ > 1.00){
+            ROS_WARN("Parameter fragmentation_size is too big!");
+            FRAGMENTATION_SIZE_ = 0.25;
+        }
+
+        double POINT_RADIUS_;
+        private_nh.param("point_radius", POINT_RADIUS_, 1.41);
+        if(POINT_RADIUS_ < 0.05){
+            ROS_WARN("Parameter point_radius is too little!");
+            POINT_RADIUS_ = 1.41;
+        }
+        else if(POINT_RADIUS_ > 5.00){
+            ROS_WARN("Parameter point_radius is too big!");
+            POINT_RADIUS_ = 1.41;
+        }
+        POINT_RADIUS_SQUARE_ = POINT_RADIUS_ * POINT_RADIUS_;
+
         make_plan_srv_ = private_nh.advertiseService("make_plan", &WPGlobalPlanner::makePlanService, this);
 
         dsrv_ = new dynamic_reconfigure::Server<global_planner::GlobalPlannerConfig>(ros::NodeHandle("~/" + name));
@@ -451,7 +473,6 @@ void WPGlobalPlanner::publishPotential(float* potential)
 
 //
 void WPGlobalPlanner::deletePassedWaypoints(const geometry_msgs::PoseStamped& start){
-    const double OFFSET_COEF = 2.0;  // 1.0^2 + 1.0^2
     while(!waypoints_.empty()){
         double Px = start.pose.position.x;
         double Py = -start.pose.position.y;
@@ -459,7 +480,7 @@ void WPGlobalPlanner::deletePassedWaypoints(const geometry_msgs::PoseStamped& st
         double Ay = -waypoints_.begin()->pose.position.y;
         double PAsquare = (Px - Ax) * (Px - Ax) + (Py - Ay) * (Py - Ay);
 
-        if(PAsquare < OFFSET_COEF){
+        if(PAsquare < POINT_RADIUS_SQUARE_){
             waypoints_.pop_front();
             ROS_INFO("Waypoint was removed: current is [%f, %f], deleted is [%f, %f]",
                      Px, Py, Ax, Ay);
@@ -486,30 +507,35 @@ void WPGlobalPlanner::fragmentWaypoints(){
 
 //
 void WPGlobalPlanner::pathCallback(const nav_msgs::Path::ConstPtr& path){
-    const double MIN_OFFSET = 0.25;
     const size_t MAX_PATH_SIZE = 100;
+    const size_t MAX_NUMBER_OF_POINT_BETWEEN_WP = 1000;
     ROS_INFO("Path detected!");
     waypoints_.clear();
-    if(path->poses.size() < MAX_PATH_SIZE){
-        for(auto iter = path->poses.begin(); iter != path->poses.end(); iter++){
-            waypoints_.push_back(geometry_msgs::PoseStamped());
-            waypoints_.back().header = iter->header;
-            waypoints_.back().pose.position = iter->pose.position;
-            if((iter + 1) != path->poses.end()){
-                double initialDeltaX = (iter + 1)->pose.position.x - iter->pose.position.x;
-                double initialDeltaY = (iter + 1)->pose.position.y - iter->pose.position.y;
-                uint8_t parts = std::max(abs(initialDeltaX), abs(initialDeltaY)) / MIN_OFFSET;
-                double dx = initialDeltaX/parts;
-                double dy = initialDeltaY/parts;
-                while(parts != 0){
-                    parts--;
-                    double newX = waypoints_.back().pose.position.x + dx;
-                    double newY = waypoints_.back().pose.position.y + dy;
-                    waypoints_.push_back(geometry_msgs::PoseStamped());
-                    waypoints_.back().header = iter->header;
-                    waypoints_.back().pose.position.x = newX;
-                    waypoints_.back().pose.position.y = newY;
-                }
+    if(path->poses.size() > MAX_PATH_SIZE){
+        ROS_WARN("Number of waypoints have been given from path topic is too big!");
+    }
+    for(auto iter = path->poses.begin(); iter != path->poses.end(); iter++){
+        waypoints_.push_back(geometry_msgs::PoseStamped());
+        waypoints_.back().header = iter->header;
+        waypoints_.back().pose.position = iter->pose.position;
+        if((iter + 1) != path->poses.end()){
+            double lengthX = (iter + 1)->pose.position.x - iter->pose.position.x;
+            double lengthY = (iter + 1)->pose.position.y - iter->pose.position.y;
+            uint16_t parts = std::max(abs(lengthX), abs(lengthY)) / FRAGMENTATION_SIZE_ + 1;
+            if(parts > MAX_NUMBER_OF_POINT_BETWEEN_WP){
+                ROS_WARN("The distance between waypoints is too big! \
+                          There are greater then 1000 points between them.");
+            }
+            double dx = lengthX/parts;
+            double dy = lengthY/parts;
+            while(parts > 1){
+                parts--;
+                double newX = waypoints_.back().pose.position.x + dx;
+                double newY = waypoints_.back().pose.position.y + dy;
+                waypoints_.push_back(geometry_msgs::PoseStamped());
+                waypoints_.back().header = iter->header;
+                waypoints_.back().pose.position.x = newX;
+                waypoints_.back().pose.position.y = newY;
             }
         }
     }
