@@ -251,7 +251,7 @@ bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start,
 
     plan.clear();
     if(true == is_path_should_be_updated_){
-        createPointPath(start);
+        createPointPath(start, goal);
         is_path_should_be_updated_ = false;
     }
     deletePassedWaypoints(start);
@@ -479,16 +479,24 @@ void WPGlobalPlanner::publishPotential(float* potential)
 void WPGlobalPlanner::deletePassedWaypoints(const geometry_msgs::PoseStamped& start){
     while(!path_.empty()){
         double Px = start.pose.position.x;
-        double Py = -start.pose.position.y;
+        double Py = start.pose.position.y;
         double Ax = path_.begin()->pose.position.x;
-        double Ay = -path_.begin()->pose.position.y;
+        double Ay = path_.begin()->pose.position.y;
         double PAsquare = (Px - Ax) * (Px - Ax) + (Py - Ay) * (Py - Ay);
 
-        if(PAsquare < POINT_RADIUS_SQUARE_){
+        if(waypoints_.back().pose.position.x == path_.begin()->pose.position.x &&
+           waypoints_.back().pose.position.y == path_.begin()->pose.position.y){
+            path_.clear();
+            ROS_INFO("Last waypoint was removed: start is [%f, %f], deleted is [%f, %f]",
+                     Px, Py, path_.begin()->pose.position.x, path_.begin()->pose.position.y);
+            break;
+        }
+        else if(PAsquare < POINT_RADIUS_SQUARE_){
             path_.pop_front();
-            ROS_INFO("Waypoint was removed: current is [%f, %f], deleted is [%f, %f]",
+            ROS_INFO("Waypoint was removed: start is [%f, %f], deleted is [%f, %f]",
                      Px, Py, Ax, Ay);
-        }else{
+        }
+        else{
             break;
         }
     }
@@ -506,30 +514,34 @@ void WPGlobalPlanner::waypointCallback(const geometry_msgs::PointStamped::ConstP
 }
 
 //
-void WPGlobalPlanner::createPointPath(const geometry_msgs::PoseStamped& start){
+void WPGlobalPlanner::createPointPath(const geometry_msgs::PoseStamped& start,
+                                      const geometry_msgs::PoseStamped& goal){
     path_.clear();
     if(!waypoints_.empty()){
         path_.push_back(geometry_msgs::PoseStamped());
         path_.back().header = start.header;
         path_.back().pose.position = start.pose.position;
-        fragmentWaypoints(path_.begin(), waypoints_.begin());
+        fragmentWaypoints(*path_.begin(), *waypoints_.begin());
     }
     for(auto iter = waypoints_.begin(); iter != waypoints_.end(); iter++){
         path_.push_back(geometry_msgs::PoseStamped());
         path_.back().header = iter->header;
         path_.back().pose.position = iter->pose.position;
         if(std::next(iter, 1) != waypoints_.end()){
-            fragmentWaypoints(iter, std::next(iter, 1));
+            fragmentWaypoints(*iter, *std::next(iter, 1));
+        }
+        else{
+            fragmentWaypoints(waypoints_.back(), goal);
         }
     }
 }
 
 //
-void WPGlobalPlanner::fragmentWaypoints(std::list<geometry_msgs::PoseStamped>::iterator current_wp,
-                                        std::list<geometry_msgs::PoseStamped>::iterator next_wp){
+void WPGlobalPlanner::fragmentWaypoints(const geometry_msgs::PoseStamped& current_wp,
+                                        const geometry_msgs::PoseStamped& next_wp){
     const size_t MAX_NUMBER_OF_POINT_BETWEEN_WP = 1000;
-    double lengthX = next_wp->pose.position.x - current_wp->pose.position.x;
-    double lengthY = next_wp->pose.position.y - current_wp->pose.position.y;
+    double lengthX = next_wp.pose.position.x - current_wp.pose.position.x;
+    double lengthY = next_wp.pose.position.y - current_wp.pose.position.y;
     uint16_t parts = 1 + std::max(abs(lengthX), abs(lengthY)) / FRAGMENTATION_SIZE_;
     double dx = lengthX/parts;
     double dy = lengthY/parts;
@@ -543,7 +555,7 @@ void WPGlobalPlanner::fragmentWaypoints(std::list<geometry_msgs::PoseStamped>::i
         newX = path_.back().pose.position.x + dx;
         newY = path_.back().pose.position.y + dy;
         path_.push_back(geometry_msgs::PoseStamped());
-        path_.back().header = current_wp->header;
+        path_.back().header = current_wp.header;
         path_.back().pose.position.x = newX;
         path_.back().pose.position.y = newY;
     }
