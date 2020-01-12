@@ -212,7 +212,7 @@ class WPGlobalPlanner : public nav_core::BaseGlobalPlanner {
         void makeWaypointPlan(const geometry_msgs::PoseStamped& start,
                               const geometry_msgs::PoseStamped& goal,
                               std::vector<geometry_msgs::PoseStamped>& plan) const;
-        void createPointPath();
+        void createPointPath(const geometry_msgs::PoseStamped& start);
         void fragmentWaypoints(std::list<geometry_msgs::PoseStamped>::iterator current_wp,
                                std::list<geometry_msgs::PoseStamped>::iterator next_wp);
         void deletePassedWaypoints(const geometry_msgs::PoseStamped& start);

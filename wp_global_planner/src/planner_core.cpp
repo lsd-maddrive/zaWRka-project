@@ -251,7 +251,7 @@ bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start,
 
     plan.clear();
     if(true == is_path_should_be_updated_){
-        createPointPath();
+        createPointPath(start);
         is_path_should_be_updated_ = false;
     }
     deletePassedWaypoints(start);
@@ -506,8 +506,14 @@ void WPGlobalPlanner::waypointCallback(const geometry_msgs::PointStamped::ConstP
 }
 
 //
-void WPGlobalPlanner::createPointPath(){
+void WPGlobalPlanner::createPointPath(const geometry_msgs::PoseStamped& start){
     path_.clear();
+    if(!waypoints_.empty()){
+        path_.push_back(geometry_msgs::PoseStamped());
+        path_.back().header = start.header;
+        path_.back().pose.position = start.pose.position;
+        fragmentWaypoints(path_.begin(), waypoints_.begin());
+    }
     for(auto iter = waypoints_.begin(); iter != waypoints_.end(); iter++){
         path_.push_back(geometry_msgs::PoseStamped());
         path_.back().header = iter->header;
