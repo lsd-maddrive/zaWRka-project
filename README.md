@@ -41,7 +41,7 @@
 
 <!-- Must be `uc` instead of `open` in link! -->
 <p align="center">
-<img src="https://drive.google.com/uc?id=1yt5R27NiCiPxm_0cHMFDlkMnkKW3JOjO">
+<img src="https://drive.google.com/uc?id=17bvjXzOOoAnjZa1fIjD3zP6hjynYqXl7">
 </p>
 
 ## Start notes
