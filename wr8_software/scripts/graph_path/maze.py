@@ -42,7 +42,7 @@ class Point:
 
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y
-    
+
     def __hash__(self):
         return hash((self.x, self.y))
 
@@ -62,14 +62,14 @@ from_direction_letters = [
                             '-'
                         ]
 
-g_direction_angle = { 
+g_direction_angle = {
                 from_direction_letters[0] : 180,
                 from_direction_letters[1] : 90,
                 from_direction_letters[2] : 0,
                 from_direction_letters[3] : 270
         }
-            
-from_directions = { 
+
+from_directions = {
                 from_direction_letters[0] : Point(0, -1),
                 from_direction_letters[1] : Point(-1, 0),
                 from_direction_letters[2] : Point(0, 1),
@@ -117,20 +117,20 @@ class PointDir:
 
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y and self.d == other.d
-    
+
     def __hash__(self):
         return hash((self.x, self.y, self.d))
 
 
-def getManhattanDistance(cNode, oNode):
-    dist = np.absolute(oNode.coord.as_array() - cNode.coord.as_array())
+def get_manhattan_dist(cur_node, oNode):
+    dist = np.absolute(oNode.coord.as_array() - cur_node.coord.as_array())
     return dist[0] + dist[1]
 
 
 class Node:
 
     node_idx_cntr = 0
-    
+
     dir_deltas = [Point(0, 1),
                   Point(1, 0),
                   Point(0, -1),
@@ -143,11 +143,13 @@ class Node:
     def __init__(self, pnt_coord):
         # Up, right, down, left
         self.map_neighbours = [0, 0, 0, 0]
-        
+
         self.coord          = pnt_coord
         self.next_nodes     = [None, None, None, None]
 
         self.dirNeighbours = [None, None, None]
+        self.dir_limitations = [0, 0, 0]
+
         self.orig_dirNeighb = None
         self.dirLetr = '-'
 
@@ -175,27 +177,27 @@ class Node:
             return self.idx < other.idx
 
         return NotImplemented
-    
+
     def __hash__(self):
         return hash((self.idx, self.dirLetr))
 
     def show_info(self):
         print('id: {}/{}/{}:'.format(self.idx, self.dirLetr, self.coord))
-        
+
         nghbr = self.dirNeighbours[0]
         if nghbr:
             print('  Neighbour R: {}/{}/{}'.format(nghbr.idx, nghbr.dirLetr, nghbr.coord))
         # else:
             # print('  Neighbour R: None')
 
-        
+
         nghbr = self.dirNeighbours[1]
         if nghbr:
             print('  Neighbour F: {}/{}/{}'.format(nghbr.idx, nghbr.dirLetr, nghbr.coord))
         # else:
             # print('  Neighbour F: None')
 
-        
+
         nghbr = self.dirNeighbours[2]
         if nghbr:
             print('  Neighbour L: {}/{}/{}'.format(nghbr.idx, nghbr.dirLetr, nghbr.coord))
@@ -205,7 +207,7 @@ class Node:
     def is_main(self):
         return self.idx >= 0
 
-    def has_only_way(self):
+    def has_only_way_node(self):
         return sum(self.map_neighbours) == 1
 
     def setMainNode(self):
@@ -239,6 +241,7 @@ class Maze:
         self.screen = None
 
         self._target_node = None
+        self._local_target_node = None
         self._current_node = None
 
 
@@ -253,7 +256,7 @@ class Maze:
                     for i, delta in enumerate(to_directions):
                         neighbour_pnt = point + delta
                         neighbour = self.get_maze_element(neighbour_pnt)
-                        
+
                         if neighbour is not None and self.is_element_vacant(neighbour):
                             node.map_neighbours[i] = 1
 
@@ -274,11 +277,11 @@ class Maze:
 
         first_pnt, to_dir = first_node.coord, to_directions[nonzero_index]
         # print('Start with: {} -> {}'.format(first_pnt, to_dir))
-        self._update_neighbours(first_pnt + to_dir, to_dir)       
+        self._update_neighbours(first_pnt + to_dir, to_dir)
 
         # for elem in self.directed_nodes:
         #     self.directed_nodes[elem].show_info()
-        
+
     # Convert to extended nodes
     def _update_neighbours(self, pnt, fromDirPnt):
 
@@ -290,9 +293,9 @@ class Maze:
 
         fromDirLtr = getLetterFromDirPnt(fromDirPnt)
         # print('Node "{} / {}" found on {}'.format(currNode, fromDirLtr, pnt))
-        
+
         newPntDir = PointDir(pnt.x, pnt.y, fromDirLtr)
-        
+
         if newPntDir in self.directed_nodes:
             # print('But already found on dictionary')
             return self.directed_nodes[newPntDir]
@@ -327,10 +330,10 @@ class Maze:
             if dist < min_dist:
                 min_dist = dist
                 nearest_pnt = _pnt
-            
+
         if nearest_pnt is None:
             raise Exception('Failed to find nearest node')
-        
+
         self._target_node = self.nodes[nearest_pnt]
 
         print('Target is set to: {}'.format(self._target_node))
@@ -344,22 +347,54 @@ class Maze:
             if dist < min_dist and _pntdir.d == pointdir.d:
                 min_dist = dist
                 nearest_pntdir = _pntdir
-    
+
         if nearest_pntdir is None:
             raise Exception('Failed to find nearest node')
-        
+
         self._current_node = self.directed_nodes[nearest_pntdir]
 
         print('State is set to: {}'.format(self._current_node))
 
-    def get_path(self):
+    def next_local_target(self):
+        if len(self._current_path) == 0:
+            self._local_target_node = None
+            return False
+
+        self._current_node = self._current_path[0]
+        self._update_path()
+
+        return True
+
+    def get_local_target(self) -> Node:
+        return self._local_target_node
+
+    def set_limitation(self, limits: list):
+        """Set limitations as 0/1 (1 - limited, 0 - free)
+
+        Arguments:
+            limits {list} -- [left, forward, right]
+        """
+        if self._local_target_node is None:
+            return
+
+        self._local_target_node.dir_limitations[0] = limits[0]
+        self._local_target_node.dir_limitations[1] = limits[1]
+        self._local_target_node.dir_limitations[2] = limits[2]
+
+    def _update_path(self):
         if self._target_node is None:
             raise Exception('Solver / Target not set')
-        
+
         if self._current_node is None:
             raise Exception('Solver / State not set')
 
-        print('Attempt to find path from node: {}'.format(self._current_node))
+        if self._current_node.idx == self._target_node.idx:
+            # Early ending - already on target
+            self._current_path = []
+            self._local_target_node = None
+            return self._current_path
+
+        # print('Attempt to find path from node: {}'.format(self._current_node))
 
         frontier = PriorityQueue()
         frontier.put((0, self._current_node))
@@ -370,61 +405,62 @@ class Maze:
         cameFrom = {}
         cameFrom[self._current_node] = None
 
-        path = []
-
         while not frontier.empty():
-            _, cNode = frontier.get()
-            # print('Next node: {}'.format(cNode))
+            _, cur_node = frontier.get()
+            # print('Next node: {}'.format(cur_node))
 
-            currentWays = cNode.dirNeighbours
-            for way in currentWays:
-                if way is None:
+            for idx, way_node in enumerate(cur_node.dirNeighbours):
+                # No way or limited
+                if way_node is None or cur_node.dir_limitations[idx] != 0:
                     continue
 
-                if way.idx == self._target_node.idx:
-                    print('Got it!')
-                    path.append(self._target_node.coord)
-                    
-                    node = cNode
+                if way_node.idx == self._target_node.idx:
+                    # print('Got it!')
+                    path = [self._target_node]
+
+                    node = cur_node
                     while True:
                         if cameFrom[node] is None:
                             break
 
-                        path.append(node.coord)
+                        path.append(node)
                         node = cameFrom[node]
 
+                    path.reverse()
+
+                    self._current_path = path
+                    self._local_target_node = self._current_path[0]
                     return path
 
-                    # cameFrom[self.targetNode] = cNode
-                    # self.cameFrom = cameFrom
-                    # return True
+                new_cost = get_manhattan_dist(cur_node, way_node) + cost_so_far[cur_node]
+                # print('Neighbour found: {} / g = {}'.format(way_node, new_cost))
 
-                new_cost = getManhattanDistance(cNode, way) + cost_so_far[cNode]
-                print('Neighbour found: {} / g = {}'.format(way, new_cost))
+                if way_node not in cost_so_far or new_cost < cost_so_far[way_node]:
 
-                if way not in cost_so_far or new_cost < cost_so_far[way]:
-                    
-                    cost_so_far[way] = new_cost
+                    cost_so_far[way_node] = new_cost
 
-                    prio_f = new_cost + self.calc_heuristic(way, self._target_node)
+                    prio_f = new_cost + self.calc_heuristic(way_node, self._target_node)
                     # print('    goes in frontier f = {}'.format(prio_f))
-                    frontier.put((prio_f, way))
+                    frontier.put((prio_f, way_node))
 
-                    cameFrom[way] = cNode
+                    cameFrom[way_node] = cur_node
 
-        return path
+        return []
 
+    def get_path(self):
+        self._update_path()
+        return self._current_path
 
     # local TF -> ROS: (x1, y1) = (2*y, -2*x)
     # ROS -> local TF: (x, y) = (-y1/2, x1/2)
     @staticmethod
-    def _ext_point_2_point(ext_point: list) -> Point:
+    def ext_point_2_point(ext_point: list) -> Point:
         return Point(-ext_point[1]/2., ext_point[0]/2.)
 
     @staticmethod
-    def _ext_point_2_pointdir(ext_point: list, ext_angle: float) -> PointDir:
+    def ext_point_2_pointdir(ext_point: list, ext_angle: float) -> PointDir:
         fromdir_ltr = Maze._angle_2_fromdir(ext_angle)
-        pnt = Maze._ext_point_2_point(ext_point)
+        pnt = Maze.ext_point_2_point(ext_point)
         return PointDir(pnt.x, pnt.y, fromdir_ltr)
 
     @staticmethod
@@ -440,7 +476,7 @@ class Maze:
         for fromdir_ltr in g_direction_angle:
             if int(angle_idx*90) == g_direction_angle[fromdir_ltr]:
                 result_fromdir = fromdir_ltr
-        
+
         if result_fromdir is None:
             raise Exception('Failed to get fromdir info')
 
@@ -450,7 +486,7 @@ class Maze:
     def _normalize_angle(angle_deg):
         angle = int(angle_deg)
         angle = angle % 360
-        angle = (angle + 360) % 360 
+        angle = (angle + 360) % 360
 
         return angle
 
@@ -461,7 +497,7 @@ class Maze:
         return np.linalg.norm(pnt1.as_array()-pnt2.as_array())
 
     def calc_heuristic(self, next_node, target_node):
-        return getManhattanDistance(next_node, target_node)
+        return get_manhattan_dist(next_node, target_node)
 
     def is_element_vacant(self, elem):
         if elem == 0 or elem == 1 or elem == 2:
@@ -482,7 +518,7 @@ class Maze:
 
         return True
 
-    # Return    
+    # Return
     #   8 - occupied
     #   1 - start
     #   2 - target
@@ -511,10 +547,10 @@ class Maze:
 
     def render_maze(self):
         cell_colors = (255, 255, 255), (0, 255, 0), (128, 128, 255)
-        
+
         if self.screen is None:
             self.screen = pygame.display.set_mode((420, 420))
-        
+
         self.screen.fill((0, 0, 0))
 
         def render_get_cell_rect(coordinates, maze):
@@ -568,19 +604,31 @@ if __name__ == "__main__":
                  [0, 8, 0, 0, 0, 8, 8]]
     structure = np.array(structure, np.uint8)
     maze = Maze(structure)
-
     maze.render_maze()
-
     maze.set_target(Point(6.5, 1))
 
-    initial_pose = Maze._ext_point_2_pointdir([0, 0], 0)
+    # Sample [y = 0.25] just for representation
+    initial_pose = Maze.ext_point_2_pointdir([0, 0.25], 0)
     maze.set_state(initial_pose)
 
-    path = maze.get_path()
+    while True:
+        path = maze.get_path()
+        if len(path) < 1:
+            break
 
-    print('Path:')
-    for node in path:
-        print(node)
+        print('Path:')
+        for node in path:
+            print('  ', node)
+
+        if maze.get_local_target().idx == 1:
+            maze.set_limitation([1, 0, 1])
+        elif maze.get_local_target().idx == 5:
+            maze.set_limitation([1, 0, 1])
+        elif maze.get_local_target().idx == 10:
+            maze.set_limitation([1, 0, 1])
+
+        maze.next_local_target()
+
 
     time.sleep(10)
 
