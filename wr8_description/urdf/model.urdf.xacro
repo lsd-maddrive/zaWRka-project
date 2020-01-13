@@ -345,6 +345,14 @@
       <origin xyz="${xyz}" rpy="${rpy}" />
     </joint>
 
+    <link name="${name}_optical_frame"/>
+
+    <joint name="${name}_optical_frame_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="-${degrees_90} 0.0 -${degrees_90}" />
+      <parent link="${name}_frame" />
+      <child link="${name}_optical_frame"/>
+    </joint>
+
     <gazebo reference="${name}_frame">
       <material>Gazebo/Black</material>
 
@@ -373,7 +381,7 @@
           <cameraName>$(arg robot_name)/${name}</cameraName>
           <imageTopicName>image_raw</imageTopicName>
           <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-          <frameName>${name}_frame</frameName>
+          <frameName>${name}_optical_frame</frameName>
           <hackBaseline>0.07</hackBaseline>
           <distortionK1>0.0</distortionK1>
           <distortionK2>0.0</distortionK2>
@@ -470,7 +478,9 @@
   </xacro:macro>
 
   <xacro:stereo_camera name="stereo_camera" fov="1.3962634" />
-  <xacro:single_camera name="signs_camera" xyz="-0.05 0 0.2" rpy="0 -${degrees_30} -${degrees_30}" fov="2.094" />
+
+  <!-- <xacro:single_camera name="signs_camera" xyz="-0.05 0 0.2" rpy="0 -${degrees_30} -${degrees_30}" fov="2.094" /> -->
+  <xacro:single_camera name="signs_camera" xyz="-0.05 0 0.3" rpy="0 -${degrees_30} -${degrees_30}" fov="1.3962634" />
 
 </robot>
 
