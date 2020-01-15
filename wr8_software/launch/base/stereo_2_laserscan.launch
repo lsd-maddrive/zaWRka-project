@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<launch>
+
+    <arg name="stereo_cloud" />
+
+	<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="stereo_pointcloud_to_laserscan_node" >
+        <remap from="cloud_in" to="$(arg stereo_cloud)" />
+    	<remap from="scan" to="stereo_scan" />
+
+        <param name="range_min" value="0.5" />
+        <param name="range_max" value="2" />
+
+        <param name="min_height" value="0.1" />
+        <param name="max_height" value="1.0" />
+
+        <param name="angle_min" value="-0.5" />
+        <param name="angle_max" value="0.5" />
+
+        <param name="concurrency_level" value="0" />
+        <param name="target_frame" value="base_center" />
+    </node>
+
+</launch>
