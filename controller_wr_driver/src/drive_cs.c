@@ -10,14 +10,14 @@ pidControllerContext_t steerPIDparam = {
 };
 
 /***    Not used for now, I guess will be used after testing    ***/
-pidControllerContext_t speedPIDparam = {
-  .kp               = 80,
-  .ki               = 0.1,
-  .kd               = 0,
-  .integSaturation  = 15,
-  .proptDeadZone    = 0,
-  .kr               = 0
-};
+// pidControllerContext_t speedPIDparam = {
+//   .kp               = 80,
+//   .ki               = 0.1,
+//   .kd               = 0,
+//   .integSaturation  = 15,
+//   .proptDeadZone    = 0,
+//   .kr               = 0
+// };
 
 pidControllerContext_t  f_speedPIDparam = {
   .kp               = 50,
@@ -57,19 +57,15 @@ pidControllerContext_t  b_speedPIDparam = {
 #define SPEED_MAX_MPS           3
 #define SPEED_MIN_MPS           (-3)
 
-/***        data from steer feedback       ***/
-static steerAngleDegValue_t   steer_angl_deg        = 0;
 /***  reference steering angle in degrees  ***/
 static steerAngleDegValue_t   steer_angl_deg_ref    = 0;
 
 /***      Variables for Steering PID Controller     ***/
-static controllerError_t prev_steer_angl_deg_err    = 0;
-static controllerError_t steer_angl_deg_err         = 0;
-static controllerError_t steer_angl_deg_dif         = 0;
-static controllerError_t steer_angl_deg_intg        = 0;
+// static controllerError_t prev_steer_angl_deg_err    = 0;
+// static controllerError_t steer_angl_deg_err         = 0;
+// static controllerError_t steer_angl_deg_dif         = 0;
+// static controllerError_t steer_angl_deg_intg        = 0;
 
-/***     speed [m/s] feedback               ***/
-static odometrySpeedValue_t speed_obj_mps           = 0;
 /***     reference value of speed [m/s]     ***/
 static odometrySpeedValue_t speed_ref               = 0;
 
@@ -169,17 +165,16 @@ static THD_FUNCTION(Controller, arg)
 
     while( 1 )
     {
-        palToggleLine(LINE_LED1);
         systime_t   th_time     = chVTGetSystemTimeX();
 
         if( !permition_flag )
         {
-            chThdSleepUntilWindowed( th_time, th_time + MS2ST(10) );
+            chThdSleepUntilWindowed( th_time, th_time + MS2ST(CONTROL_SYSTEMS_PERIOD_MS) );
             continue;
         }
 
-        /***    I-controller for Steering CS    ***/
-        steer_angl_deg      =   lldGetSteerAngleDeg( );
+        /***    Steering CS    ***/
+        // steerAngleDegValue_t steer_angl_deg      =   lldGetSteerAngleDeg( );
 
         // steer_angl_deg_err  =   steer_angl_deg_ref - steer_angl_deg;
         // steer_angl_deg_dif  =   steer_angl_deg_err - prev_steer_angl_deg_err;
@@ -203,11 +198,12 @@ static THD_FUNCTION(Controller, arg)
 
         /*******************************************/
 
-        /***    Controller for Speed CS    ***/
-        speed_obj_mps   = lldOdometryGetLPFObjSpeedMPS( );
+        /***    Speed CS    ***/
+        odometrySpeedValue_t speed_obj_mps   = lldOdometryGetLPFObjSpeedMPS( );
 
         speed_err       =  speed_ref - speed_obj_mps;
         speed_dif       =  speed_err - prev_speed_err;
+        prev_speed_err  = speed_err;
 
         if( speed_ref >= 0 )
         {
@@ -220,7 +216,10 @@ static THD_FUNCTION(Controller, arg)
                         f_cntr_intg    = 0;
                         speed_cntrl_prc = 0;
                     }
-                    else speed_cntrl_prc = brake_cntr_value;
+                    else
+                    {
+                        speed_cntrl_prc = brake_cntr_value;
+                    }
                 }
                 else if( speed_err < 0 )
                 {
@@ -229,10 +228,13 @@ static THD_FUNCTION(Controller, arg)
                         f_speed_intg    = 0;
                         speed_cntrl_prc = 0;
                     }
-                    else speed_cntrl_prc = -brake_cntr_value;
+                    else
+                    {
+                        speed_cntrl_prc = -brake_cntr_value;
+                    }
                 }
             }
-            else if (speed_ref <= 0.1 && speed_ref > 0)
+            else if (speed_ref <= 0.1)
             {
                 f_speedPIDparam.kp = 300;
                 f_speedPIDparam.ki = 0.9;
@@ -258,19 +260,14 @@ static THD_FUNCTION(Controller, arg)
         else if( speed_ref < 0 )
         {
             b_speed_intg      += b_speedPIDparam.ki * speed_err;
-            f_speed_intg      = 0;
+            f_speed_intg      =  0;
             b_cntr_intg       =  b_speed_intg;
             b_cntr_intg       =  CLIP_VALUE( b_cntr_intg, -b_speedPIDparam.integSaturation, b_speedPIDparam.integSaturation );
             speed_cntrl_prc = b_speedPIDparam.kp * speed_err + b_speedPIDparam.kr * speed_ref + b_cntr_intg + b_speedPIDparam.kd * speed_dif;
         }
 
-        prev_speed_err = speed_err;
-
-        speed_cntrl_prc = CLIP_VALUE( speed_cntrl_prc, CONTROL_MIN, CONTROL_MAX );
         lldControlSetDrMotorPower( speed_cntrl_prc );
-
-
-        chThdSleepUntilWindowed( th_time, th_time + MS2ST(10) );
+        chThdSleepUntilWindowed( th_time, th_time + MS2ST(CONTROL_SYSTEMS_PERIOD_MS) );
     }
 }
 
@@ -320,13 +317,11 @@ void driverIsEnableCS( bool permition )
  */
 void driverResetCS( void )
 {
-
     speed_ref = steer_angl_deg_ref =  0;
 
-    prev_steer_angl_deg_err = 0;
-    steer_angl_deg_err      = 0;
-
-    steer_angl_deg_intg     = 0;
+    // prev_steer_angl_deg_err = 0;
+    // steer_angl_deg_err      = 0;
+    // steer_angl_deg_intg     = 0;
 
     steer_cntl_prc = 0;
     lldControlSetSteerMotorPower( steer_cntl_prc );
