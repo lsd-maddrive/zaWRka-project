@@ -33,7 +33,9 @@ sudo apt install ros-$ROS_DISTRO-base-local-planner \
 					ros-$ROS_DISTRO-rosmon
 					libsuitesparse-dev 
 
+sudo apt remove ros-$ROS_DISTRO-key-teleop
 
+git -C teleop_tools pull  || git clone https://github.com/KaiL4eK/teleop_tools.git
 git -C madproto pull  || git clone https://github.com/KaiL4eK/madproto.git
 git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
 git -C elp_stereo_camera pull					|| git clone https://github.com/KaiL4eK/elp_stereo_camera.git
