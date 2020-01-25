@@ -30,6 +30,7 @@ sudo apt install ros-$ROS_DISTRO-base-local-planner \
 					ros-$ROS_DISTRO-image-view \
 					ros-$ROS_DISTRO-uvc-camera \
 					ros-$ROS_DISTRO-usb-cam \
+					ros-$ROS_DISTRO-rosmon
 					libsuitesparse-dev 
 
 
