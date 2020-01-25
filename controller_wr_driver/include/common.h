@@ -44,7 +44,7 @@ extern "C" {
 #define     PROGRAM_ROUTINE_TEST_LINK                   62
 #define     PROGRAM_ROUTINE_TEST_LINK_ADC_CALIB         63
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_LINK_CONTROL
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_MASTER
 
 /*============================================================================*/
 /* MACROS 																	  */
