@@ -43,10 +43,10 @@ pidControllerContext_t  b_speedPIDparam = {
 /* CONTROLLER PARAMETRS                                                       */
 /*============================================================================*/
 
-#define STEER_LEFT_BUST_K   3.652
+#define STEER_LEFT_BUST_K   3.15
 #define STEER_LEFT_BUST_B   (0)
 
-#define STEER_RIGHT_BUST_K  (2.9641)
+#define STEER_RIGHT_BUST_K  (3.05)
 #define STEER_RIGHT_BUST_B  (0)
 
 /************************************/
@@ -181,21 +181,23 @@ static THD_FUNCTION(Controller, arg)
         /***    I-controller for Steering CS    ***/
         steer_angl_deg      =   lldGetSteerAngleDeg( );
 
-        steer_angl_deg_err  =   steer_angl_deg_ref - steer_angl_deg;
-        steer_angl_deg_dif  =   steer_angl_deg_err - prev_steer_angl_deg_err;
-        steer_angl_deg_intg +=  steer_angl_deg_err;
+        // steer_angl_deg_err  =   steer_angl_deg_ref - steer_angl_deg;
+        // steer_angl_deg_dif  =   steer_angl_deg_err - prev_steer_angl_deg_err;
+        // steer_angl_deg_intg +=  steer_angl_deg_err;
 
-        steer_angl_deg_intg = CLIP_VALUE( steer_angl_deg_intg, -steerPIDparam.integSaturation, steerPIDparam.integSaturation );
-        if( abs( steer_angl_deg_err ) <= steerPIDparam.proptDeadZone ) steer_angl_deg_intg = 0;
+        // steer_angl_deg_intg = CLIP_VALUE( steer_angl_deg_intg, -steerPIDparam.integSaturation, steerPIDparam.integSaturation );
+
+        // if( abs( steer_angl_deg_err ) <= steerPIDparam.proptDeadZone ) steer_angl_deg_intg = 0;
 
         if( steer_angl_deg_ref >= 0 )   // left
-           steer_cntl_prc  = ( steer_angl_deg_ref * STEER_LEFT_BUST_K + STEER_LEFT_BUST_B) + steer_angl_deg_intg * steerPIDparam.ki;
+           steer_cntl_prc  = ( steer_angl_deg_ref * STEER_LEFT_BUST_K + STEER_LEFT_BUST_B); // + steer_angl_deg_intg * steerPIDparam.ki;
         else if( steer_angl_deg_ref < 0 )
-           steer_cntl_prc  = ( steer_angl_deg_ref * STEER_RIGHT_BUST_K + STEER_RIGHT_BUST_B) + steer_angl_deg_intg * steerPIDparam.ki;
+           steer_cntl_prc  = ( steer_angl_deg_ref * STEER_RIGHT_BUST_K + STEER_RIGHT_BUST_B); // + steer_angl_deg_intg * steerPIDparam.ki;
 
-        prev_steer_angl_deg_err = steer_angl_deg_err;
+        // prev_steer_angl_deg_err = steer_angl_deg_err;
 
-        steer_cntl_prc = CLIP_VALUE( steer_cntl_prc, CONTROL_MIN, CONTROL_MAX );
+        // -> Not required as it is done inside
+        // steer_cntl_prc = CLIP_VALUE( steer_cntl_prc, CONTROL_MIN, CONTROL_MAX );
 
         lldControlSetSteerMotorPower( steer_cntl_prc );
 
