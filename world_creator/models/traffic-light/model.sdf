@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<sdf version="1.0">
+<sdf version="1.6">
 	<model name="tl">
 		<link name="leg">
       <pose>0 0 0.35 0 0 0</pose>
@@ -98,6 +98,7 @@
             <name>Gazebo/Red</name>
           </script>
         </material>
+				<plugin name="tf_plugin" filename="libtf_plugin.so"/>
 			</visual>
 			<collision name="collision">
 				<geometry>
@@ -127,12 +128,13 @@
 						<radius>0.05</radius>
 					</sphere>
 				</geometry>
-        <material>
-          <script>
-            <uri>file://media/materials/scripts/gazebo.material</uri>
-            <name>Gazebo/Green</name>
-          </script>
-        </material>
+				<material>
+					<script>
+						<uri>file://media/materials/scripts/gazebo.material</uri>
+						<name>Gazebo/Green</name>
+					</script>
+				</material>
+				<plugin name="tf_plugin" filename="libtf_plugin.so"/>
 			</visual>
 			<collision name="collision">
 				<geometry>
