@@ -1,7 +1,8 @@
-#ifndef MY_PLUGIN_H
-#define MY_PLUGIN_H
+#ifndef TF_PLUGIN_H
+#define TF_PLUGIN_H
 
 #include <ros/ros.h>
+#include <std_msgs/UInt8.h>
 
 #include <gazebo/gazebo.hh>
 #include <gazebo/rendering/Visual.hh>
@@ -15,26 +16,23 @@ class Wr8TrafficLightPlugin : public VisualPlugin
 public:
 	Wr8TrafficLightPlugin();
 	virtual ~Wr8TrafficLightPlugin();
-
+	void Load(rendering::VisualPtr _parent, sdf::ElementPtr);
+    void topicCallback(const std_msgs::UInt8& msg);
 protected:
-	void Load(rendering::VisualPtr _parent, sdf::ElementPtr sdf);
-	virtual void Reset(); 
 private:
-    enum Sphere_t {NONE, TOP, BOT};
-	enum states { NO_COLORS, RED, GREEN };
+    enum Sphere_t { NONE, TOP, BOT };
+	enum States_t { NO_COLORS, RED, GREEN };
 
     void OnCmdTL();
     void OnUpdate();
 
+    ros::NodeHandle* node_handler_;
+    ros::Subscriber subscriber_;
+
     rendering::VisualPtr model_;
-    event::ConnectionPtr update_connection_;
-
-    //ros::NodeHandle n;
-    //ros::Subscriber sub_tl;
-
+    std::string tf_name_;
     Sphere_t sphere_type;
-    int counter;
 };
 
 } // end namespace Gazebo
-#endif // MY_PLUGIN_H
+#endif // TF_PLUGIN_H

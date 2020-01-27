@@ -95,7 +95,7 @@
         <material>
           <script>
             <uri>file://media/materials/scripts/gazebo.material</uri>
-            <name>Gazebo/Red</name>
+            <name>Gazebo/Grey</name>
           </script>
         </material>
 				<plugin name="tf_plugin" filename="libtf_plugin.so"/>
@@ -131,7 +131,7 @@
 				<material>
 					<script>
 						<uri>file://media/materials/scripts/gazebo.material</uri>
-						<name>Gazebo/Green</name>
+						<name>Gazebo/Grey</name>
 					</script>
 				</material>
 				<plugin name="tf_plugin" filename="libtf_plugin.so"/>

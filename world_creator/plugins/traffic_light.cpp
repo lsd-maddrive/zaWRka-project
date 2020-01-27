@@ -2,88 +2,90 @@
 #include <std_msgs/String.h>
 #include <gazebo/physics/physics.hh>
 
-using namespace std; 
+static const char* TOP_SPHERE_NAME = "topSphere";
+static const char* BOT_SPHERE_NAME = "bottomSphere";
 
-static void cb(const std_msgs::String::ConstPtr& msg)
-{
-    ROS_INFO("I heard: [%s]", msg->data.c_str());
-}
+static const char* MATERIAL_RED = "Gazebo/Red";
+static const char* MATERIAL_GREEN = "Gazebo/Green";
+static const char* MATERIAL_GREY = "Gazebo/Grey";
 
 namespace gazebo
 {
     GZ_REGISTER_VISUAL_PLUGIN(Wr8TrafficLightPlugin)
 
-    Wr8TrafficLightPlugin::Wr8TrafficLightPlugin(): counter(0), sphere_type(NONE)
+    Wr8TrafficLightPlugin::Wr8TrafficLightPlugin(): sphere_type(NONE)
 	{
 		ROS_INFO("Traffic Light Plugin is created!"); 
 	}
 
-    void Wr8TrafficLightPlugin::Load(rendering::VisualPtr vis, sdf::ElementPtr)
-    {
-        // You can run this plugin without ROS, for example to debug
-        // In this way you can't use constructor of ros::NodeHandle and other features
-		if( !ros::isInitialized() )
-		{
-			ROS_INFO("ROS has not beed initialized!"); 
-		}
-        // Or you can run it using ROS, so we can create instances
-        else
-		{
-			ROS_INFO("Traffic Light has beed initialized!"); 
-		}
-        this->model_ = vis;
-        this->update_connection_ = event::Events::ConnectPreRender(
-                           boost::bind(&Wr8TrafficLightPlugin::OnUpdate, this));
-
-        std::string name = this->model_->Name();
-        if(name.find("topSphere") != -1){
-            ROS_INFO("topSphere plugin is loaded!");
-            sphere_type = Sphere_t::TOP;
-        }
-        else if(name.find("bottomSphere") != -1)
-        {
-            ROS_INFO("bottomSphere plugin is loaded!");
-            sphere_type = Sphere_t::BOT;
-        }
-
-    }
-
-    void Wr8TrafficLightPlugin::OnUpdate()
-    {
-        counter++;
-        if(counter % 400 == 200)
-        {
-            if(Sphere_t::TOP == sphere_type){
-                this->model_->SetMaterial("Gazebo/Grey");
-            }
-            else if(Sphere_t::BOT == sphere_type){
-                this->model_->SetMaterial("Gazebo/Green");
-            }
-        }
-        else if(counter % 400 == 0)
-        {
-            if(Sphere_t::TOP == sphere_type){
-                this->model_->SetMaterial("Gazebo/Red");
-            }
-            else if(Sphere_t::BOT == sphere_type){
-                this->model_->SetMaterial("Gazebo/Grey");
-            }
-        }
-    }
-
-	void Wr8TrafficLightPlugin::OnCmdTL()
-	{
-        ROS_INFO("OnCmdTL() called");
-	}
-
-	void Wr8TrafficLightPlugin::Reset()
-	{
-        ROS_INFO("Reset() called");
-	}
-
 	Wr8TrafficLightPlugin::~Wr8TrafficLightPlugin()
 	{
-        //n.shutdown();
-        ROS_INFO("Destructor called");
+        node_handler_->shutdown();
+        if(node_handler_ != nullptr)
+        {
+            delete node_handler_;
+        }
+        ROS_INFO("Destructor is called");
 	}
+
+    void Wr8TrafficLightPlugin::Load(rendering::VisualPtr visual, sdf::ElementPtr)
+    {
+        // Parse input arguments
+        this->model_ = visual;
+        std::string visual_name = this->model_->Name();
+        ROS_INFO("Visual full name is %s:", visual_name.c_str());
+        signed int find_result;
+        if((find_result = visual_name.find(TOP_SPHERE_NAME)) != -1){
+            ROS_INFO("- link name is %s", TOP_SPHERE_NAME);
+            sphere_type = Sphere_t::TOP;
+        }
+        else if((find_result = visual_name.find(BOT_SPHERE_NAME)) != -1)
+        {
+            ROS_INFO("- link name is %s", BOT_SPHERE_NAME);
+            sphere_type = Sphere_t::BOT;
+        }
+        else
+        {
+            return;
+        }
+        this->model_->SetMaterial(MATERIAL_GREY);
+        tf_name_ = visual_name.substr(0, find_result - 2);
+        ROS_INFO("- tf name is %s", tf_name_.c_str());
+
+        // If ROS is inited we can create instance of ros::NodeHandle, otherwise we can't
+		if( !ros::isInitialized() )
+		{
+			ROS_WARN("ROS has not beed initialized, don't subscribe!");
+		}
+        else
+		{
+            node_handler_ = new ros::NodeHandle();
+            subscriber_ = node_handler_->subscribe(tf_name_ + "_topic", 10, 
+                          &Wr8TrafficLightPlugin::topicCallback, this);
+		}
+    }
+
+    void Wr8TrafficLightPlugin::topicCallback(const std_msgs::UInt8& msg)
+    {
+        ROS_DEBUG("I heard: [%u]", msg.data);
+        Sphere_t cmd;
+        if(States_t::RED == msg.data)
+        {
+            if(Sphere_t::TOP == sphere_type)
+                this->model_->SetMaterial(MATERIAL_RED);
+            else if(Sphere_t::BOT == sphere_type)
+                this->model_->SetMaterial(MATERIAL_GREY);
+        }
+        else if(States_t::GREEN == msg.data)
+        {
+            if(Sphere_t::TOP == sphere_type){
+                this->model_->SetMaterial(MATERIAL_GREY);
+            }else if(Sphere_t::BOT == sphere_type){
+                this->model_->SetMaterial(MATERIAL_GREEN);}
+        }
+        else
+        {
+            this->model_->SetMaterial(MATERIAL_GREY);
+        }
+    }
 }
