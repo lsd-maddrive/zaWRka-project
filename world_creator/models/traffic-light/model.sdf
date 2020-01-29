@@ -2,7 +2,7 @@
 <sdf version="1.6">
 	<model name="tl">
 		<link name="leg">
-      <pose>0 0 0.35 0 0 0</pose>
+      		<pose>0 0 0.35 0 0 0</pose>
 			<inertial>
 				<mass>0.00693617</mass>
 				<inertia>
@@ -22,9 +22,7 @@
 						<length>0.7</length>
 					</cylinder>
 				</geometry>
-				<material>
-          Gazebo/Grey
-				</material>
+				<material>Gazebo/Grey</material>
 			</visual>
 			<collision name="collision">
 				<geometry>
@@ -36,7 +34,7 @@
 			</collision>
 		</link>
 		<link name="head">
-      <pose>0 -0.011 0.7 0 0 0</pose>
+      		<pose>0 0 0.7 0 0 0</pose>
 			<inertial>
 				<mass>0.00693617</mass>
 				<inertia>
@@ -51,10 +49,13 @@
 			<enable_wind>0</enable_wind>
 			<visual name="visual">
 				<geometry>
-					<cylinder>
-						<radius>0.10</radius>
-						<length>0.3</length>
-					</cylinder>
+					<box>
+						<size>0.2 0.2 0.3</size>
+					</box>
+					<!-- <cylinder> -->
+						<!-- <radius>0.10</radius> -->
+						<!-- <length>0.3</length> -->
+					<!-- </cylinder> -->
 				</geometry>
         <material>
           <script>
@@ -65,15 +66,18 @@
 			</visual>
 			<collision name="collision">
 				<geometry>
-					<cylinder>
-						<radius>0.15</radius>
-						<length>0.001</length>
-					</cylinder>
+					<box>
+						<size>0.2 0.2 0.3</size>
+					</box>
+					<!-- <cylinder> -->
+						<!-- <radius>0.15</radius> -->
+						<!-- <length>0.001</length> -->
+					<!-- </cylinder> -->
 				</geometry>
 			</collision>
 		</link>
 		<link name="topSphere">
-      <pose>0 0.07 0.775 0 0 0</pose>
+      		<pose>0 -0.09 0.775 0 0 0</pose>
 			<inertial>
 				<mass>0.00693617</mass>
 				<inertia>
@@ -89,7 +93,7 @@
 			<visual name="visual">
 				<geometry>
 					<sphere>
-						<radius>0.05</radius>
+						<radius>0.06</radius>
 					</sphere>
 				</geometry>
         <material>
@@ -109,7 +113,7 @@
 			</collision>
 		</link>
 		<link name="bottomSphere">
-      <pose>0 0.07 0.625 0 0 0</pose>
+      		<pose>0 -0.09 0.625 0 0 0</pose>
 			<inertial>
 				<mass>0.00693617</mass>
 				<inertia>
@@ -125,7 +129,7 @@
 			<visual name="visual">
 				<geometry>
 					<sphere>
-						<radius>0.05</radius>
+						<radius>0.06</radius>
 					</sphere>
 				</geometry>
 				<material>

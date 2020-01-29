@@ -15,12 +15,15 @@ ORIENTATIONS_2_YAW_ANGLE = {
     objects.CellQuarter.RIGHT_TOP: m.pi,
 }
 
+
 class GazeboObject():
     def __init__(self, base, map_params):
         self.map_params = map_params
         self.base = base
+
     def _swap_axes(self, pos):
         pos.y = self.map_params.n_cells.y - pos.y
+
     def _turn_to_physical(self, pos):
         pos.x *= self.map_params.cell_sz.x
         pos.y *= self.map_params.cell_sz.y
@@ -38,9 +41,9 @@ class GazeboBox(GazeboObject):
         center = self.base.pos + ds.Point2D(0.5, 0.5)
         self._swap_axes(center)
         self._turn_to_physical(center)
-        
+
         return '{} {} {} 0 0 0'.format(center.x, center.y, OBJECT_SPAWN_Z)
-        
+
     def get_size_str(self):
         return '{} {} {}'.format(self.map_params.cell_sz.x, self.map_params.cell_sz.y, OBJECT_HEIGHT)
 
@@ -51,22 +54,22 @@ class GazeboWall(GazeboObject):
 
         if type(base) is not objects.Wall:
             raise Exception('Invalid class passed')
-        
+
     def get_position_str(self):
         center = (self.base.p1 + self.base.p2) / 2
         sub = self.base.p2 - self.base.p1
         wall_angle = m.atan2(sub.y, sub.x)
-            
+
         self._swap_axes(center)
         self._turn_to_physical(center)
-        
+
         return '{} {} {} 0 0 {}'.format(center.x, center.y,
                                         OBJECT_SPAWN_Z, -wall_angle)
 
     def get_size_str(self):
         sub = self.base.p2 - self.base.p1
 
-        wall_length = m.sqrt((sub.x*self.map_params.cell_sz.y)**2 + 
+        wall_length = m.sqrt((sub.x*self.map_params.cell_sz.y)**2 +
                              (sub.y*self.map_params.cell_sz.y)**2)
 
         return '{} {} {}'.format(wall_length, WALL_WIDTH, OBJECT_HEIGHT)
@@ -82,7 +85,7 @@ class GazeboSquare(GazeboObject):
     def get_position_strs(self):
         results = []
         center = deepcopy(self.base.pos)
-        
+
         positions = [
             ds.Point2D(.0, .0),
             ds.Point2D(.5, .0),
@@ -93,18 +96,20 @@ class GazeboSquare(GazeboObject):
             ds.Point2D(.5, 1.),
             ds.Point2D(1., 1.)
         ]
-        
+
         for pos in positions:
             pillar_cntr = center + pos
+
             self._swap_axes(pillar_cntr)
             self._turn_to_physical(pillar_cntr)
+
             results += ['{} {} {} 0 0 0'.format(pillar_cntr.x, pillar_cntr.y, OBJECT_SPAWN_Z)]
 
         return results
 
     def get_size_str(self):
         return '{} {} {}'.format(self.pillar_width.x, self.pillar_width.y, OBJECT_HEIGHT)
-        
+
 
 class GazeboSign(GazeboObject):
     def __init__(self, base, map_params):
@@ -125,7 +130,7 @@ class GazeboSign(GazeboObject):
             pos += ds.Point2D(0.25, 0.75)
         elif self.base.orient == objects.CellQuarter.LEFT_TOP:
             pos += ds.Point2D(0.25, 0.25)
-        
+
         self._swap_axes(pos)
         self._turn_to_physical(pos)
 
@@ -138,12 +143,14 @@ class GazeboSign(GazeboObject):
 
 
 class GazeboTrafficLight(GazeboObject):
+    LINE_WIDTH = 0.05 # m
+
     def __init__(self, base, map_params):
         super().__init__(base, map_params)
         if type(base) is not objects.TrafficLight:
             raise Exception('Invalid class passed')
 
-    def get_position_str(self):
+    def _get_position(self):
         pos = deepcopy(self.base.pos)
 
         # Apply small shift
@@ -155,10 +162,39 @@ class GazeboTrafficLight(GazeboObject):
             pos += ds.Point2D(0.25, 0.75)
         elif self.base.orient == objects.CellQuarter.LEFT_TOP:
             pos += ds.Point2D(0.25, 0.25)
-        
+
+        return pos
+
+    def get_position_str(self):
+        pos = self._get_position()
+
         self._swap_axes(pos)
         self._turn_to_physical(pos)
 
         yaw_angle = ORIENTATIONS_2_YAW_ANGLE[self.base.orient]
 
         return "{0} {1} 0 0 0 {2}".format(pos.x, pos.y, yaw_angle)
+
+    def get_line_position_str(self):
+        pos = self._get_position()
+
+        # Shift relative to real position
+        if self.base.orient == objects.CellQuarter.RIGHT_TOP:
+            pos += ds.Point2D(0.75, 0)
+        elif self.base.orient == objects.CellQuarter.RIGHT_BOT:
+            pos += ds.Point2D(0, 0.75)
+        elif self.base.orient == objects.CellQuarter.LEFT_BOT:
+            pos += ds.Point2D(-0.75, 0)
+        elif self.base.orient == objects.CellQuarter.LEFT_TOP:
+            pos += ds.Point2D(0, -0.75)
+
+        self._swap_axes(pos)
+        self._turn_to_physical(pos)
+
+        yaw_angle = ORIENTATIONS_2_YAW_ANGLE[self.base.orient]
+
+        # Rise up just to be visible
+        return "{0} {1} 0.001 0 0 {2}".format(pos.x, pos.y, yaw_angle)
+
+    def get_line_size_str(self):
+        return "{0} {1}".format(self.map_params.cell_sz.x, self.LINE_WIDTH)

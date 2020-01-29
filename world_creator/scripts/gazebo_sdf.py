@@ -9,7 +9,8 @@ from objects import *
 import gazebo_objects as go
 
 # Files pathes
-BOX_PATH = "models/box.sdf"
+SAMPLE_BOX_PATH = "models/box.sdf"
+SAMPLE_LINE_PATH = "models/line.sdf"
 TRAFFIC_LIGHT_PATH = "model://traffic-light"
 EMPTY_WORLD_PATH = "models/empty_world.world"
 
@@ -28,23 +29,23 @@ class WorldCreator:
     box_counter = 0
     sign_counter = 0
     traffic_light_counter = 0
-    
+
     def __init__(self, map_params: MapParams):
-        """ 
+        """
         @brief Constructor that create empty world with defined config
         """
         self.__create_empty_world()
-        
+
         self.map_params = map_params
 
     def showTree(self):
-        """ 
-        @brief Print on console xml tree of current world 
+        """
+        @brief Print on console xml tree of current world
         """
         log.debug(etree.tostring(self.SDF_ROOT, pretty_print=True))
 
     def writeWorldToFile(self, fileName):
-        """ 
+        """
         @brief Write current world to file
         """
         with open(fileName, 'wb') as f:
@@ -83,23 +84,23 @@ class WorldCreator:
 
     def __addSquare(self, square):
         gz_square = go.GazeboSquare(square, self.map_params)
-        
+
         size_str = gz_square.get_size_str()
         pos_strs = gz_square.get_position_strs()
-        
+
         for pos_str in pos_strs:
             self.__spawnBox(pos_str, size_str)
 
     def __spawnBox(self, pos_str, size_str):
         self.box_counter += 1
-        box_root = etree.parse(BOX_PATH).getroot()        
-        
+        box_root = etree.parse(SAMPLE_BOX_PATH).getroot()
+
         box_root.set("name", "box_{}".format(self.box_counter))
         box_root.find("pose").text = pos_str
         link = box_root.find("link")
         link.find("collision").find("geometry").find("box").find("size").text = size_str
         link.find("visual").find("geometry").find("box").find("size").text = size_str
-        
+
         self.SDF_ROOT.find("world").insert(0, box_root)
 
     def __addSign(self, sign):
@@ -116,11 +117,11 @@ class WorldCreator:
             SignsTypes.FORWARD_OR_LEFT.value:   SignsModels.FORWARD_OR_LEFT,
             SignsTypes.FORWARD_OR_RIGHT.value:  SignsModels.FORWARD_OR_RIGHT,
         }
-  
+
         if _type not in SIGN_MODEL_MAP:
             log.error("Error: sign type \'{}\' is not supported".format(_type))
             return
-        
+
         self.__spawnSign(pos_str, SIGN_MODEL_MAP[_type])
 
     def __spawnSign(self, pos_str, model_path):
@@ -146,8 +147,14 @@ class WorldCreator:
         pos_str = go_traf_light.get_position_str()
         self.__spawnTrafficLight(pos_str)
 
+        line_pos_str = go_traf_light.get_line_position_str()
+        line_size_str = go_traf_light.get_line_size_str()
+        self.__spawnTrafficLightLine(line_pos_str, line_size_str)
+
+        self.traffic_light_counter += 1
+
     def __spawnTrafficLight(self, pos_str):
-        log.debug("traf light with pos: {}".format(pos_str))
+        log.debug("traffic light with pos: {}".format(pos_str))
 
         model_path = TRAFFIC_LIGHT_PATH
         counter = self.traffic_light_counter
@@ -165,10 +172,22 @@ class WorldCreator:
         model_root.append(pose_elem)
 
         self.SDF_ROOT.find("world").insert(0, model_root)
-        self.traffic_light_counter += 1
+
+    def __spawnTrafficLightLine(self, pos_str, size_str):
+        log.debug("traffic light line with pos: {}".format(pos_str))
+
+        line_root = etree.parse(SAMPLE_LINE_PATH).getroot()
+
+        line_root.set("name", "tl_line_{}".format(self.traffic_light_counter))
+        line_root.find("pose").text = pos_str
+        link = line_root.find("link")
+        link.find("collision").find("geometry").find("plane").find("size").text = size_str
+        link.find("visual").find("geometry").find("plane").find("size").text = size_str
+
+        self.SDF_ROOT.find("world").insert(0, line_root)
 
     def __create_empty_world(self):
-        """ 
+        """
         @brief Create sdf tree for empty world from file
         """
         self.SDF_ROOT = etree.parse(EMPTY_WORLD_PATH).getroot()

@@ -4,12 +4,21 @@ This package allow to create Gazebo sdf world from gui.
 ### How to create a world
 Firstly, you should install required packages:
 
-`pip3 install -r requirements.txt`
+```bash
+pip3 install -r requirements.txt
+```
 
 Then you should run the main script and configure the map as you like:
 
-`./start_creator.sh`
+```bash
+./start_creator.sh
+```
 
+If you want to see new world:
+
+```bash
+./start_gz.sh new_world.world
+```
 
 ### Scripts description
 `world_creator.py` is the main script. It runs GUI and parses arguments.
@@ -18,7 +27,7 @@ Then you should run the main script and configure the map as you like:
 
 `converter.py` allows to convert frontend data to json format, load json data to frontend and to backend.
 
-`gazebo_sdf.py` is the backend of this program. It allows to create .world file from json file. 
+`gazebo_sdf.py` is the backend of this program. It allows to create .world file from json file.
 
 `data_structures.py` contains the basic type like Size2D and Point2D.
 
