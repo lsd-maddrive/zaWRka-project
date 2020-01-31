@@ -21,7 +21,7 @@
   <!-- Run gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="respawn_gazebo" value="true" />
-    <arg name="world_name" value="$(find world_creator)/worlds/$(arg world_name)"/>
+    <arg name="world_name" value="$(find wr8_description)/worlds/$(arg world_name)"/>
     <arg name="use_sim_time" value="true"/>
     <arg name="debug" value="false"/>
     <arg name="gui" value="$(arg gz_gui)"/>
