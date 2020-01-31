@@ -14,14 +14,14 @@ namespace gazebo
 class Wr8TrafficLightPlugin : public VisualPlugin
 {
 public:
-	Wr8TrafficLightPlugin();
-	virtual ~Wr8TrafficLightPlugin();
-	void Load(rendering::VisualPtr _parent, sdf::ElementPtr);
+    Wr8TrafficLightPlugin();
+    virtual ~Wr8TrafficLightPlugin();
+    void Load(rendering::VisualPtr visual, sdf::ElementPtr);
     void topicCallback(const std_msgs::UInt8& msg);
 protected:
 private:
     enum Sphere_t { NONE, TOP, BOT };
-	enum States_t { NO_COLORS, RED, GREEN };
+    enum States_t { NO_COLORS, RED, GREEN };
 
     void OnCmdTL();
     void OnUpdate();

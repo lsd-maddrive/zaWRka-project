@@ -135,11 +135,11 @@ class WorldCreator:
         name_elem.text = "sign_{}".format(self.sign_counter)
         pose_elem = etree.Element("pose")
         pose_elem.text = pos_str
-        sign_root.append( uri_elem )
-        sign_root.append( name_elem )
-        sign_root.append( pose_elem )
+        sign_root.append(uri_elem)
+        sign_root.append(name_elem)
+        sign_root.append(pose_elem)
 
-        self.SDF_ROOT.find("world").insert(0, sign_root )
+        self.SDF_ROOT.find("world").insert(0, sign_root)
         self.sign_counter += 1
 
     def __addTrafficLight(self, trafficLight):

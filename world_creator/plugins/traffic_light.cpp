@@ -13,20 +13,21 @@ namespace gazebo
 {
     GZ_REGISTER_VISUAL_PLUGIN(Wr8TrafficLightPlugin)
 
-    Wr8TrafficLightPlugin::Wr8TrafficLightPlugin(): sphere_type(NONE)
-	{
-		ROS_INFO("Traffic Light Plugin is created!"); 
-	}
+    Wr8TrafficLightPlugin::Wr8TrafficLightPlugin(): node_handler_(nullptr),
+        sphere_type(NONE)
+    {
+        ROS_INFO("Traffic Light Plugin is created!");
+    }
 
-	Wr8TrafficLightPlugin::~Wr8TrafficLightPlugin()
-	{
+    Wr8TrafficLightPlugin::~Wr8TrafficLightPlugin()
+    {
         node_handler_->shutdown();
         if(node_handler_ != nullptr)
         {
             delete node_handler_;
         }
         ROS_INFO("Destructor is called");
-	}
+    }
 
     void Wr8TrafficLightPlugin::Load(rendering::VisualPtr visual, sdf::ElementPtr)
     {
@@ -52,23 +53,23 @@ namespace gazebo
         tf_name_ = visual_name.substr(0, find_result - 2);
         ROS_INFO("- tf name is %s", tf_name_.c_str());
 
-        // If ROS is inited we can create instance of ros::NodeHandle, otherwise we can't
-		if( !ros::isInitialized() )
-		{
-			ROS_WARN("ROS has not beed initialized, don't subscribe!");
-		}
+        // If ROS is initialized we can create instance of ros::NodeHandle,
+        //otherwise (when we run only gazebo) we can't
+        if( !ros::isInitialized() )
+        {
+            ROS_WARN("ROS has not beed initialized, don't subscribe!");
+        }
         else
-		{
+        {
             node_handler_ = new ros::NodeHandle();
-            subscriber_ = node_handler_->subscribe(tf_name_ + "_topic", 10, 
+            subscriber_ = node_handler_->subscribe(tf_name_ + "_topic", 10,
                           &Wr8TrafficLightPlugin::topicCallback, this);
-		}
+        }
     }
 
     void Wr8TrafficLightPlugin::topicCallback(const std_msgs::UInt8& msg)
     {
         ROS_DEBUG("I heard: [%u]", msg.data);
-        Sphere_t cmd;
         if(States_t::RED == msg.data)
         {
             if(Sphere_t::TOP == sphere_type)
