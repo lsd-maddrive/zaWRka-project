@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <!-- Run simulation for solve problem of slam -->
 <launch>
+  <arg name="wp_global_planner" default="true" doc="[true - wp_global_planner, false - global_planner]"/>
   <arg name="world_name" default="RFMaze.v2.world" />
   <arg name="x" default="0" />
   <arg name="y" default="0" />
@@ -15,6 +16,7 @@
 
   <include file="$(find wr8_software)/launch/slam.launch">
     <arg name="mapping_algorithm" value="hector_mapping" />
+    <arg name="wp_global_planner" value="$(arg wp_global_planner)" />
   </include>
 
   <include file="$(find wr8_software)/launch/rviz_slam_view.launch"/>

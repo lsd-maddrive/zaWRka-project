@@ -2,15 +2,16 @@
 <!-- Run SLAM stack -->
 <launch>
   <arg name="mapping_algorithm" default="hector_mapping" doc="[gmapping, heactor_mapping]"/>
+  <arg name="wp_global_planner" default="false" doc="[true - wp_global_planner, false - global_planner]"/>
 
   <include file="$(find wr8_software)/launch/base/move_base.launch">
     <arg name="base_frame"    value="base_link" />
     <arg name="odom_frame"    value="odom"/>
     <arg name="global_frame"  value="map"/>
-    
     <arg name="odom_topic"    value="odom" />
     <arg name="cmd_topic"     value="cmd_vel" />
     <arg name="laser_topic"   value="scan" />
+    <arg name="wp_global_planner" value="$(arg wp_global_planner)" />
   </include>
 
   <include file="$(find wr8_software)/launch/base/$(arg mapping_algorithm).launch">

@@ -2,6 +2,7 @@
 <!-- Run Localization stack -->
 <launch>
   <arg name="map" default="map2_h" doc="[map2_h, depart]"/>
+  <arg name="wp_global_planner" default="false" doc="[true - wp_global_planner, false - global_planner]"/>
 
   <node name="map_server" pkg="map_server" type="map_server" args="$(find wr8_software)/maps/$(arg map).yaml" />
 
@@ -12,6 +13,7 @@
     <arg name="odom_topic"    value="odom" />
     <arg name="cmd_topic"     value="cmd_vel" />
     <arg name="laser_topic"   value="scan" />
+    <arg name="wp_global_planner" value="$(arg wp_global_planner)" />
   </include>
 
   <include file="$(find wr8_software)/launch/base/amcl.launch">

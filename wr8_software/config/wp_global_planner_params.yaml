@@ -1,5 +1,5 @@
 
-GlobalPlanner:                                # Also see: http://wiki.ros.org/global_planner
+WPGlobalPlanner:                                # Also see: http://wiki.ros.org/global_planner
   old_navfn_behavior: false                     # Exactly mirror behavior of navfn, use defaults for other boolean parameters, default false
   use_quadratic: true                           # Use the quadratic approximation of the potential. Otherwise, use a simpler calculation, default true
   use_dijkstra: true                            # Use dijkstra's algorithm. Otherwise, A*, default true
@@ -19,4 +19,6 @@ GlobalPlanner:                                # Also see: http://wiki.ros.org/gl
   neutral_cost: 50                              # default 50
   cost_factor: 3.0                              # Factor to multiply each cost from costmap by, default 3.0
   publish_potential: false                      # Publish Potential Costmap (this is not like the navfn pointcloud2 potential), default true
-
+  
+  fragmentation_size: 0.20                      # Fragmentation size
+  point_radius: 1.41                            # Point raduis
