@@ -1,7 +1,17 @@
 <?xml version="1.0"?>
 <!-- Run simulation for solve problem of slam -->
 <launch>
-  <include file="$(find wr8_description)/launch/gazebo.launch"/>
+  <arg name="world_name" default="RFMaze.v2.world" />
+  <arg name="x" default="0" />
+  <arg name="y" default="0" />
+  <arg name="gz_gui" default="false" />
+
+  <include file="$(find wr8_description)/launch/gazebo.launch">
+    <arg name="world_name" value="$(arg world_name)" />
+    <arg name="x" value="$(arg x)" />
+    <arg name="y" value="$(arg y)" />
+    <arg name="gz_gui" value="$(arg gz_gui)" />
+  </include>
 
   <include file="$(find wr8_software)/launch/slam.launch">
     <arg name="mapping_algorithm" value="hector_mapping" />
