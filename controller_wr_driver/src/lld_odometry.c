@@ -71,7 +71,7 @@ odometrySpeedValue_t        speed_lpf           = 0;
 #define SPEED_LPF               (float)0.8
 
 
-#define                 VT_ODOM_MS              10
+#define                 VT_ODOM_MS              ODOMETRY_CALCULATION_PERIOD_MS
 static virtual_timer_t  odom_update_vt;
 
 /**

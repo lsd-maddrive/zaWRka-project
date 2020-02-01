@@ -20,8 +20,6 @@
 
   <!-- Run gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <env name="GAZEBO_MODEL_PATH" value="$(find wr8_description)/worlds" />
-
     <arg name="respawn_gazebo" value="true" />
     <arg name="world_name" value="$(find wr8_description)/worlds/$(arg world_name)"/>
     <arg name="use_sim_time" value="true"/>
