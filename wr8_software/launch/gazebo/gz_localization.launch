@@ -4,4 +4,8 @@
   <include file="$(find wr8_description)/launch/gazebo.launch"/>
   <include file="$(find wr8_software)/launch/localization.launch"/>
   <include file="$(find wr8_software)/launch/rviz_localization_view.launch"/>
+
+  <include file="$(find wr8_software)/launch/base/stereo_2_laserscan.launch">
+    <arg name="stereo_cloud" value="robot/stereo_camera/points2" />
+  </include>
 </launch>
