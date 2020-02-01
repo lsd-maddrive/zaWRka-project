@@ -7,7 +7,7 @@
   <arg name="odom_topic"   default="odom" />
   <arg name="laser_topic"  default="scan" />
   <arg name="config_dir"   default="config" />
-  <arg name="base_global_planner" default="global_planner/GlobalPlanner" doc="[global_planner/GlobalPlanner, wp_global_planner/WPGlobalPlanner]"/>
+  <arg name="wp_global_planner" default="false" doc="[true - wp_global_planner, false - global_planner]"/>
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <rosparam file="$(find wr8_software)/$(arg config_dir)/costmap_common_params.yaml" command="load" ns="global_costmap" />
@@ -15,7 +15,11 @@
     <rosparam file="$(find wr8_software)/$(arg config_dir)/local_costmap_params.yaml" command="load" />   
     <rosparam file="$(find wr8_software)/$(arg config_dir)/global_costmap_params.yaml" command="load" />
     <rosparam file="$(find wr8_software)/$(arg config_dir)/move_base_params.yaml" command="load" />
-    <rosparam file="$(find wr8_software)/$(arg config_dir)/global_planner_params.yaml" command="load" />
+
+
+    <rosparam file="$(find wr8_software)/$(arg config_dir)/wp_global_planner_params.yaml" command="load" if="$(arg wp_global_planner)"/>
+    <rosparam file="$(find wr8_software)/$(arg config_dir)/global_planner_params.yaml" command="load" unless="$(arg wp_global_planner)"/>  
+
     <rosparam file="$(find wr8_software)/$(arg config_dir)/teb_local_planner_params.yaml" command="load" />
     
     <param name="global_costmap/global_frame" value="$(arg global_frame)"/>
@@ -23,7 +27,9 @@
     <param name="local_costmap/global_frame" value="$(arg global_frame)"/>
     <param name="local_costmap/robot_base_frame" value="$(arg base_frame)"/>
 
-    <param name="base_global_planner" value="$(arg base_global_planner)"/>
+    <param name="base_global_planner" value="wp_global_planner/WPGlobalPlanner" if="$(arg wp_global_planner)"/>
+    <param name="base_global_planner" value="global_planner/GlobalPlanner" unless="$(arg wp_global_planner)"/>
+
     <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
 
     <remap from="cmd_vel" to="$(arg cmd_topic)"/>

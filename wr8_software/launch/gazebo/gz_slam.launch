@@ -1,14 +1,13 @@
 <?xml version="1.0"?>
 <!-- Run simulation for solve problem of slam -->
 <launch>
-  <arg name="base_global_planner" default="wp_global_planner/WPGlobalPlanner" doc="[global_planner/GlobalPlanner, wp_global_planner/WPGlobalPlanner]"/>
-  <include file="$(find wr8_description)/launch/gazebo.launch">
+  <arg name="wp_global_planner" default="true" doc="[true - wp_global_planner, false - global_planner]"/>
 
-  </include>
+  <include file="$(find wr8_description)/launch/gazebo.launch"/>
 
   <include file="$(find wr8_software)/launch/slam.launch">
     <arg name="mapping_algorithm" value="hector_mapping" />
-    <arg name="base_global_planner" value="$(arg base_global_planner)" />
+    <arg name="wp_global_planner" value="$(arg wp_global_planner)" />
   </include>
 
   <include file="$(find wr8_software)/launch/rviz_slam_view.launch"/>

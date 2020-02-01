@@ -1,7 +1,13 @@
 <?xml version="1.0"?>
 <!-- Run simulation for solve problem of localization -->
 <launch>
+  <arg name="wp_global_planner" default="true" doc="[true - wp_global_planner, false - global_planner]"/>
+
   <include file="$(find wr8_description)/launch/gazebo.launch"/>
-  <include file="$(find wr8_software)/launch/localization.launch"/>
+
+  <include file="$(find wr8_software)/launch/localization.launch">
+    <arg name="wp_global_planner" value="$(arg wp_global_planner)" />
+  </include>
+
   <include file="$(find wr8_software)/launch/rviz_localization_view.launch"/>
 </launch>
