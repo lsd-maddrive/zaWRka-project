@@ -30,6 +30,7 @@ sudo apt install ros-$ROS_DISTRO-base-local-planner \
 					ros-$ROS_DISTRO-uvc-camera \
 					ros-$ROS_DISTRO-pointcloud-to-laserscan \
 					ros-$ROS_DISTRO-usb-cam \
+					ros-$ROS_DISTRO-stereo-image-proc \
 					libsuitesparse-dev
 
 sudo apt remove ros-$ROS_DISTRO-key-teleop
