@@ -8,6 +8,7 @@
     <arg name="solver" default="false" />
     <arg name="gui_server" default="false" />
     <arg name="bag_record" default="false" />
+    <arg name="stereo" default="false" />
 
     <include if="$(arg uc)" file="$(find wr8_software)/launch/base/serial_uc_link.launch">
         <!-- All defaults -->
@@ -20,16 +21,12 @@
     <node if="$(arg solver)" pkg="wr8_software" type="main_solver.py" name="main_solver" output="screen" respawn="false">
     </node>
 
-    <include if="$(arg camera_s)" file="$(find wr8_ai)/launch/start_detection_node.launch">
-        <!-- All defaults -->
-    </include>
-
     <include if="$(arg camera_s)" file="$(find wr8_software)/launch/base/signs_camera.launch">
         <arg name="device" value="/dev/v4l/by-id/usb-HD_USB_Camera_HD_USB_Camera_SN0001-video-index0" />
         <arg name="frame_id" value="signs_camera" />
     </include>
     
-    <include if="$(arg camera_r)" file="$(find wr8_ai)/launch/start_line_node.launch">
+    <include if="$(arg stereo)" file="$(find wr8_software)/launch/base/stereo_camera.launch">
         <!-- All defaults -->
     </include>
 
@@ -41,5 +38,5 @@
     <include if="$(arg gui_server)" file="$(find wr8_gui_server)/launch/gui_server.launch">
     </include>
 
-    <node if="$(arg bag_record)" pkg="rosbag" type="record" name="rosbag_record" args="-o $(env HOME)/bags/main /signs_camera/image_raw/compressed /road_camera/image_raw/compressed /tf /robot/cmd_vel /robot/odom_pose /robot/state /scan /diagnostics /rosout"/>   
+    <node if="$(arg bag_record)" pkg="rosbag" type="record" name="rosbag_record" args="-o $(env HOME)/bags/main /signs_camera/image_raw/compressed /road_camera/image_raw/compressed /tf /cmd_vel /odom_pose /state /scan /diagnostics /rosout"/>   
 </launch>

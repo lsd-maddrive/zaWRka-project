@@ -4,7 +4,7 @@
   <arg name="gz_gui" default="true" />
 
   <node name="rqt_robot_steering" pkg="rqt_robot_steering" type="rqt_robot_steering">
-    <param name="default_topic" value="robot/cmd_vel"/>
+    <param name="default_topic" value="cmd_vel"/>
     <!-- Limit are connected to wr8_software config + real physics -->
     <param name="default_vx_max" value="0.7"/>
     <param name="default_vx_min" value="-0.5"/>

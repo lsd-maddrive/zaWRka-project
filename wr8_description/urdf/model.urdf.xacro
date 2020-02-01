@@ -51,7 +51,7 @@
 
 
   <xacro:arg name="pub_tf" default="true" />
-  <xacro:arg name="robot_name" default="robot" />
+  <xacro:arg name="robot_name" default="" />
 
   <!-- Gazebo plugins -->
   <gazebo>
@@ -410,12 +410,12 @@
       <origin xyz="${stereo_base_link_rcam_xyz}" rpy="0 0 0" />
     </joint>
 
-    <link name="${name}_left_optical_frame"/>
+    <link name="${name}_optical_frame"/>
 
-    <joint name="${name}_left_optical_frame_joint" type="fixed">
+    <joint name="${name}_optical_frame_joint" type="fixed">
       <origin xyz="0 0 0" rpy="-${degrees_90} 0.0 -${degrees_90}" />
       <parent link="${name}_left_frame" />
-      <child link="${name}_left_optical_frame"/>
+      <child link="${name}_optical_frame"/>
     </joint>
 
     <gazebo reference="${name}_left_frame">
@@ -465,7 +465,7 @@
           <cameraName>$(arg robot_name)/${name}</cameraName>
           <imageTopicName>image_raw</imageTopicName>
           <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-          <frameName>${name}_left_optical_frame</frameName>
+          <frameName>${name}_optical_frame</frameName>
           <hackBaseline>0.07</hackBaseline>
           <distortionK1>0.0</distortionK1>
           <distortionK2>0.0</distortionK2>
