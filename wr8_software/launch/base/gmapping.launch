@@ -31,13 +31,6 @@
     <param name="resampleThreshold" value="0.5"/>
     <param name="particles" value="80"/>
 
-    <group if="$(arg enable_small_map)">
-      <param name="xmin" value="-50.0"/>
-      <param name="ymin" value="-50.0"/>
-      <param name="xmax" value="50.0"/>
-      <param name="ymax" value="50.0"/>
-    </group>
-
     <param name="xmin" value="-4.0"/>
     <param name="ymin" value="-10.0"/>
     <param name="xmax" value="10.0"/>
