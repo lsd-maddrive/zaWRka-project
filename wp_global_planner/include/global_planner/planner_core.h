@@ -223,7 +223,7 @@ class WPGlobalPlanner : public nav_core::BaseGlobalPlanner {
         ros::Subscriber waypoint_sub_;
         ros::Subscriber path_sub_;
         std::list<geometry_msgs::PoseStamped> waypoints_;
-        std::list<geometry_msgs::PoseStamped> path_;
+        std::list<geometry_msgs::PoseStamped> wp_path_;
 
         double FRAGMENTATION_SIZE_;
         double POINT_RADIUS_SQUARE_;

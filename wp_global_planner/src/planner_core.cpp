@@ -255,7 +255,7 @@ bool WPGlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start,
         is_path_should_be_updated_ = false;
     }
     deletePassedWaypoints(start);
-    if(path_.empty())
+    if(wp_path_.empty())
         makeDefaultPlan(start, goal, tolerance, plan);
     else
         makeWaypointPlan(start, goal, plan);
@@ -268,7 +268,7 @@ void WPGlobalPlanner::makeWaypointPlan(const geometry_msgs::PoseStamped& start,
                       const geometry_msgs::PoseStamped& goal,
                       std::vector<geometry_msgs::PoseStamped>& plan) const{
     plan.push_back(start);
-    for(auto iter = path_.begin(); iter != path_.end(); iter++)
+    for(auto iter = wp_path_.begin(); iter != wp_path_.end(); iter++)
         plan.push_back(*iter);
     plan.push_back(goal);
 }
@@ -477,22 +477,15 @@ void WPGlobalPlanner::publishPotential(float* potential)
 
 //
 void WPGlobalPlanner::deletePassedWaypoints(const geometry_msgs::PoseStamped& start){
-    while(!path_.empty()){
+    while(!wp_path_.empty()){
         double Px = start.pose.position.x;
         double Py = start.pose.position.y;
-        double Ax = path_.begin()->pose.position.x;
-        double Ay = path_.begin()->pose.position.y;
+        double Ax = wp_path_.begin()->pose.position.x;
+        double Ay = wp_path_.begin()->pose.position.y;
         double PAsquare = (Px - Ax) * (Px - Ax) + (Py - Ay) * (Py - Ay);
 
-        if(waypoints_.back().pose.position.x == path_.begin()->pose.position.x &&
-           waypoints_.back().pose.position.y == path_.begin()->pose.position.y){
-            path_.clear();
-            ROS_INFO("Last waypoint was removed: start is [%f, %f], deleted is [%f, %f]",
-                     Px, Py, path_.begin()->pose.position.x, path_.begin()->pose.position.y);
-            break;
-        }
-        else if(PAsquare < POINT_RADIUS_SQUARE_){
-            path_.pop_front();
+        if(PAsquare < POINT_RADIUS_SQUARE_){
+            wp_path_.pop_front();
             ROS_INFO("Waypoint was removed: start is [%f, %f], deleted is [%f, %f]",
                      Px, Py, Ax, Ay);
         }
@@ -516,17 +509,19 @@ void WPGlobalPlanner::waypointCallback(const geometry_msgs::PointStamped::ConstP
 //
 void WPGlobalPlanner::createPointPath(const geometry_msgs::PoseStamped& start,
                                       const geometry_msgs::PoseStamped& goal){
-    path_.clear();
+    wp_path_.clear();
+
     if(!waypoints_.empty()){
-        path_.push_back(geometry_msgs::PoseStamped());
-        path_.back().header = start.header;
-        path_.back().pose.position = start.pose.position;
-        fragmentWaypoints(*path_.begin(), *waypoints_.begin());
+        wp_path_.push_back(geometry_msgs::PoseStamped());
+        wp_path_.back().header = start.header;
+        wp_path_.back().pose.position = start.pose.position;
+        fragmentWaypoints(*wp_path_.begin(), *waypoints_.begin());
     }
+
     for(auto iter = waypoints_.begin(); iter != waypoints_.end(); iter++){
-        path_.push_back(geometry_msgs::PoseStamped());
-        path_.back().header = iter->header;
-        path_.back().pose.position = iter->pose.position;
+        wp_path_.push_back(geometry_msgs::PoseStamped());
+        wp_path_.back().header = iter->header;
+        wp_path_.back().pose.position = iter->pose.position;
         if(std::next(iter, 1) != waypoints_.end()){
             fragmentWaypoints(*iter, *std::next(iter, 1));
         }
@@ -552,12 +547,12 @@ void WPGlobalPlanner::fragmentWaypoints(const geometry_msgs::PoseStamped& curren
     }
     while(parts > 1){
         parts--;
-        newX = path_.back().pose.position.x + dx;
-        newY = path_.back().pose.position.y + dy;
-        path_.push_back(geometry_msgs::PoseStamped());
-        path_.back().header = current_wp.header;
-        path_.back().pose.position.x = newX;
-        path_.back().pose.position.y = newY;
+        newX = wp_path_.back().pose.position.x + dx;
+        newY = wp_path_.back().pose.position.y + dy;
+        wp_path_.push_back(geometry_msgs::PoseStamped());
+        wp_path_.back().header = current_wp.header;
+        wp_path_.back().pose.position.x = newX;
+        wp_path_.back().pose.position.y = newY;
     }
 }
 
