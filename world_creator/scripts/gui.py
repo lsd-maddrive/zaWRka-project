@@ -17,17 +17,11 @@ log.getLogger().addHandler(log.StreamHandler(sys.stdout))
 # ************************** Constants and enums *****************************
 class Mode(Enum):
     NO_MODE = int(-1)
-    MAP_SIZE = int(0)
-    CELL_SIZE = int(1)
-    START = int(2)
-    FINISH = int(3)
-    BOXES = int(4)
-    WALLS = int(5)
-    SIGNS = int(6)
-    LIGHTS = int(7)
-    LOAD_JSON = int(8)
-    GENERATE_JSON = int(9)
-    GENERATE_SDF = int(10)
+    BOXES = int(0)
+    WALLS = int(1)
+    SIGNS = int(2)
+    TRAFFIC_LIGHTS = int(3)
+    SQUARES = int(4)
 
 class ColorCode(Enum):
     WHITE = str("FFFFFF")
@@ -66,8 +60,8 @@ class MyPainter(QPainter):
         if quarter == CellQuarter.RIGHT_BOT or quarter == CellQuarter.LEFT_BOT:
             render_y += 0.5
         
-        img = QImage(img_path).scaled(QSize(self.half_cell_sz.x, self.half_cell_sz.y))
-        self.drawImage(render_x * self.cell_sz.x, render_y * self.cell_sz.y, img)
+        img = QImage(img_path).scaled(QSize(self.half_cell_sz.x-1, self.half_cell_sz.y-1))
+        self.drawImage(render_x * self.cell_sz.x + 1, render_y * self.cell_sz.y + 1, img)
         
 
 class Canvas(QWidget):
@@ -123,10 +117,10 @@ class Canvas(QWidget):
         
     def get_canvas_pos(self, x, y):
         if x >= self.canvasSz.x:
-            x = self.canvasSz.x-1
+            x = self.canvasSz.x - 1
         
         if y >= self.canvasSz.y:
-            y = self.canvasSz.y-1
+            y = self.canvasSz.y - 1
         
         return Point2D(x, y)
         
@@ -157,11 +151,7 @@ class Canvas(QWidget):
 class Model:
     # Class for keeping main processing data
     def __init__(self, map_params, load_filepath):
-        self.modes = {
-            Mode.WALLS: GuiWallsMode(self),
-            Mode.SIGNS: GuiSignsMode(self),
-            Mode.BOXES: GuiBoxesMode(self)
-        }
+        self.modes = {}
         
         self.objects = {
             ObjectType.TRAFFIC_LIGHT: [],
@@ -179,6 +169,9 @@ class Model:
         
         self.mode = Mode.NO_MODE
     
+    def add_mode(self, mode, controller):
+        self.modes[mode] = controller
+    
     def set_mode(self, _set_mode):
         print(_set_mode)
         
@@ -186,10 +179,7 @@ class Model:
             self.modes[self.mode].on_disable()
         
         self.mode = _set_mode
-        
-    def set_button_color(self, btn, color = ColorCode.WHITE):
-        btn.setStyleSheet("background-color: #{}".format(color.value))
-        
+
     
 class ModeButton(QPushButton):
     def __init__(self, text: str, mode: Mode, model: Model, parent=None):
@@ -234,16 +224,19 @@ class MainWindow(QWidget):
 
         # TODO - maybe must be not "model" but "controller" connected to buttons
         mode_buttons = [
-            ModeButton('1. Create walls', Mode.WALLS, self.model, self),
-            ModeButton('2. Create boxes', Mode.BOXES, self.model, self),
-            ModeButton('3. Create signs', Mode.SIGNS, self.model, self)
+            (ModeButton('1. Create walls', Mode.WALLS, self.model, self), GuiWallsMode(self.model)),
+            (ModeButton('2. Create boxes', Mode.BOXES, self.model, self), GuiBoxesMode(self.model)),
+            (ModeButton('3. Create signs', Mode.SIGNS, self.model, self), GuiSignsMode(self.model)),
+            (ModeButton('4. Create traffic-lights', Mode.TRAFFIC_LIGHTS, self.model, self), GuiTrafficLightsMode(self.model)),
+            (ModeButton('5. Create squares', Mode.SQUARES, self.model, self), GuiSquaresMode(self.model)),
         ]        
         
         # Layout fill
         layout.addWidget(QLabel('To create the world:', self), 0, 1)
         for idx, btn in enumerate(mode_buttons):
-            layout.addWidget(btn, idx + 1, 1)       
-            self.ctrl_grp.addButton(btn)
+            layout.addWidget(btn[0], idx + 1, 1)       
+            self.ctrl_grp.addButton(btn[0])
+            self.model.add_mode(btn[0].mode, btn[1])
 
         layout.addWidget(QLabel('Then press buttons below:', self), len(mode_buttons)+1, 1)
         layout.addWidget(generateButton, len(mode_buttons)+2, 1)
@@ -307,8 +300,23 @@ class GuiBoxesMode(BaseGuiMode):
 
         for box in self.model.objects[ObjectType.BOX]:
             if box.pos == map_cell:
-                print("Delete object: box with pose {}".format(map_pos))
+                print("Delete object: {}".format(box))
                 self.model.objects[ObjectType.BOX].remove(box)
+
+
+class GuiSquaresMode(BaseGuiMode):
+    def processLeftMousePressing(self, map_pos):
+        map_cell = Canvas.getCellClicked(map_pos)
+
+        self.model.objects[ObjectType.SQUARE] += [Square(map_cell)]
+
+    def processRightMousePressing(self, map_pos):
+        map_cell = Canvas.getCellClicked(map_pos)
+
+        for square in self.model.objects[ObjectType.SQUARE]:
+            if square.pos == map_cell:
+                print("Delete object: {}".format(square))
+                self.model.objects[ObjectType.SQUARE].remove(square)
 
 
 class GuiWallsMode(BaseGuiMode):
@@ -338,7 +346,26 @@ class GuiWallsMode(BaseGuiMode):
         
     def on_disable(self):
         self._prev_clicked_cross = None
+      
+      
+class GuiTrafficLightsMode(BaseGuiMode):
+    def processLeftMousePressing(self, map_pos):
+        map_cell = Canvas.getCellClicked(map_pos)
+        orient = Canvas.getCellQuarter(map_pos)
         
+        new_tl = TrafficLight(map_cell, orient)
+        self.model.objects[ObjectType.TRAFFIC_LIGHT] += [new_tl]
+        print("Add object: {}".format(new_tl))
+        
+    def processRightMousePressing(self, map_pos):
+        map_cell = Canvas.getCellClicked(map_pos)
+        orient = Canvas.getCellQuarter(map_pos)
+
+        for tl in self.model.objects[ObjectType.TRAFFIC_LIGHT]:
+            if tl.pos == map_cell and tl.orient == orient:
+                log.debug("Delete object {}".format(tl))
+                self.model.objects[ObjectType.TRAFFIC_LIGHT].remove(tl)
+  
 
 class GuiSignsMode(BaseGuiMode):
     def processLeftMousePressing(self, map_pos):
@@ -356,7 +383,8 @@ class GuiSignsMode(BaseGuiMode):
         self.signChoiceDialog.exec_()
         
         select_idx = self.signChoiceDialog.get_result()
-        self.addSign(map_cell, orient, info[select_idx][1])
+        if select_idx >= 0:
+            self.addSign(map_cell, orient, info[select_idx][1])
 
     def processRightMousePressing(self, map_pos):
         map_cell = Canvas.getCellClicked(map_pos)

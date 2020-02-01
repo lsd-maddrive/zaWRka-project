@@ -44,7 +44,7 @@ extern "C" {
 #define     PROGRAM_ROUTINE_TEST_LINK                   62
 #define     PROGRAM_ROUTINE_TEST_LINK_ADC_CALIB         63
 
-#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_TEST_LINK_CONTROL
+#define     MAIN_PROGRAM_ROUTINE                        PROGRAM_ROUTINE_MASTER
 
 /*============================================================================*/
 /* MACROS 																	  */
@@ -54,15 +54,19 @@ extern "C" {
                                  (x) > (max) ? (max) : (x))
 
 /*============================================================================*/
-/* LLD LIMITS 																  */
+/* PARAMETERS 																  */
 /*============================================================================*/
 
+#define CONTROL_SYSTEMS_PERIOD_MS       10
+#define ODOMETRY_CALCULATION_PERIOD_MS  10
 
+/*============================================================================*/
+/* LLD LIMITS 																  */
+/*============================================================================*/
 
 #define CONTROL_MAX         100
 #define CONTROL_NULL        0
 #define CONTROL_MIN         (-100)
-
 
 /*============================================================================*/
 /* DEBUG 																	  */

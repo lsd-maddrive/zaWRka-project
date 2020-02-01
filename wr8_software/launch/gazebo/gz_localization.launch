@@ -10,4 +10,9 @@
   </include>
 
   <include file="$(find wr8_software)/launch/rviz_localization_view.launch"/>
+
+  <include file="$(find wr8_software)/launch/base/stereo_2_laserscan.launch">
+    <arg name="stereo_cloud" value="stereo_camera/points2" />
+    <arg name="target_frame" value="stereo_camera_optical_frame" />
+  </include>
 </launch>

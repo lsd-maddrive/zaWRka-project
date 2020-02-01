@@ -263,6 +263,7 @@ void publishOdometryData(float data[5])
 void mproto_cmd_cb(mpcmd_t cmd, uint8_t *data, size_t len)
 {
 // cout << "Command: " << to_string(cmd) << endl;
+    ROS_INFO_STREAM_THROTTLE(60*1, "Received data from uC");
 
     if ( cmd == WR_OUT_CMD_ODOM_DATA ) {
         if ( len != sizeof(float[5]) )

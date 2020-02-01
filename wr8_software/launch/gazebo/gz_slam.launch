@@ -2,8 +2,17 @@
 <!-- Run simulation for solve problem of slam -->
 <launch>
   <arg name="wp_global_planner" default="true" doc="[true - wp_global_planner, false - global_planner]"/>
+  <arg name="world_name" default="RFMaze.v2.world" />
+  <arg name="x" default="0" />
+  <arg name="y" default="0" />
+  <arg name="gz_gui" default="false" />
 
-  <include file="$(find wr8_description)/launch/gazebo.launch"/>
+  <include file="$(find wr8_description)/launch/gazebo.launch">
+    <arg name="world_name" value="$(arg world_name)" />
+    <arg name="x" value="$(arg x)" />
+    <arg name="y" value="$(arg y)" />
+    <arg name="gz_gui" value="$(arg gz_gui)" />
+  </include>
 
   <include file="$(find wr8_software)/launch/slam.launch">
     <arg name="mapping_algorithm" value="hector_mapping" />
@@ -11,4 +20,9 @@
   </include>
 
   <include file="$(find wr8_software)/launch/rviz_slam_view.launch"/>
+
+  <include file="$(find wr8_software)/launch/base/stereo_2_laserscan.launch">
+    <arg name="stereo_cloud" value="stereo_camera/points2" />
+    <arg name="target_frame" value="stereo_camera_optical_frame" />
+  </include>
 </launch>

@@ -12,7 +12,7 @@
   <!-- Just to be visible =) -->
   <xacro:property name="lidar_height" value="0.02"/>
   <xacro:property name="lidar_radius" value="0.04"/>
-  <!-- Taken from physical parameters (wr8_software/launch/base/lidar.launch) -->  
+  <!-- Taken from physical parameters (wr8_software/launch/base/lidar.launch) -->
   <xacro:property name="base_link_2_laser_xyz" value="0.14 0 0.14" />
 
   <xacro:property name="chassis_mass" value="3.7" />
@@ -28,8 +28,8 @@
   <xacro:property name="lidar_mass" value="0.1" />
 
   <!-- https://github.com/jbpassot/ackermann_vehicle/blob/master/ackermann_vehicle_description/urdf/em_3905.urdf.xacro -->
-  <xacro:property name="degrees_45" value="${pi/4}"/>
   <xacro:property name="degrees_90" value="${pi/2}"/>
+  <xacro:property name="degrees_45" value="${pi/4}"/>
 
   <!-- ~0.5 rad -->
   <xacro:property name="degrees_30" value="${pi/6}"/>
@@ -42,8 +42,16 @@
 
   <xacro:property name="wheel_friction" value="1.75" />
 
+  <!-- Stereo camera properties -->
+  <xacro:property name="camera_height" value="0.05"/>
+  <xacro:property name="camera_radius" value="0.02"/>
+  <xacro:property name="camera_mass" value="0.05"/>
+  <xacro:property name="stereo_base_link_lcam_xyz" value="0.05 0.035 0.18"/>
+  <xacro:property name="stereo_base_link_rcam_xyz" value="0.05 -0.035 0.18"/>
+
+
   <xacro:arg name="pub_tf" default="true" />
-  <xacro:arg name="robot_name" default="robot" />
+  <xacro:arg name="robot_name" default="" />
 
   <!-- Gazebo plugins -->
   <gazebo>
@@ -66,11 +74,11 @@
     <plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
         <robotNamespace>$(arg robot_name)</robotNamespace>
         <jointName>
-            fl_steer_joint, 
-            fr_steer_joint, 
-            fl_speed_joint, 
-            fr_speed_joint, 
-            rl_speed_joint, 
+            fl_steer_joint,
+            fr_steer_joint,
+            fl_speed_joint,
+            fr_speed_joint,
+            rl_speed_joint,
             rr_speed_joint
         </jointName>
         <updateRate>100</updateRate>
@@ -82,8 +90,8 @@
   <xacro:macro name="null_inertial">
     <inertial>
       <mass value="0.001"/>
-      <inertia ixx="0.001" ixy="0" ixz="0" 
-               iyy="0.001" iyz="0" 
+      <inertia ixx="0.001" ixy="0" ixz="0"
+               iyy="0.001" iyz="0"
                izz="0.001"/>
     </inertial>
   </xacro:macro>
@@ -122,7 +130,7 @@
           <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
         </geometry>
       </visual>
-      
+
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
@@ -142,7 +150,7 @@
       <mu2>${wheel_friction}</mu2>
       <material>Gazebo/Black</material>
       <kp>10000000</kp>
-      <kd>1</kd> 
+      <kd>1</kd>
     </gazebo>
   </xacro:macro>
 
@@ -166,10 +174,10 @@
     <link name="steer_${name}">
       <xacro:null_inertial/>
     </link>
-    
+
     <joint name="${name}_steer_joint" type="revolute">
-      <limit lower="${-wheel_turn_limit}" 
-             upper="${wheel_turn_limit}" 
+      <limit lower="${-wheel_turn_limit}"
+             upper="${wheel_turn_limit}"
              effort="0" velocity="0"/>
       <parent link="${base_name}"/>
       <child link="steer_${name}"/>
@@ -210,8 +218,8 @@
         <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
       </geometry>
     </collision>
-    <xacro:solid_cuboid_inertial 
-          length="${chassis_length}" width="${chassis_width}" 
+    <xacro:solid_cuboid_inertial
+          length="${chassis_length}" width="${chassis_width}"
           height="${chassis_height}" mass="${chassis_mass}">
       <origin xyz="0 0 0" rpy="0 0 0" />
     </xacro:solid_cuboid_inertial>
@@ -233,7 +241,7 @@
     <origin xyz="${wheelbase/2} 0 0" rpy="0 0 0"/>
   </joint>
 
-  <xacro:speed_wheel name="rl" base_name="base_center" 
+  <xacro:speed_wheel name="rl" base_name="base_center"
                      xyz="${-half_wheelbase} ${-half_track_width} ${-chassis_height/2}" />
   <xacro:speed_wheel name="rr" base_name="base_center"
                      xyz="${-half_wheelbase} ${half_track_width} ${-chassis_height/2}" />
@@ -241,7 +249,7 @@
                      xyz="${half_wheelbase} ${-half_track_width} ${-chassis_height/2}" />
   <xacro:steer_wheel name="fr" base_name="base_center"
                      xyz="${half_wheelbase} ${half_track_width} ${-chassis_height/2}" />
- 
+
   <!-- Setup LIDAR -->
   <link name="laser_frame">
     <xacro:solid_cylinder_inertial
@@ -303,6 +311,177 @@
       </plugin>
     </sensor>
   </gazebo>
+
+  <!-- Camera link -->
+  <xacro:macro name="camera_link" params="name">
+    <link name="${name}_frame">
+      <xacro:solid_cylinder_inertial
+          r="${camera_radius}" h="${camera_height}"
+          mass="${camera_mass}" >
+        <origin xyz="0 0 0" rpy="0 ${degrees_90} 0" />
+      </xacro:solid_cylinder_inertial>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 ${degrees_90} 0" />
+        <geometry>
+          <cylinder length="${camera_height}" radius="${camera_radius}"/>
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 ${degrees_90} 0" />
+        <geometry>
+          <cylinder length="${camera_height}" radius="${camera_radius}"/>
+        </geometry>
+      </visual>
+    </link>
+  </xacro:macro>
+
+  <!-- Single camera macro -->
+  <xacro:macro name="single_camera" params="name xyz rpy fov">
+    <xacro:camera_link name="${name}" />
+
+    <joint name="${name}_joint" type="fixed">
+      <child link="${name}_frame" />
+      <parent link="base_center" />
+      <origin xyz="${xyz}" rpy="${rpy}" />
+    </joint>
+
+    <link name="${name}_optical_frame"/>
+
+    <joint name="${name}_optical_frame_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="-${degrees_90} 0.0 -${degrees_90}" />
+      <parent link="${name}_frame" />
+      <child link="${name}_optical_frame"/>
+    </joint>
+
+    <gazebo reference="${name}_frame">
+      <material>Gazebo/Black</material>
+
+      <sensor type="camera" name="${name}">
+        <update_rate>30.0</update_rate>
+        <camera name="${name}">
+          <horizontal_fov>${fov}</horizontal_fov>
+          <image>
+            <width>800</width>
+            <height>600</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.02</near>
+            <far>300</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.001</stddev>
+          </noise>
+        </camera>
+        <plugin name="${name}_controller" filename="libgazebo_ros_camera.so">
+          <alwaysOn>true</alwaysOn>
+          <updateRate>30.0</updateRate>
+          <cameraName>$(arg robot_name)/${name}</cameraName>
+          <imageTopicName>image_raw</imageTopicName>
+          <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+          <frameName>${name}_optical_frame</frameName>
+          <hackBaseline>0.07</hackBaseline>
+          <distortionK1>0.0</distortionK1>
+          <distortionK2>0.0</distortionK2>
+          <distortionK3>0.0</distortionK3>
+          <distortionT1>0.0</distortionT1>
+          <distortionT2>0.0</distortionT2>
+        </plugin>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- Stereo camera macro -->
+  <xacro:macro name="stereo_camera" params="name fov">
+    <xacro:camera_link name="${name}_left" />
+    <xacro:camera_link name="${name}_right" />
+
+    <joint name="${name}_left_joint" type="fixed">
+      <child link="${name}_left_frame" />
+      <parent link="base_center" />
+      <origin xyz="${stereo_base_link_lcam_xyz}" rpy="0 0 0" />
+    </joint>
+
+    <joint name="${name}_right_joint" type="fixed">
+      <child link="${name}_right_frame" />
+      <parent link="base_center" />
+      <origin xyz="${stereo_base_link_rcam_xyz}" rpy="0 0 0" />
+    </joint>
+
+    <link name="${name}_optical_frame"/>
+
+    <joint name="${name}_optical_frame_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="-${degrees_90} 0.0 -${degrees_90}" />
+      <parent link="${name}_left_frame" />
+      <child link="${name}_optical_frame"/>
+    </joint>
+
+    <gazebo reference="${name}_left_frame">
+      <material>Gazebo/Black</material>
+
+      <sensor type="multicamera" name="${name}">
+        <update_rate>30.0</update_rate>
+        <camera name="left">
+          <horizontal_fov>${fov}</horizontal_fov>
+          <image>
+            <width>800</width>
+            <height>600</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.02</near>
+            <far>300</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.007</stddev>
+          </noise>
+        </camera>
+        <camera name="right">
+          <pose>0 -0.07 0 0 0 0</pose>
+          <!-- <pose>0 -0.035 0 0 0 0</pose> -->
+          <horizontal_fov>${fov}</horizontal_fov>
+          <image>
+            <width>800</width>
+            <height>600</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.02</near>
+            <far>300</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.007</stddev>
+          </noise>
+        </camera>
+        <plugin name="${name}_controller" filename="libgazebo_ros_multicamera.so">
+          <alwaysOn>true</alwaysOn>
+          <updateRate>30.0</updateRate>
+          <cameraName>$(arg robot_name)/${name}</cameraName>
+          <imageTopicName>image_raw</imageTopicName>
+          <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+          <frameName>${name}_optical_frame</frameName>
+          <hackBaseline>0.07</hackBaseline>
+          <distortionK1>0.0</distortionK1>
+          <distortionK2>0.0</distortionK2>
+          <distortionK3>0.0</distortionK3>
+          <distortionT1>0.0</distortionT1>
+          <distortionT2>0.0</distortionT2>
+        </plugin>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:stereo_camera name="stereo_camera" fov="1.3962634" />
+
+  <!-- <xacro:single_camera name="signs_camera" xyz="-0.05 0 0.2" rpy="0 -${degrees_30} -${degrees_30}" fov="2.094" /> -->
+  <xacro:single_camera name="signs_camera" xyz="-0.05 0 0.3" rpy="0 -${degrees_30} -${degrees_30}" fov="1.3962634" />
+
 </robot>
 
 
