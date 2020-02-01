@@ -11,7 +11,7 @@
         <param name="range_min" value="0.5" />
         <param name="range_max" value="2" />
 
-        <param name="min_height" value="0.1" />
+        <param name="min_height" value="-0.1" />
         <param name="max_height" value="1.0" />
 
         <param name="angle_min" value="-0.5" />
