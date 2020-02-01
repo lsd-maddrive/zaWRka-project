@@ -13,10 +13,14 @@
 
   <!-- Spawn robot -->
   <node name="spawn_base_model" pkg="gazebo_ros" type="spawn_model"
-        args="$(arg initial_pose) -unpause -urdf -param robot_description -model my_robot" />
+        args="$(arg initial_pose) -unpause -urdf -param robot_description -model car" />
 
   <!-- Publish the robot state to tf -->
-  <node ns="robot" pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" />
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" >
+    <remap from="joint_states" to="car/joint_states" />
+  </node>
+
+  <env name="GAZEBO_MODEL_PATH" value="$(find wr8_description)/worlds" />
 
   <!-- Run gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -28,12 +32,7 @@
   </include>
 
   <!-- Processing of stereo vision -->
-	<node ns="robot/stereo_camera" pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen">
-    <!-- Modified defaults -->
-		<!-- <param name="speckle_range" value="4" />
-    <param name="min_disparity" value="-24" />
-    <param name="disparity_range" value="96" />
-    <param name="stereo_algorithm" value="0" /> -->
+	<node ns="stereo_camera" pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen">
   </node>
 
 </launch>

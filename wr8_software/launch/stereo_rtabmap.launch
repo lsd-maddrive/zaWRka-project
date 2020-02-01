@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+	<include file="$(find wr8_software)/launch/base/stereo_camera.launch">
+	</include>
+
+    <include file="$(find wr8_software)/launch/base/rtabmap.launch">
+        <arg name="stereo" value="true" />
+        <arg name="frame_id" value="base_link" />
+        <arg name="args" value="-d" />
+        <arg name="odom_args" value="-d" />
+    </include>
+
+</launch>
