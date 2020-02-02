@@ -6,12 +6,14 @@
   <arg name="x" default="0" />
   <arg name="y" default="0" />
   <arg name="gz_gui" default="false" />
+  <arg name="enable_stereo" default="true" />
 
   <include file="$(find wr8_description)/launch/gazebo.launch">
     <arg name="world_name" value="$(arg world_name)" />
     <arg name="x" value="$(arg x)" />
     <arg name="y" value="$(arg y)" />
     <arg name="gz_gui" value="$(arg gz_gui)" />
+    <arg name="enable_stereo" value="$(arg enable_stereo)" />
   </include>
 
   <include file="$(find wr8_software)/launch/slam.launch">
@@ -21,8 +23,11 @@
 
   <include file="$(find wr8_software)/launch/rviz_slam_view.launch"/>
 
-  <include file="$(find wr8_software)/launch/base/stereo_2_laserscan.launch">
-    <arg name="stereo_cloud" value="stereo_camera/points2" />
-    <arg name="target_frame" value="stereo_camera_optical_frame" />
-  </include>
+  <group if="$(arg enable_stereo)">
+    <include file="$(find wr8_software)/launch/base/stereo_2_laserscan.launch">
+      <arg name="stereo_cloud" value="stereo_camera/points2" />
+      <arg name="target_frame" value="stereo_camera_optical_frame" />
+    </include>
+  </group>
+
 </launch>
