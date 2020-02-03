@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="car_parking" type="car_parking" respawn="false" name="car_parking" output="screen">
+    <rosparam file="$(find car_parking)/config/costmap_common_params.yaml" command="load" ns="parking_costmap" />  
+    <rosparam file="$(find car_parking)/config/parking_costmap_params.yaml" command="load" />
+  </node>
+</launch>
