@@ -46,7 +46,9 @@ void cmd_cb(const std_msgs::UInt8 _cmd){
 
 void process(){
     car_parking::Statuses statuses;
-    parking.Process(grid, polygons, statuses);
+    parking.UpdateGrid(grid);
+    parking.UpdatePolygones(polygons);
+    parking.Process(statuses);
     status_pub.publish(statuses);
 }
 

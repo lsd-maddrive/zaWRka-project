@@ -12,51 +12,18 @@ CarParking::CarParking(): grid_(nullptr), polygons_(nullptr){
 /*
  * @brief Check if there are an obtacles on polygones area using grid and write
  * result to the statuses
- * @param [in]  grid
- * @param [in]  poly
  * @param [out]  statuses
  * @return 0 - success, -1 - error occured
  */
-int CarParking::Process(const nav_msgs::OccupancyGrid::ConstPtr& grid,
-                        const car_parking::Polygons::ConstPtr& poly,
-                        car_parking::Statuses& statuses){
+int CarParking::Process(car_parking::Statuses& statuses){
     ROS_INFO("Core: Process() was called.");
 
-    if(grid == nullptr || poly == nullptr){
+    if(grid_ == nullptr || polygons_ == nullptr){
         ROS_WARN("Core: Grid or poly are nullptr.");
         return -1;
     }
 
-    if(grid != nullptr){
-        grid_resolution = grid->info.resolution;
-
-        grid_left = grid->info.origin.position.x;
-        grid_right = grid->info.origin.position.x + grid->info.width * grid_resolution;
-        grid_bot = grid->info.origin.position.y;
-        grid_top = grid->info.origin.position.y + grid->info.height * grid_resolution;
-
-        left_bot_x_ = grid_left;
-        left_bot_y_ = grid_bot;
-        left_top_x_ = grid_left;
-        left_top_y_ = grid_top;
-        right_bot_x_ = grid_right;
-        right_bot_y_ = grid_bot;
-        right_top_x_ = grid_right;
-        right_top_y_ = grid_top;
-
-        //ROS_INFO("Core: grid->info.resolution = %f", grid->info.resolution);
-        //ROS_INFO("Core: grid->info.width = %u", grid->info.width);
-        //ROS_INFO("Core: grid->info.height = %u", grid->info.height);
-        //ROS_INFO("Core: grid->info.origin.position.x = %f", grid->info.origin.position.x);
-        //ROS_INFO("Core: grid->info.origin.position.y = %f", grid->info.origin.position.y);
-
-        ROS_INFO("Core: left_bot = %f/%f", left_bot_x_, left_bot_y_);
-        ROS_INFO("Core: left_top = %f/%f", left_top_x_, left_top_y_);
-        ROS_INFO("Core: right_bot = %f/%f", right_bot_x_, right_bot_y_);
-        ROS_INFO("Core: right_top = %f/%f", right_top_x_, right_top_y_);
-    }
-
-    for(auto i = poly->polygons.begin(); i != poly->polygons.end(); i++){
+    for(auto i = polygons_->polygons.begin(); i != polygons_->polygons.end(); i++){
         if(!IsPolygonConvex(*i)){
             statuses.statuses.push_back(Status_t::BAD_POLYGON);
             ROS_WARN("Core: There is non-convex polygon!");
@@ -74,6 +41,29 @@ int CarParking::Process(const nav_msgs::OccupancyGrid::ConstPtr& grid,
     return 0;
 }
 
+void CarParking::UpdateGrid(const nav_msgs::OccupancyGrid::ConstPtr& grid){
+    grid_ = grid;
+
+    grid_resolution_ = grid->info.resolution;
+    grid_left_ = grid->info.origin.position.x;
+    grid_right_ = grid->info.origin.position.x + grid->info.width * grid_resolution_;
+    grid_bot_ = grid->info.origin.position.y;
+    grid_top_ = grid->info.origin.position.y + grid->info.height * grid_resolution_;
+
+    ROS_INFO("Core: grid_left = %f.", grid_left_);
+    ROS_INFO("Core: grid_right = %f.", grid_right_);
+    ROS_INFO("Core: grid_bot = %f.", grid_bot_);
+    ROS_INFO("Core: grid_top = %f.", grid_top_);
+
+    //ROS_INFO("Core: grid_resolution = %f", grid_resolution_);
+    //ROS_INFO("Core: grid->info.width = %u", grid->info.width);
+    //ROS_INFO("Core: grid->info.height = %u", grid->info.height);
+}
+
+void CarParking::UpdatePolygones(const car_parking::Polygons::ConstPtr& polygons){
+    polygons_ = polygons;
+}
+
 bool CarParking::IsPolygonConvex(const car_parking::Points2D& poly){
     return true;
 }
@@ -84,10 +74,10 @@ bool CarParking::IsPolygonEmpty(const car_parking::Points2D& poly){
 }
 
 size_t CarParking::WorldPoseToColIndex(float world_pose){
-    return (world_pose - grid_left) / grid_resolution;
+    return (world_pose - grid_left_) / grid_resolution_;
 }
 size_t CarParking::WorldPoseToRowIndex(float world_pose){
-    return (grid_top - world_pose) / grid_resolution;
+    return (grid_top_ - world_pose) / grid_resolution_;
 }
 
 bool CarParking::WorldPoseToIndexes(const car_parking::Points2D& poly){
@@ -104,29 +94,23 @@ bool CarParking::IsConvexInsideGrid(const car_parking::Points2D& poly){
             y.push_back(poly.points[i].y);
         }
 
-        poly_left = *std::min_element(x.begin(), x.end());
-        poly_right = *std::max_element(x.begin(), x.end());
-        poly_bot = *std::min_element(y.begin(), y.end());
-        poly_top = *std::max_element(y.begin(), y.end());
+        poly_left_ = *std::min_element(x.begin(), x.end());
+        poly_right_ = *std::max_element(x.begin(), x.end());
+        poly_bot_ = *std::min_element(y.begin(), y.end());
+        poly_top_ = *std::max_element(y.begin(), y.end());
         
-        std::cout << "left = " << poly_left << " " << grid_left << std::endl;
-        std::cout << "right = " << poly_right << " " << grid_right << std::endl;
-        std::cout << "bot = " << poly_bot << " " << grid_bot << std::endl;
-        std::cout << "top = " << poly_top << " " << grid_top << std::endl;
+        std::cout << "left = " << poly_left_ << " " << grid_left_ << std::endl;
+        std::cout << "right = " << poly_right_ << " " << grid_right_ << std::endl;
+        std::cout << "bot = " << poly_bot_ << " " << grid_bot_ << std::endl;
+        std::cout << "top = " << poly_top_ << " " << grid_top_ << std::endl;
 
-        if(poly_bot < grid_bot || poly_left < grid_left || 
-           poly_top > grid_top || poly_right > grid_right){
+        if(poly_bot_ < grid_bot_ || poly_left_ < grid_left_ || 
+           poly_top_ > grid_top_ || poly_right_ > grid_right_){
             is_polygon_in_grid = false;
         }
     }else{
         is_polygon_in_grid = false;
     }
-    if(is_polygon_in_grid){
-        ROS_INFO("Polygon in area.");
-    }else{
-        ROS_INFO("Polygon is out of area.");
-    }
-
     return is_polygon_in_grid;
 }
 
