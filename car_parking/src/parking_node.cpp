@@ -45,11 +45,16 @@ void cmd_cb(const std_msgs::UInt8 _cmd){
 }
 
 void process(){
-    car_parking::Statuses statuses;
-    parking.UpdateGrid(grid);
-    parking.UpdatePolygones(polygons);
-    parking.Process(statuses);
-    status_pub.publish(statuses);
+    if(grid != nullptr && polygons != nullptr){
+        car_parking::Statuses statuses;
+        parking.UpdateGrid(grid);
+        parking.UpdatePolygones(polygons);
+        parking.Process(statuses);
+        status_pub.publish(statuses);
+    }else{
+        ROS_WARN("Parking node: Can't call the process(). Start command is \
+                  received, but there is no grid or polygons.");
+    }
 }
 
 int main(int argc, char **argv)

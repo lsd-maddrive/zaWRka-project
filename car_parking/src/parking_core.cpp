@@ -4,7 +4,7 @@
 
 namespace wr8_parking {
 
-CarParking::CarParking(): grid_(nullptr), polygons_(nullptr){
+CarParking::CarParking(): grid_(nullptr), polygons_(nullptr), grid_resolution_(0.05){
     std::cout << "Core: Hello!\n";
 }
 
@@ -18,8 +18,12 @@ CarParking::CarParking(): grid_(nullptr), polygons_(nullptr){
 int CarParking::Process(car_parking::Statuses& statuses){
     ROS_INFO("Core: Process() was called.");
 
-    if(grid_ == nullptr || polygons_ == nullptr){
-        ROS_WARN("Core: Grid or poly are nullptr.");
+    if(grid_ == nullptr){
+        ROS_WARN("Core: Grid is nullptr!");
+        return -1;
+    }
+   else if(polygons_ == nullptr){
+        ROS_WARN("Core: Poly is nullptr!");
         return -1;
     }
 
@@ -61,7 +65,99 @@ void CarParking::UpdateGrid(const nav_msgs::OccupancyGrid::ConstPtr& grid){
 }
 
 void CarParking::UpdatePolygones(const car_parking::Polygons::ConstPtr& polygons){
+    if(polygons == nullptr){
+        ROS_WARN("Core: polygons can't be nullptr!");
+        return;
+    }
     polygons_ = polygons;
+    for(auto polygon = polygons_->polygons.begin(); polygon != polygons->polygons.end(); polygon++){
+        if(!IsPolygonConvex(*polygon)){
+            ROS_WARN("Core: There is non-convex polygon!");
+            continue;
+        }
+
+        // 1. find max and min values of points:
+        float pose_x_min, pose_x_max, pose_y_min, pose_y_max;
+        CalculateEdgeIndexes(*polygon, pose_x_min, pose_x_max, pose_y_min, pose_y_max);
+
+        // 2. initialize empty borders vector
+        size_t min_row = 0;
+        size_t max_row = (pose_y_max - pose_y_min) / grid_resolution_;
+        std::vector<Border_t> poly_borders;
+        for(size_t i = min_row; i <= max_row; i++){
+            poly_borders.push_back(Border_t(SIZE_MAX, 0));
+        }
+
+        // 3. add ab, bc, cd, da
+        std::vector<std::pair<size_t, size_t>> pairs;
+        pairs.push_back(std::pair<size_t, size_t>(0, 1));
+        pairs.push_back(std::pair<size_t, size_t>(1, 2));
+        pairs.push_back(std::pair<size_t, size_t>(2, 3));
+        pairs.push_back(std::pair<size_t, size_t>(3, 0));
+
+        for(auto pair = pairs.begin(); pair != pairs.end(); pair++){
+            ssize_t a_col = (polygon->points[pair->first].x - pose_x_min) / grid_resolution_;
+            ssize_t a_row = (polygon->points[pair->first].y - pose_y_min) / grid_resolution_;
+            ssize_t b_col = (polygon->points[pair->second].x - pose_x_min) / grid_resolution_;
+            ssize_t b_row = (polygon->points[pair->second].y - pose_y_min) / grid_resolution_;
+
+            ssize_t row_amount = abs(b_row - a_row);
+            ssize_t d_row = (b_row >= a_row) ? 1 : -1;
+            ssize_t d_col = (row_amount) ? (b_col - a_col) / row_amount : (b_col - a_col);
+
+            //std::cout << "row range(" << a_row << ", " << b_row << ", by " << d_row << ")" << std::endl;
+            //std::cout << "col range(" << a_col << ", " << b_col << ", by " << d_col << ")" << std::endl;
+
+            size_t cur_col = a_col;
+            for(size_t cur_row = a_row; cur_row != (b_row + d_row); cur_row += d_row){
+                //std::cout << "cur [" << cur_row << "] is [" << poly_borders[cur_row].first << 
+                //             "/" << poly_borders[cur_row].second << "]" << std::endl;
+                if(cur_col < poly_borders[cur_row].first){
+                    poly_borders[cur_row].first = cur_col;
+                    //std::cout << "set [" << cur_row << "].left to " << cur_col << std::endl;
+                }
+                if(cur_col > poly_borders[cur_row].second){
+                    poly_borders[cur_row].second = cur_col;
+                    //std::cout << "set [" << cur_row << "/" << cur_col << "].right to " << cur_col << std::endl;
+                }
+                cur_col += d_col;
+            }
+        }
+
+        // 4. show data
+        ROS_INFO("Polygon border vector size is %lu", poly_borders.size());
+        ROS_INFO("pose_x_min = %f", pose_x_min);
+        ROS_INFO("pose_x_max = %f", pose_x_max);
+        ROS_INFO("pose_y_min = %f", pose_y_min);
+        ROS_INFO("pose_y_max = %f", pose_y_max);
+        for(auto i = poly_borders.begin(); i != poly_borders.end(); i++){
+            std::cout << i->first << " " << i->second << std::endl;
+        }
+        ROS_INFO(" ");
+    }
+}
+
+void CarParking::CalculateEdgeIndexes(const car_parking::Points2D& polygon,
+                                      float& pose_x_min, float& pose_x_max,
+                                      float& pose_y_min, float& pose_y_max){
+        pose_x_min = FLT_MAX;
+        pose_x_max = FLT_MIN;
+        pose_y_min = FLT_MAX;
+        pose_y_max = FLT_MIN;
+        for(auto point = polygon.points.begin(); point != polygon.points.end(); point++){
+            if(point->x < pose_x_min){
+                pose_x_min = point->x;
+            }
+            if(point->x > pose_x_max){
+                pose_x_max = point->x;
+            }
+            if(point->y < pose_y_min){
+                pose_y_min = point->y;
+            }
+            if(point->y > pose_y_max){
+                pose_y_max = point->y;
+            }
+        }
 }
 
 bool CarParking::IsPolygonConvex(const car_parking::Points2D& poly){
@@ -69,7 +165,7 @@ bool CarParking::IsPolygonConvex(const car_parking::Points2D& poly){
 }
 
 // polygon must be inside grid!
-bool CarParking::IsPolygonEmpty(const car_parking::Points2D& poly){
+bool CarParking::IsPolygonEmpty(const car_parking::Points2D& polygon){
     return true;
 }
 

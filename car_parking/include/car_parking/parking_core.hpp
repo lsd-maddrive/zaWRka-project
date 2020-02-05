@@ -27,9 +27,20 @@ class CarParking
             BAD_POLYGON = 4,
         };
 
+        typedef std::pair<size_t, size_t> Border_t;
+        struct PolygonInfo{
+            std::vector<Border_t> borders;
+            float x_min;
+            float y_min;
+        };
+
         bool IsPolygonConvex(const car_parking::Points2D& poly);
         bool IsConvexInsideGrid(const car_parking::Points2D& poly);
         bool IsPolygonEmpty(const car_parking::Points2D& poly);
+
+        void CalculateEdgeIndexes(const car_parking::Points2D& poly,
+                                  float& pose_x_min, float& pose_x_max,
+                                  float& pose_y_min, float& pose_y_max);
 
         bool WorldPoseToIndexes(const car_parking::Points2D& poly);
         size_t WorldPoseToColIndex(float world_pose);
@@ -37,6 +48,7 @@ class CarParking
 
         nav_msgs::OccupancyGrid::ConstPtr grid_;
         car_parking::Polygons::ConstPtr polygons_;
+        std::vector<PolygonInfo> polygons_info_;
 
         float grid_resolution_;
         float grid_left_, grid_right_, grid_bot_, grid_top_;
