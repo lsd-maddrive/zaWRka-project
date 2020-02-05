@@ -27,8 +27,7 @@ pub = rospy.Publisher(POLY_PUB_TOPIC, Polygons, queue_size=10)
 rate = rospy.Rate(0.2)
 #rospy.spin()
 
-
-def talker():
+def create_squares():
     p1 = Point2D(); p1.x = 0.5; p1.y = 2
     p2 = Point2D(); p2.x = 0.5; p2.y = 4
     p3 = Point2D(); p3.x = 2.5; p3.y = 4
@@ -52,6 +51,40 @@ def talker():
 
     polygons = Polygons()
     polygons.polygons = tuple((poly1, poly2, poly3))
+
+    return polygons
+
+def create_trapezoid():
+    p1 = Point2D(); p1.x = 0.5; p1.y = 0
+    p2 = Point2D(); p2.x = 2.5; p2.y = 2
+    p3 = Point2D(); p3.x = 2.5; p3.y = 4
+    p4 = Point2D(); p4.x = 0.5; p4.y = 2
+    poly1 = Points2D()
+    poly1.points = tuple((p1, p2, p3, p4))
+
+    p1 = Point2D(); p1.x = 0.5; p1.y = 2
+    p2 = Point2D(); p2.x = 2.5; p2.y = 4
+    p3 = Point2D(); p3.x = 2.5; p3.y = 6
+    p4 = Point2D(); p4.x = 0.5; p4.y = 4
+    poly2 = Points2D()
+    poly2.points = tuple((p1, p2, p3, p4))
+
+    p1 = Point2D(); p1.x = 0.5; p1.y = 4
+    p2 = Point2D(); p2.x = 2.5; p2.y = 6
+    p3 = Point2D(); p3.x = 2.5; p3.y = 8
+    p4 = Point2D(); p4.x = 0.5; p4.y = 6
+    poly3 = Points2D()
+    poly3.points = tuple((p1, p2, p3, p4))
+
+    polygons = Polygons()
+    polygons.polygons = tuple((poly1, poly2, poly3))
+
+    return polygons
+
+def talker():
+    #polygons = screate_squares()
+    polygons = create_trapezoid()
+    
     while not rospy.is_shutdown():
         rospy.loginfo("I published poly.")
         pub.publish(polygons)
