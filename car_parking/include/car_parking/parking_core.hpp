@@ -29,14 +29,17 @@ class CarParking
 
         typedef std::pair<size_t, size_t> Border_t;
         struct PolygonInfo{
+            bool IsPolygonCorrect() {return !borders.empty();};
             std::vector<Border_t> borders;
-            float x_min;
-            float y_min;
+            float min_x;
+            float max_x;
+            float min_y;
+            float max_y;
         };
 
         bool IsPolygonConvex(const car_parking::Points2D& poly);
-        bool IsConvexInsideGrid(const car_parking::Points2D& poly);
-        bool IsPolygonEmpty(const car_parking::Points2D& poly);
+        bool IsConvexInsideGrid(const PolygonInfo& poly);
+        bool IsPolygonEmpty(const PolygonInfo& poly);
 
         void CalculateEdgeIndexes(const car_parking::Points2D& poly,
                                   float& pose_x_min, float& pose_x_max,
@@ -46,9 +49,10 @@ class CarParking
         size_t WorldPoseToColIndex(float world_pose);
         size_t WorldPoseToRowIndex(float world_pose);
 
+        bool PrintGrid();
+
         nav_msgs::OccupancyGrid::ConstPtr grid_;
-        car_parking::Polygons::ConstPtr polygons_;
-        std::vector<PolygonInfo> polygons_info_;
+        std::vector<PolygonInfo> polygons_;
 
         float grid_resolution_;
         float grid_left_, grid_right_, grid_bot_, grid_top_;
