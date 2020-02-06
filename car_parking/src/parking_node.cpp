@@ -71,8 +71,8 @@ void process(){
 int main(int argc, char **argv)
 {
 	const char* NODE_NAME = "parking_node";
-	const char* POLY_SUB_TOPIC = "/parking_areas_polygones";
-	const char* STATUS_PUB_TOPIC = "/parking_areas_status";
+	const char* POLY_SUB_TOPIC = "/parking_polygones";
+	const char* STATUS_PUB_TOPIC = "/parking_status";
 	const char* CMD_SUB_TOPIC = "/parking_cmd";
     const char* GRID_SUB_TOPIC = "/move_base/local_costmap/costmap";
 
