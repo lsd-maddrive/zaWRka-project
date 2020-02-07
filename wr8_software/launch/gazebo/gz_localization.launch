@@ -2,8 +2,11 @@
 <!-- Run simulation for solve problem of localization -->
 <launch>
   <arg name="wp_global_planner" default="true" doc="[true - wp_global_planner, false - global_planner]"/>
+  <arg name="enable_stereo" default="false" />
 
-  <include file="$(find wr8_description)/launch/gazebo.launch"/>
+  <include file="$(find wr8_description)/launch/gazebo.launch">
+    <arg name="enable_stereo" value="$(arg enable_stereo)" />
+  </include>
 
   <include file="$(find wr8_software)/launch/localization.launch">
     <arg name="wp_global_planner" value="$(arg wp_global_planner)" />
@@ -11,8 +14,10 @@
 
   <include file="$(find wr8_software)/launch/rviz_localization_view.launch"/>
 
-  <include file="$(find wr8_software)/launch/base/stereo_2_laserscan.launch">
-    <arg name="stereo_cloud" value="stereo_camera/points2" />
-    <arg name="target_frame" value="stereo_camera_optical_frame" />
-  </include>
+  <group if="$(arg enable_stereo)">
+    <include file="$(find wr8_software)/launch/base/stereo_2_laserscan.launch">
+      <arg name="stereo_cloud" value="stereo_camera/points2" />
+      <arg name="target_frame" value="stereo_camera_optical_frame" />
+    </include>
+  </group>
 </launch>

@@ -7,9 +7,10 @@
   <arg name="world_name" default="RFMaze.v2.world" />
   <arg name="gz_gui" default="false" />
   <arg name="urdf_file" default="$(find wr8_description)/urdf/model.urdf.xacro" />
+  <arg name="enable_stereo" default="false" />
 
   <!-- Set environment variable that contains robot model description -->
-  <param name="robot_description" command="$(find xacro)/xacro '$(arg urdf_file)'" />
+  <param name="robot_description" command="$(find xacro)/xacro '$(arg urdf_file)' enable_stereo:=$(arg enable_stereo)" />
 
   <!-- Spawn robot -->
   <node name="spawn_base_model" pkg="gazebo_ros" type="spawn_model"
@@ -32,7 +33,10 @@
   </include>
 
   <!-- Processing of stereo vision -->
+  <group if="$(arg enable_stereo)">
 	<node ns="stereo_camera" pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen">
-  </node>
+    </node>
+  </group>
+
 
 </launch>
