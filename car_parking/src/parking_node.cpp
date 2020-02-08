@@ -54,10 +54,6 @@ void process(){
         if(is_grid_updated){
             ROS_INFO("UpdateGrid() is calling.");
             parking.UpdateGrid(grid);
-            // dirty hack: global costmap does not publish an updated grid, but we need it
-            // may be we should somehow get ptr of the costmap
-            grid_sub.shutdown();
-            grid_sub = nh->subscribe(GRID_SUB_TOPIC, 2, grid_cb);
         }
         if(is_polygons_updated){
             ROS_INFO("UpdatePolygons() is calling.");
