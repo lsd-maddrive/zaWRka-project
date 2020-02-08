@@ -26,7 +26,7 @@ offset_y = 11
 offset_z = 1.57
 
 def status_callback(msg):
-    rospy.loginfo("I heard statuses with length {}".format(len(msg.statuses)))
+    print "I heard statuses with length {}".format(len(msg.statuses)),
     for s in msg.statuses:
         if ord(s) == 0:
             print "NO_INFO ",
@@ -86,6 +86,10 @@ def create_parking():
     gz_polygon1 = ((4.0, 12.4), (5.6, 14.4), (5.6, 15.6), (4.0, 13.6))
     gz_polygon2 = ((4.0, 14.4), (5.6, 16.4), (5.6, 17.6), (4.0, 15.6))
     gz_polygon3 = ((4.0, 16.4), (5.6, 18.4), (5.6, 19.6), (4.0, 17.6))
+
+    #gz_polygon1 = ((4.0, 12.0), (6.0, 12.0), (6.0, 16.0), (4.0, 16.0))
+    #gz_polygon2 = ((4.0, 14.0), (6.0, 14.0), (6.0, 18.0), (4.0, 18.0))
+    #gz_polygon3 = ((4.0, 18.0), (6.0, 18.0), (6.0, 20.0), (4.0, 20.0))
 
     map_polygon1 = gz_to_map_for_polygon(gz_polygon1)
     map_polygon2 = gz_to_map_for_polygon(gz_polygon2)

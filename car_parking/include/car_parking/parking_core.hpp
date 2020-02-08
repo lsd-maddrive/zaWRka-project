@@ -17,7 +17,7 @@ class CarParking
         CarParking();
         int Process(car_parking::Statuses& statuses);
         void UpdateGrid(const nav_msgs::OccupancyGrid::ConstPtr& grid);
-        void UpdatePolygones(const car_parking::Polygons::ConstPtr& polygons);
+        void UpdatePolygons(const car_parking::Polygons::ConstPtr& polygons);
     private:
         enum Status_t: uint8_t{
             NO_INFO = 0,
@@ -40,23 +40,16 @@ class CarParking
         bool IsPolygonConvex(const car_parking::Points2D& poly);
         bool IsConvexInsideGrid(const PolygonInfo& poly);
         bool IsPolygonEmpty(const PolygonInfo& poly);
-
         void CalculateEdgeIndexes(const car_parking::Points2D& poly,
                                   float& pose_x_min, float& pose_x_max,
                                   float& pose_y_min, float& pose_y_max);
-
-        bool WorldPoseToIndexes(const car_parking::Points2D& poly);
-        size_t WorldPoseToColIndex(float world_pose);
-        size_t WorldPoseToRowIndex(float world_pose);
 
         bool PrintGrid();
 
         nav_msgs::OccupancyGrid::ConstPtr grid_;
         std::vector<PolygonInfo> polygons_;
-
         float grid_resolution_;
         float grid_left_, grid_right_, grid_bot_, grid_top_;
-        float poly_left_, poly_right_, poly_bot_, poly_top_;
 };
 
 } //end namespace wr8_parking

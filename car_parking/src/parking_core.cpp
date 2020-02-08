@@ -50,7 +50,7 @@ void CarParking::UpdateGrid(const nav_msgs::OccupancyGrid::ConstPtr& grid){
     grid_top_ = grid->info.origin.position.y + grid->info.height * grid_resolution_;
 }
 
-void CarParking::UpdatePolygones(const car_parking::Polygons::ConstPtr& polygons){
+void CarParking::UpdatePolygons(const car_parking::Polygons::ConstPtr& polygons){
     polygons_.clear();
     if(polygons == nullptr){
         ROS_WARN("Core: polygons can't be nullptr!");
@@ -76,7 +76,8 @@ void CarParking::UpdatePolygones(const car_parking::Polygons::ConstPtr& polygons
         // 3. add ab, bc, cd, da
         size_t first[] = {0, 1, 2, 3};
         size_t second[] = {1, 2, 3, 0};
-        ssize_t a_col, a_row, b_col, b_row, row_amount, d_row, d_col;
+        ssize_t a_col, a_row, b_col, b_row, row_amount, d_row;
+        float d_col;
         for(size_t i = 0; i < 4; i++){
             a_col = (polygon->points[first[i]].x - polygons_.back().min_x) / grid_resolution_;
             a_row = (polygon->points[first[i]].y - polygons_.back().min_y) / grid_resolution_;
@@ -85,9 +86,9 @@ void CarParking::UpdatePolygones(const car_parking::Polygons::ConstPtr& polygons
 
             row_amount = abs(b_row - a_row);
             d_row = (b_row >= a_row) ? 1 : -1;
-            d_col = (row_amount) ? (b_col - a_col) / row_amount : (b_col - a_col);
+            d_col = (row_amount) ? static_cast<float>(b_col - a_col) / row_amount : (b_col - a_col);
 
-            size_t cur_col = a_col;
+            float cur_col = a_col;
             for(size_t cur_row = a_row; cur_row != (b_row + d_row); cur_row += d_row){
                 if(cur_col < polygons_.back().borders[cur_row].first){
                     polygons_.back().borders[cur_row].first = cur_col;
@@ -105,9 +106,9 @@ void CarParking::CalculateEdgeIndexes(const car_parking::Points2D& polygon,
                                       float& pose_x_min, float& pose_x_max,
                                       float& pose_y_min, float& pose_y_max){
     pose_x_min = FLT_MAX;
-    pose_x_max = FLT_MIN;
+    pose_x_max = -FLT_MAX;
     pose_y_min = FLT_MAX;
-    pose_y_max = FLT_MIN;
+    pose_y_max = -FLT_MAX;
     for(auto point = polygon.points.begin(); point != polygon.points.end(); point++){
         if(point->x < pose_x_min){
             pose_x_min = point->x;
@@ -136,13 +137,6 @@ bool CarParking::IsPolygonEmpty(const PolygonInfo& polygon){
     int32_t average_value = 0;
     size_t counter = 0;
 
-    std::cout << "poly are:" << std::endl;
-    std::cout << "offset_col = " << offset_col <<
-                 " offset_row = " << offset_row <<
-                 " width = " << grid_->info.width <<
-                 " height = " << grid_->info.height <<
-                 " row min = " << offset_row <<
-                 " row max = " << offset_row + polygon.borders.size() << std::endl;
     for(size_t row = offset_row; row < offset_row + polygon.borders.size() - 1; row++){
         for(size_t col = polygon.borders[row - offset_row].first  + offset_col;
                    col < polygon.borders[row - offset_row].second + offset_col;
@@ -153,32 +147,18 @@ bool CarParking::IsPolygonEmpty(const PolygonInfo& polygon){
             }
             average_value += cell_value;
             counter++;
-            std::cout << cell_value + 0 << " ";
+            //std::cout << cell_value + 0 << " ";
         }
-        std::cout << std::endl;
+        //std::cout << std::endl;
     }
     if(counter != 0){
         average_value /= counter;
     }
-    std::cout << "max = " << max_value + 0 <<
-                 " and avg = " << average_value <<
-                 " and cnt = " << counter << std::endl;
-
+    ROS_INFO("max = %d, avg = %d", max_value + 0, average_value);
     if(max_value <= 80){
         return true;
     }
     return false;
-}
-
-size_t CarParking::WorldPoseToColIndex(float world_pose){
-    return (world_pose - grid_left_) / grid_resolution_;
-}
-size_t CarParking::WorldPoseToRowIndex(float world_pose){
-    return (grid_top_ - world_pose) / grid_resolution_;
-}
-
-bool CarParking::WorldPoseToIndexes(const car_parking::Points2D& poly){
-    return true;
 }
 
 // polygon must be convex
@@ -194,6 +174,7 @@ bool CarParking::IsConvexInsideGrid(const PolygonInfo& poly_info){
     return is_polygon_inside_grid;
 }
 
+// grid must be != nullptr
 bool CarParking::PrintGrid(){
     for(size_t r = 0; r < grid_->info.height; r++){
         std::cout << r << ": ";
