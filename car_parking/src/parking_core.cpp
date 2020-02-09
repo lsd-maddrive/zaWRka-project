@@ -1,6 +1,4 @@
 #include "car_parking/parking_core.hpp"
-#include <algorithm>
-#include <cmath>
 
 namespace wr8_parking {
 
@@ -147,9 +145,7 @@ bool CarParking::IsPolygonEmpty(const PolygonInfo& polygon){
             }
             average_value += cell_value;
             counter++;
-            //std::cout << cell_value + 0 << " ";
         }
-        //std::cout << std::endl;
     }
     if(counter != 0){
         average_value /= counter;

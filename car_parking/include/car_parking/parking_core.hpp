@@ -2,12 +2,10 @@
 #define PARKING_CORE_HPP_
 
 #include <ros/ros.h>
-#include <car_parking/Point2D.h>
-#include <car_parking/Points2D.h>
+#include <nav_msgs/OccupancyGrid.h>
 #include <car_parking/Polygons.h>
 #include <car_parking/Statuses.h>
-
-#include <nav_msgs/OccupancyGrid.h>
+#include <car_parking/Points2D.h>
 
 namespace wr8_parking {
 
@@ -29,7 +27,7 @@ class CarParking
 
         typedef std::pair<size_t, size_t> Border_t;
         struct PolygonInfo{
-            bool IsPolygonCorrect() {return !borders.empty();};
+            bool IsPolygonCorrect() const {return !borders.empty();};
             std::vector<Border_t> borders;
             float min_x;
             float max_x;

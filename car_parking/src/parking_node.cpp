@@ -1,12 +1,6 @@
-#include <sstream>
-#include <vector>
-
-#include <geometry_msgs/Polygon.h>
 #include <std_msgs/UInt8.h>
 
 #include "car_parking/parking_core.hpp"
-
-//namespace wr8_parking {
 
 enum Cmd_t{
     STOP = 0,
@@ -32,19 +26,16 @@ static const char* CMD_SUB_TOPIC = "/parking_cmd";
 static const char* GRID_SUB_TOPIC = "/move_base/global_costmap/costmap";
 
 void grid_cb(const nav_msgs::OccupancyGrid::ConstPtr& _grid){
-    ROS_INFO("I heard grid.");
     grid = _grid;
     is_grid_updated = true;
 }
 
 void poly_cb(const car_parking::Polygons::ConstPtr& _poly){
-    ROS_INFO("I heard polygons.");
     polygons = _poly;
     is_polygons_updated = true;
 }
 
 void cmd_cb(const std_msgs::UInt8 _cmd){
-    ROS_INFO("I heard cmd.");
     cmd = static_cast<Cmd_t>(_cmd.data);
 }
 
@@ -65,14 +56,9 @@ void process(){
             ROS_INFO("Process() is calling.");
             parking.Process(statuses);
         }
-        // only for test:
-        else{
-            ROS_INFO("Process() is calling.");
-            parking.Process(statuses);
-        }
         status_pub.publish(statuses);
     }else{
-        ROS_WARN("Can't call the process(). Start command is received, but there is no grid or polygons.");
+        ROS_WARN("Can't call the process(). Start is received, but there is no grid or polygons.");
     }
 }
 
@@ -91,7 +77,7 @@ int main(int argc, char **argv)
         if(cmd == Cmd_t::START){
             process();
         }else{
-            ROS_INFO("Can't call Process() because cmd != START.");
+            ROS_INFO("Waiting for START cmd...");
         }
         ros::spinOnce(); // handle callbacks
         loop_rate.sleep();
@@ -100,5 +86,3 @@ int main(int argc, char **argv)
     delete nh;
     return 0;
 }
-
- //end namespace wr8_parking

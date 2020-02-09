@@ -1,8 +1,7 @@
 #!/usr/bin/env python
+import math
+
 import rospy
-from std_msgs.msg import UInt8
-from nav_msgs.msg import OccupancyGrid
-from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import PolygonStamped
 from geometry_msgs.msg import Point
 from car_parking.msg import Point2D
@@ -10,7 +9,6 @@ from car_parking.msg import Points2D
 from car_parking.msg import Polygons
 from car_parking.msg import Statuses
 
-import math
 
 
 NODE_NAME = 'parking_test_pub_sub_node'
@@ -22,7 +20,7 @@ STATUS_SUB_TOPIC = "/parking_status"
 CMD_TOPIC = "/parking_cmd"
 
 def status_callback(msg):
-    print "I heard statuses with length {}".format(len(msg.statuses)),
+    print "I heard statuses with length {}: ".format(len(msg.statuses)),
     for s in msg.statuses:
         if ord(s) == 0:
             print "NO_INFO ",
@@ -36,19 +34,11 @@ def status_callback(msg):
             print "BAD_POLYGON ",
         else:
             print "UNKNOWN_STATUS ",
-    print("")
+    print ""
 
-rospy.init_node(NODE_NAME)
-sub = rospy.Subscriber(STATUS_SUB_TOPIC, Statuses, status_callback, queue_size=10)
-pub_to_parking = rospy.Publisher(POLY_PUB_TOPIC, Polygons, queue_size=10)
-pub_to_rviz_1 = rospy.Publisher(RVIZ_PUB_TOPIC_1, PolygonStamped, queue_size=10)
-pub_to_rviz_2 = rospy.Publisher(RVIZ_PUB_TOPIC_2, PolygonStamped, queue_size=10)
-pub_to_rviz_3 = rospy.Publisher(RVIZ_PUB_TOPIC_3, PolygonStamped, queue_size=10)
-rate = rospy.Rate(0.2)
-
-offset_x = rospy.get_param('/car_parking/start_x')
-offset_y = rospy.get_param('/car_parking/start_y')
-offset_z = rospy.get_param('/car_parking/start_z')
+OFFSET_X = float(rospy.get_param('/car_parking_test/start_x'))
+OFFSET_Y = float(rospy.get_param('/car_parking_test/start_y'))
+OFFSET_Z = float(rospy.get_param('/car_parking_test/start_z'))
 
 def create_polygon(polygon):
     p1 = Point2D(); p1.x = polygon[0][0]; p1.y = polygon[0][1]
@@ -72,8 +62,8 @@ def create_polygon_stamped(polygon):
     return polygons_stumped
 
 def gz_to_map_for_point(point):
-    x = (point[0] - offset_x) * math.cos(-offset_z) - (point[1] - offset_y) * math.sin(-offset_z)
-    y = (point[0] - offset_x) * math.sin(-offset_z) + (point[1] - offset_y) * math.cos(-offset_z)
+    x = (point[0] - OFFSET_X) * math.cos(-OFFSET_Z) - (point[1] - OFFSET_Y) * math.sin(-OFFSET_Z)
+    y = (point[0] - OFFSET_X) * math.sin(-OFFSET_Z) + (point[1] - OFFSET_Y) * math.cos(-OFFSET_Z)
     return (x, y)
 
 def gz_to_map_for_polygon(polygon):
@@ -110,16 +100,23 @@ def create_parking():
     return both_polygons
 
 def talker():
+    rate = rospy.Rate(0.2)
     both_polygons = create_parking()
     while not rospy.is_shutdown():
         rospy.loginfo("I published poly.")
-        pub_to_parking.publish(both_polygons[0])
-        pub_to_rviz_1.publish(both_polygons[1][0])
-        pub_to_rviz_2.publish(both_polygons[1][1])
-        pub_to_rviz_3.publish(both_polygons[1][2])
+        PUB_TO_PARKING.publish(both_polygons[0])
+        PUB_TO_RVIZ_1.publish(both_polygons[1][0])
+        PUB_TO_RVIZ_2.publish(both_polygons[1][1])
+        PUB_TO_RVIZ_3.publish(both_polygons[1][2])
         rate.sleep()
 
 try:
+    rospy.init_node(NODE_NAME)
+    SUB = rospy.Subscriber(STATUS_SUB_TOPIC, Statuses, status_callback, queue_size=10)
+    PUB_TO_PARKING = rospy.Publisher(POLY_PUB_TOPIC, Polygons, queue_size=10)
+    PUB_TO_RVIZ_1 = rospy.Publisher(RVIZ_PUB_TOPIC_1, PolygonStamped, queue_size=10)
+    PUB_TO_RVIZ_2 = rospy.Publisher(RVIZ_PUB_TOPIC_2, PolygonStamped, queue_size=10)
+    PUB_TO_RVIZ_3 = rospy.Publisher(RVIZ_PUB_TOPIC_3, PolygonStamped, queue_size=10)
     talker()
 except (rospy.ROSInterruptException, KeyboardInterrupt):
     rospy.logerr('Exception catched')
