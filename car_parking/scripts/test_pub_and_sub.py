@@ -21,10 +21,6 @@ RVIZ_PUB_TOPIC_3 = "/parking_polygones_visualization_3"
 STATUS_SUB_TOPIC = "/parking_status"
 CMD_TOPIC = "/parking_cmd"
 
-offset_x = 2
-offset_y = 11
-offset_z = 1.57
-
 def status_callback(msg):
     print "I heard statuses with length {}".format(len(msg.statuses)),
     for s in msg.statuses:
@@ -49,6 +45,10 @@ pub_to_rviz_1 = rospy.Publisher(RVIZ_PUB_TOPIC_1, PolygonStamped, queue_size=10)
 pub_to_rviz_2 = rospy.Publisher(RVIZ_PUB_TOPIC_2, PolygonStamped, queue_size=10)
 pub_to_rviz_3 = rospy.Publisher(RVIZ_PUB_TOPIC_3, PolygonStamped, queue_size=10)
 rate = rospy.Rate(0.2)
+
+offset_x = rospy.get_param('/car_parking/start_x')
+offset_y = rospy.get_param('/car_parking/start_y')
+offset_z = rospy.get_param('/car_parking/start_z')
 
 def create_polygon(polygon):
     p1 = Point2D(); p1.x = polygon[0][0]; p1.y = polygon[0][1]

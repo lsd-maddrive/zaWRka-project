@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="car_parking" pkg="car_parking" type="test_pub_and_sub.py" output="screen">
+    <param name="start_x" value="2"/>
+    <param name="start_y" value="2"/>
+    <param name="start_z" value="1.57"/>
+  </node>
+</launch>
