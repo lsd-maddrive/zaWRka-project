@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="frequency_converter" pkg="frequency_converter" type="frequency_converter_node" output="screen">
+    <param name="frequency" value="5"/>
+  </node>
+</launch>
