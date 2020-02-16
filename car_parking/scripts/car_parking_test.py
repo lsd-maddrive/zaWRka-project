@@ -9,8 +9,6 @@ from car_parking.msg import Points2D
 from car_parking.msg import Polygons
 from car_parking.msg import Statuses
 
-
-
 NODE_NAME = 'parking_test_pub_sub_node'
 POLY_PUB_TOPIC = "/parking_polygones"
 RVIZ_PUB_TOPIC_1 = "/parking_polygones_visualization_1"
@@ -110,13 +108,14 @@ def talker():
         PUB_TO_RVIZ_3.publish(both_polygons[1][2])
         rate.sleep()
 
-try:
-    rospy.init_node(NODE_NAME)
-    SUB = rospy.Subscriber(STATUS_SUB_TOPIC, Statuses, status_callback, queue_size=10)
-    PUB_TO_PARKING = rospy.Publisher(POLY_PUB_TOPIC, Polygons, queue_size=10)
-    PUB_TO_RVIZ_1 = rospy.Publisher(RVIZ_PUB_TOPIC_1, PolygonStamped, queue_size=10)
-    PUB_TO_RVIZ_2 = rospy.Publisher(RVIZ_PUB_TOPIC_2, PolygonStamped, queue_size=10)
-    PUB_TO_RVIZ_3 = rospy.Publisher(RVIZ_PUB_TOPIC_3, PolygonStamped, queue_size=10)
-    talker()
-except (rospy.ROSInterruptException, KeyboardInterrupt):
-    rospy.logerr('Exception catched')
+if __name__=="__main__":
+    try:
+        rospy.init_node(NODE_NAME)
+        SUB = rospy.Subscriber(STATUS_SUB_TOPIC, Statuses, status_callback, queue_size=10)
+        PUB_TO_PARKING = rospy.Publisher(POLY_PUB_TOPIC, Polygons, queue_size=10)
+        PUB_TO_RVIZ_1 = rospy.Publisher(RVIZ_PUB_TOPIC_1, PolygonStamped, queue_size=10)
+        PUB_TO_RVIZ_2 = rospy.Publisher(RVIZ_PUB_TOPIC_2, PolygonStamped, queue_size=10)
+        PUB_TO_RVIZ_3 = rospy.Publisher(RVIZ_PUB_TOPIC_3, PolygonStamped, queue_size=10)
+        talker()
+    except (rospy.ROSInterruptException, KeyboardInterrupt):
+        rospy.logerr('Exception catched')

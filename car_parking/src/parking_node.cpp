@@ -20,10 +20,10 @@ static bool is_grid_updated = false;
 static bool is_polygons_updated = false;
 
 static const char* NODE_NAME = "parking_node";
-static const char* POLY_SUB_TOPIC = "/parking_polygones";
-static const char* STATUS_PUB_TOPIC = "/parking_status";
-static const char* CMD_SUB_TOPIC = "/parking_cmd";
-static const char* GRID_SUB_TOPIC = "/move_base/global_costmap/costmap";
+static const char* POLY_SUB_TOPIC = "parking_polygones";
+static const char* STATUS_PUB_TOPIC = "parking_status";
+static const char* CMD_SUB_TOPIC = "parking_cmd";
+static const char* GRID_SUB_TOPIC = "costmap";
 
 void grid_cb(const nav_msgs::OccupancyGrid::ConstPtr& _grid){
     grid = _grid;
@@ -43,22 +43,22 @@ void process(){
     if(grid != nullptr && polygons != nullptr){
         car_parking::Statuses statuses;
         if(is_grid_updated){
-            ROS_INFO("UpdateGrid() is calling.");
+            ROS_DEBUG("UpdateGrid() is calling.");
             parking.UpdateGrid(grid);
         }
         if(is_polygons_updated){
-            ROS_INFO("UpdatePolygons() is calling.");
+            ROS_DEBUG("UpdatePolygons() is calling.");
             parking.UpdatePolygons(polygons);
         }
         if(is_grid_updated || is_polygons_updated){
             is_grid_updated = false;
             is_polygons_updated = false;
-            ROS_INFO("Process() is calling.");
+            ROS_DEBUG("Process() is calling.");
             parking.Process(statuses);
         }
         status_pub.publish(statuses);
     }else{
-        ROS_WARN("Can't call the process(). Start is received, but there is no grid or polygons.");
+        ROS_WARN_THROTTLE(5, "Can't call the process(). Start is received, but there is no grid or polygons.");
     }
 }
 
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
         if(cmd == Cmd_t::START){
             process();
         }else{
-            ROS_INFO("Waiting for START cmd...");
+            ROS_DEBUG_THROTTLE(5, "Waiting for START cmd...");
         }
         ros::spinOnce(); // handle callbacks
         loop_rate.sleep();

@@ -35,14 +35,14 @@ class CarParking
             float max_y;
         };
 
-        bool IsPolygonConvex(const car_parking::Points2D& poly);
-        bool IsConvexInsideGrid(const PolygonInfo& poly);
-        bool IsPolygonEmpty(const PolygonInfo& poly);
+        bool IsPolygonConvex(const car_parking::Points2D& poly) const;
+        bool IsConvexInsideGrid(const PolygonInfo& poly) const;
+        bool IsPolygonEmpty(const PolygonInfo& poly) const;
         void CalculateEdgeIndexes(const car_parking::Points2D& poly,
                                   float& pose_x_min, float& pose_x_max,
-                                  float& pose_y_min, float& pose_y_max);
+                                  float& pose_y_min, float& pose_y_max) const;
 
-        bool PrintGrid();
+        bool PrintGrid() const;
 
         nav_msgs::OccupancyGrid::ConstPtr grid_;
         std::vector<PolygonInfo> polygons_;

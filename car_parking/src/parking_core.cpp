@@ -2,7 +2,9 @@
 
 namespace wr8_parking {
 
-CarParking::CarParking(): grid_(nullptr), grid_resolution_(0.05){
+static const float DEFAULT_GRID_RESOLUTION = 0.05;
+
+CarParking::CarParking(): grid_(nullptr), grid_resolution_(DEFAULT_GRID_RESOLUTION){
 }
 
 
@@ -14,18 +16,18 @@ CarParking::CarParking(): grid_(nullptr), grid_resolution_(0.05){
  */
 int CarParking::Process(car_parking::Statuses& statuses){
     if(grid_ == nullptr || polygons_.empty()){
-        ROS_WARN("Core: Grid is nullptre or poly is empty!");
+        ROS_WARN("Core: Grid is nullptr or poly is empty!");
         return -1;
     }
     Status_t status;
     statuses.statuses.clear();
-    for(auto i = polygons_.begin(); i != polygons_.end(); i++){
-        if(!i->IsPolygonCorrect()){
+    for(auto polygon = polygons_.begin(); polygon != polygons_.end(); polygon++){
+        if(!polygon->IsPolygonCorrect()){
             status = Status_t::BAD_POLYGON;
             ROS_WARN("Core: There is non-convex polygon!");
-        }else if(!IsConvexInsideGrid(*i)){
+        }else if(!IsConvexInsideGrid(*polygon)){
             status = Status_t::OUT_OF_RANGE;
-        }else if(!IsPolygonEmpty(*i)){
+        }else if(!IsPolygonEmpty(*polygon)){
             status = Status_t::FILLED;
         }else{
             status = Status_t::EMPTY;
@@ -52,6 +54,10 @@ void CarParking::UpdatePolygons(const car_parking::Polygons::ConstPtr& polygons)
     polygons_.clear();
     if(polygons == nullptr){
         ROS_WARN("Core: polygons can't be nullptr!");
+        return;
+    }
+    if(grid_ == nullptr){
+        ROS_WARN("Core: Polygons can't be updated when grid is nullptr!");
         return;
     }
     for(auto polygon = polygons->polygons.begin(); polygon != polygons->polygons.end(); polygon++){
@@ -102,7 +108,7 @@ void CarParking::UpdatePolygons(const car_parking::Polygons::ConstPtr& polygons)
 
 void CarParking::CalculateEdgeIndexes(const car_parking::Points2D& polygon,
                                       float& pose_x_min, float& pose_x_max,
-                                      float& pose_y_min, float& pose_y_max){
+                                      float& pose_y_min, float& pose_y_max) const{
     pose_x_min = FLT_MAX;
     pose_x_max = -FLT_MAX;
     pose_y_min = FLT_MAX;
@@ -123,12 +129,12 @@ void CarParking::CalculateEdgeIndexes(const car_parking::Points2D& polygon,
     }
 }
 
-bool CarParking::IsPolygonConvex(const car_parking::Points2D& poly){
+bool CarParking::IsPolygonConvex(const car_parking::Points2D& poly) const{
     return true;
 }
 
 // polygon must be inside grid!
-bool CarParking::IsPolygonEmpty(const PolygonInfo& polygon){
+bool CarParking::IsPolygonEmpty(const PolygonInfo& polygon) const{
     ssize_t offset_col = (polygon.min_x - grid_left_) / grid_resolution_;
     ssize_t offset_row = (polygon.min_y - grid_bot_) / grid_resolution_;
     int8_t max_value = 0;
@@ -158,7 +164,7 @@ bool CarParking::IsPolygonEmpty(const PolygonInfo& polygon){
 }
 
 // polygon must be convex
-bool CarParking::IsConvexInsideGrid(const PolygonInfo& poly_info){
+bool CarParking::IsConvexInsideGrid(const PolygonInfo& poly_info) const{
     bool is_polygon_inside_grid;
     if(poly_info.min_y < grid_bot_ || poly_info.min_x < grid_left_ || 
        poly_info.max_y > grid_top_ || poly_info.max_x > grid_right_){
@@ -171,7 +177,7 @@ bool CarParking::IsConvexInsideGrid(const PolygonInfo& poly_info){
 }
 
 // grid must be != nullptr
-bool CarParking::PrintGrid(){
+bool CarParking::PrintGrid() const{
     for(size_t r = 0; r < grid_->info.height; r++){
         std::cout << r << ": ";
         for(size_t c = 0; c < grid_->info.width; c++){

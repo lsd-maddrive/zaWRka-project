@@ -1,4 +1,9 @@
 <?xml version="1.0"?>
 <launch>
-  <node name="car_parking" pkg="car_parking" type="car_parking" output="screen"/>
+  <node name="car_parking" pkg="car_parking" type="car_parking" output="screen">
+    <remap from="parking_polygones" to="parking_polygones"/>
+    <remap from="parking_status" to="parking_status"/>
+    <remap from="parking_cmd" to="parking_cmd"/>
+    <remap from="costmap" to="move_base/global_costmap/costmap"/>
+  </node>
 </launch>
