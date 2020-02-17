@@ -32,10 +32,12 @@
 
   <!-- Processing of stereo vision -->
   <group if="$(arg enable_stereo)">
-    <include file="$(find frequency_converter)/launch/converter.launch">
-      <arg name="frequency" value="5"/>
-    </include>
-	  <node ns="stereo_camera" pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen">
+    <node name="frequency_converter" pkg="frequency_converter" type="frequency_converter_node" output="screen">
+      <param name="frequency" value="5"/>
+      <param name="in_stereo_ns" value="stereo_camera"/>
+      <param name="out_stereo_ns" value="stereo_camera_converted"/>
+    </node>
+	  <node ns="stereo_camera_converted" pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen">
     </node>
   </group>
 

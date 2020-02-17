@@ -481,7 +481,7 @@
     </xacro:macro>
 
 
-    <xacro:stereo_camera name="stereo_camera_temp" fov="1.3962634" />
+    <xacro:stereo_camera name="stereo_camera" fov="1.3962634" />
     <xacro:single_camera name="signs_camera" xyz="-0.05 0 0.3" rpy="0 -${degrees_30} -${degrees_30}" fov="1.3962634" />
   </xacro:if>
 

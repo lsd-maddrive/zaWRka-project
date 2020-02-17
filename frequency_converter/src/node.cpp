@@ -3,18 +3,12 @@
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/Image.h>
 
-static const char* NODE_NAME = "stereo_camera/frequency_converter";
+static const char* NODE_NAME = "frequency_converter";
 
-static const char* SUB_LEFT_INFO = "stereo_camera_temp/left/camera_info";
-static const char* SUB_LEFT_RAW = "stereo_camera_temp/left/image_raw";
-static const char* SUB_RIGHT_INFO = "stereo_camera_temp/right/camera_info";
-static const char* SUB_RIGHT_RAW = "stereo_camera_temp/right/image_raw";
-
-static const char* PUB_LEFT_INFO = "stereo_camera/left/camera_info";
-static const char* PUB_LEFT_RAW = "stereo_camera/left/image_raw";
-static const char* PUB_RIGHT_INFO = "stereo_camera/right/camera_info";
-static const char* PUB_RIGHT_RAW = "stereo_camera/right/image_raw";
-static const char* FRAME_NAME = "stereo_camera_optical_frame";
+static const std::string IMAGE_RAW = "/image_raw";
+static const std::string CAMERA_INFO = "/camera_info";
+static const std::string LEFT = "/left";
+static const std::string RIGHT = "/right";
 
 static const size_t IN_QUEUE_SIZE = 1;
 static const size_t OUT_QUEUE_SIZE = 1;
@@ -44,47 +38,51 @@ void right_raw_cb(const sensor_msgs::Image::ConstPtr& image){
 
 int main(int argc, char** argv){
     ros::init(argc, argv, NODE_NAME);
-    ros::NodeHandle n;
+    ros::NodeHandle nh;
+    ros::NodeHandle private_nh("~");
 
     float frequency;
-    if (!ros::param::get("/frequency_converter/frequency", frequency) ||
-        (frequency < MIN_OUT_FREQUENCY) || (frequency > MAX_OUT_FREQUENCY)){
+    std::string in_stereo_ns, out_stereo_ns;
+    if(!private_nh.getParam("frequency", frequency) || (frequency < MIN_OUT_FREQUENCY) || 
+       (frequency > MAX_OUT_FREQUENCY)){
         frequency = DEFAULT_OUT_FREQUENCY;
     }
-    ROS_INFO("Output frequency = %f", frequency);
+    private_nh.param("in_stereo_ns", in_stereo_ns, std::string("in_stereo_ns"));
+    private_nh.param("out_stereo_ns", out_stereo_ns, std::string("out_stereo_ns"));
 
-    ros::Subscriber sub_left_info = n.subscribe(SUB_LEFT_INFO, IN_QUEUE_SIZE, left_info_cb);
-    ros::Subscriber sub_left_raw = n.subscribe(SUB_LEFT_RAW, IN_QUEUE_SIZE, left_raw_cb);
-    ros::Subscriber sub_right_info = n.subscribe(SUB_RIGHT_INFO, IN_QUEUE_SIZE, right_info_cb);
-    ros::Subscriber sub_right_raw = n.subscribe(SUB_RIGHT_RAW, IN_QUEUE_SIZE, right_raw_cb);
+    const std::string SUB_LEFT_INFO = in_stereo_ns + LEFT + CAMERA_INFO;
+    const std::string SUB_LEFT_RAW = in_stereo_ns + LEFT + IMAGE_RAW;
+    const std::string SUB_RIGHT_INFO = in_stereo_ns + RIGHT + CAMERA_INFO;
+    const std::string SUB_RIGHT_RAW = in_stereo_ns + RIGHT + IMAGE_RAW;
 
-    ros::Publisher pub_left_info = n.advertise<sensor_msgs::CameraInfo>(PUB_LEFT_INFO, OUT_QUEUE_SIZE);
-    ros::Publisher pub_left_raw = n.advertise<sensor_msgs::Image>(PUB_LEFT_RAW, OUT_QUEUE_SIZE);
-    ros::Publisher pub_right_info = n.advertise<sensor_msgs::CameraInfo>(PUB_RIGHT_INFO, OUT_QUEUE_SIZE);
-    ros::Publisher pub_right_raw = n.advertise<sensor_msgs::Image>(PUB_RIGHT_RAW, OUT_QUEUE_SIZE);
+    const std::string PUB_LEFT_INFO = out_stereo_ns + LEFT + CAMERA_INFO;
+    const std::string PUB_LEFT_RAW = out_stereo_ns + LEFT + IMAGE_RAW;
+    const std::string PUB_RIGHT_INFO = out_stereo_ns + RIGHT + CAMERA_INFO;
+    const std::string PUB_RIGHT_RAW = out_stereo_ns + RIGHT + IMAGE_RAW;
+
+    auto sub_left_info = nh.subscribe(SUB_LEFT_INFO.c_str(), IN_QUEUE_SIZE, left_info_cb);
+    auto sub_left_raw = nh.subscribe(SUB_LEFT_RAW.c_str(), IN_QUEUE_SIZE, left_raw_cb);
+    auto sub_right_info = nh.subscribe(SUB_RIGHT_INFO.c_str(), IN_QUEUE_SIZE, right_info_cb);
+    auto sub_right_raw = nh.subscribe(SUB_RIGHT_RAW.c_str(), IN_QUEUE_SIZE, right_raw_cb);
+
+    auto pub_left_info = nh.advertise<sensor_msgs::CameraInfo>(PUB_LEFT_INFO.c_str(), OUT_QUEUE_SIZE);
+    auto pub_left_raw = nh.advertise<sensor_msgs::Image>(PUB_LEFT_RAW.c_str(), OUT_QUEUE_SIZE);
+    auto pub_right_info = nh.advertise<sensor_msgs::CameraInfo>(PUB_RIGHT_INFO.c_str(), OUT_QUEUE_SIZE);
+    auto pub_right_raw = nh.advertise<sensor_msgs::Image>(PUB_RIGHT_RAW.c_str(), OUT_QUEUE_SIZE);
 
     ros::Rate loop_rate(frequency);
-
-    while ( ros::ok() ){
+    while(ros::ok()){
         if(left_camera_info != nullptr){
-            sensor_msgs::CameraInfo info = *left_camera_info;
-            info.header.frame_id = FRAME_NAME;
-            pub_left_info.publish(info);
+            pub_left_info.publish(*left_camera_info);
         }
         if(left_image != nullptr){
-            sensor_msgs::Image image = *left_image;
-            image.header.frame_id = FRAME_NAME;
-            pub_left_raw.publish(image);
+            pub_left_raw.publish(*left_image);
         }
         if(right_camera_info != nullptr){
-            sensor_msgs::CameraInfo info = *right_camera_info;
-            info.header.frame_id = FRAME_NAME;
-            pub_right_info.publish(info);
+            pub_right_info.publish(*right_camera_info);
         }
         if(right_image != nullptr){
-            sensor_msgs::Image image = *right_image;
-            image.header.frame_id = FRAME_NAME;
-            pub_right_raw.publish(image);
+            pub_right_raw.publish(*right_image);
         }
         ros::spinOnce();
         loop_rate.sleep();
