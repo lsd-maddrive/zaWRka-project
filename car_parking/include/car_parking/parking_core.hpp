@@ -37,7 +37,7 @@ class CarParking
 
         bool IsPolygonConvex(const car_parking::Points2D& poly) const;
         bool IsConvexInsideGrid(const PolygonInfo& poly) const;
-        bool IsPolygonEmpty(const PolygonInfo& poly) const;
+        int8_t CalculatePolygonFullness(const PolygonInfo& poly) const;
         void CalculateEdgeIndexes(const car_parking::Points2D& poly,
                                   float& pose_x_min, float& pose_x_max,
                                   float& pose_y_min, float& pose_y_max) const;

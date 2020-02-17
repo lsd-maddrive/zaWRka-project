@@ -10,28 +10,19 @@ from car_parking.msg import Polygons
 from car_parking.msg import Statuses
 
 NODE_NAME = 'parking_test_pub_sub_node'
-POLY_PUB_TOPIC = "/parking_polygones"
-RVIZ_PUB_TOPIC_1 = "/parking_polygones_visualization_1"
-RVIZ_PUB_TOPIC_2 = "/parking_polygones_visualization_2"
-RVIZ_PUB_TOPIC_3 = "/parking_polygones_visualization_3"
-STATUS_SUB_TOPIC = "/parking_status"
-CMD_TOPIC = "/parking_cmd"
+POLY_PUB_TOPIC = "parking_polygones"
+RVIZ_PUB_TOPIC_1 = "parking_polygones_visualization_1"
+RVIZ_PUB_TOPIC_2 = "parking_polygones_visualization_2"
+RVIZ_PUB_TOPIC_3 = "parking_polygones_visualization_3"
+STATUS_SUB_TOPIC = "parking_status"
+CMD_TOPIC = "parking_cmd"
 
 def status_callback(msg):
-    print "I heard statuses with length {}: ".format(len(msg.statuses)),
-    for s in msg.statuses:
-        if ord(s) == 0:
-            print "NO_INFO ",
-        elif ord(s) == 1:
-            print "EMPTY ",
-        elif ord(s) == 2:
-            print "FILLED ",
-        elif ord(s) == 3:
-            print "OUT_OF_RANGE ",
-        elif ord(s) == 4:
-            print "BAD_POLYGON ",
-        else:
-            print "UNKNOWN_STATUS ",
+    print "I heard statuses with length {}: ".format(len(msg.fullness)),
+    for i in range(0, len(msg.fullness)):
+        print msg.messages[i],
+        if msg.fullness[i] != -1:
+            print "(" + str(msg.fullness[i]) + ") ",
     print ""
 
 OFFSET_X = float(rospy.get_param('/car_parking_test/start_x'))

@@ -1,1 +1,2 @@
-uint8[] statuses
+int8[] fullness
+string[] messages

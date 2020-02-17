@@ -3,6 +3,7 @@
 namespace wr8_parking {
 
 static const float DEFAULT_GRID_RESOLUTION = 0.05;
+static const int8_t TRESHOLD_FULLNESS = 80;
 
 CarParking::CarParking(): grid_(nullptr), grid_resolution_(DEFAULT_GRID_RESOLUTION){
 }
@@ -19,20 +20,28 @@ int CarParking::Process(car_parking::Statuses& statuses){
         ROS_WARN("Core: Grid is nullptr or poly is empty!");
         return -1;
     }
-    Status_t status;
-    statuses.statuses.clear();
+    int8_t fullness;
+    std::string status = "NO_INFO";
+    statuses.messages.clear();
+    statuses.fullness.clear();
     for(auto polygon = polygons_.begin(); polygon != polygons_.end(); polygon++){
         if(!polygon->IsPolygonCorrect()){
-            status = Status_t::BAD_POLYGON;
+            fullness = -1;
+            status = "NON_CONVEX";
             ROS_WARN("Core: There is non-convex polygon!");
         }else if(!IsConvexInsideGrid(*polygon)){
-            status = Status_t::OUT_OF_RANGE;
-        }else if(!IsPolygonEmpty(*polygon)){
-            status = Status_t::FILLED;
+            fullness = -1;
+            status = "OUT_OF_GRID";
         }else{
-            status = Status_t::EMPTY;
+            fullness = CalculatePolygonFullness(*polygon);
+            if(fullness > TRESHOLD_FULLNESS){
+                status = "FILLED";
+            }else{
+                status = "EMPTY";
+            }
         }
-        statuses.statuses.push_back(status);
+        statuses.messages.push_back(status);
+        statuses.fullness.push_back(fullness);
     }
     return 0;
 }
@@ -134,12 +143,10 @@ bool CarParking::IsPolygonConvex(const car_parking::Points2D& poly) const{
 }
 
 // polygon must be inside grid!
-bool CarParking::IsPolygonEmpty(const PolygonInfo& polygon) const{
+int8_t CarParking::CalculatePolygonFullness(const PolygonInfo& polygon) const{
     ssize_t offset_col = (polygon.min_x - grid_left_) / grid_resolution_;
     ssize_t offset_row = (polygon.min_y - grid_bot_) / grid_resolution_;
     int8_t max_value = 0;
-    int32_t average_value = 0;
-    size_t counter = 0;
 
     for(size_t row = offset_row; row < offset_row + polygon.borders.size() - 1; row++){
         for(size_t col = polygon.borders[row - offset_row].first  + offset_col;
@@ -149,18 +156,9 @@ bool CarParking::IsPolygonEmpty(const PolygonInfo& polygon) const{
             if(cell_value > max_value){
                 max_value = cell_value;
             }
-            average_value += cell_value;
-            counter++;
         }
     }
-    if(counter != 0){
-        average_value /= counter;
-    }
-    ROS_INFO("max = %d, avg = %d", max_value + 0, average_value);
-    if(max_value <= 80){
-        return true;
-    }
-    return false;
+    return max_value;
 }
 
 // polygon must be convex
