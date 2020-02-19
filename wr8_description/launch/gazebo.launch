@@ -21,6 +21,8 @@
     <remap from="joint_states" to="car/joint_states" />
   </node>
 
+  <env name="GAZEBO_MODEL_PATH" value="$(find wr8_description)/worlds:$(find world_creator)/models" />
+
   <!-- Run gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="respawn_gazebo" value="true" />
