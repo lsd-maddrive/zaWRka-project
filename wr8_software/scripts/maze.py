@@ -4,8 +4,8 @@ import itertools as it
 from pygame.locals import *
 import time
 
-#from Queue import PriorityQueue
-from queue import PriorityQueue
+from Queue import PriorityQueue
+#from queue import PriorityQueue
 
 class Point:
     def __init__(self, x=0, y=0):
@@ -321,7 +321,7 @@ class Maze:
 
         return newNode
 
-    def set_target(self, point: Point):
+    def set_target(self, point):
         min_dist = 1e9
         nearest_pnt = None
 
@@ -338,7 +338,7 @@ class Maze:
 
         print('Target is set to: {}'.format(self._target_node))
 
-    def set_state(self, pointdir: PointDir):
+    def set_state(self, pointdir):
         min_dist = 1e9
         nearest_pntdir = None
 
@@ -365,10 +365,10 @@ class Maze:
 
         return True
 
-    def get_local_target(self) -> Node:
+    def get_local_target(self):
         return self._local_target_node
 
-    def set_limitation(self, limits: list):
+    def set_limitation(self, limits):
         """Set limitations as 0/1 (1 - limited, 0 - free)
 
         Arguments:
@@ -454,11 +454,11 @@ class Maze:
     # local TF -> ROS: (x1, y1) = (2*y, -2*x)
     # ROS -> local TF: (x, y) = (-y1/2, x1/2)
     @staticmethod
-    def ext_point_2_point(ext_point: list) -> Point:
+    def ext_point_2_point(ext_point):
         return Point(-ext_point[1]/2., ext_point[0]/2.)
 
     @staticmethod
-    def ext_point_2_pointdir(ext_point: list, ext_angle: float) -> PointDir:
+    def ext_point_2_pointdir(ext_point, ext_angle):
         fromdir_ltr = Maze._angle_2_fromdir(ext_angle)
         pnt = Maze.ext_point_2_point(ext_point)
         return PointDir(pnt.x, pnt.y, fromdir_ltr)
@@ -618,7 +618,7 @@ if __name__ == "__main__":
 
         print('Path:')
         for node in path:
-            print('  ', node)
+            print(node)
 
         if maze.get_local_target().idx == 1:
             maze.set_limitation([1, 0, 1])
