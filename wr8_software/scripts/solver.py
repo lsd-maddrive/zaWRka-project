@@ -6,6 +6,12 @@ from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Path
 from std_msgs.msg import UInt8
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from geometry_msgs.msg import PolygonStamped
+from geometry_msgs.msg import Point
+from car_parking.msg import Point2D
+from car_parking.msg import Points2D
+from car_parking.msg import Polygons
+from car_parking.msg import Statuses
 
 import math
 import numpy as np
@@ -34,8 +40,8 @@ class State(Enum):
 # Params
 MAZE_TARGET_X = 1
 MAZE_TARGET_Y = 2
-OFFSET_X = 19
-OFFSET_Y = 19
+OFFSET_X = 1
+OFFSET_Y = 1
 OFFSET_Z = 3.14
 CELL_SZ = 2
 
@@ -82,7 +88,7 @@ class MainSolver:
         time.sleep(1)
         crnt = self._get_maze_current_pose()
         self.maze = MazeSolver(crnt)
-        init_parking()
+        self.parking = ParkingSolver()
 
     def process(self):
         crnt = self._get_maze_current_pose()
@@ -92,7 +98,7 @@ class MainSolver:
         elif state == State.SPEED_PROCESS:
             goal_point = process_speed()
         elif state == State.PARKING_PROCESS:
-            goal_point = process_parking()
+            goal_point = self.parking.process()
         else:
             self._send_stop_cmd()
             return
@@ -197,8 +203,94 @@ class MazeSolver:
             path.poses.append(pose)
         MazeSolver.PATH_PUB.publish(path)
 
-def init_parking():
-    pass
+
+class ParkingSolver:
+    def __init__(self):
+        POLY_PUB_TOPIC = "parking_polygones"
+        RVIZ_PUB_TOPIC_1 = "parking_polygones_visualization_1"
+        RVIZ_PUB_TOPIC_2 = "parking_polygones_visualization_2"
+        RVIZ_PUB_TOPIC_3 = "parking_polygones_visualization_3"
+        STATUS_SUB_TOPIC = "parking_status"
+        CMD_TOPIC = "parking_cmd"
+
+        rospy.Subscriber(STATUS_SUB_TOPIC, Statuses, self._status_cb, queue_size=10)
+        self.PUB_TO_PARKING = rospy.Publisher(POLY_PUB_TOPIC, Polygons, queue_size=10)
+        self.PUB_TO_RVIZ_1 = rospy.Publisher(RVIZ_PUB_TOPIC_1, PolygonStamped, queue_size=10)
+        self.PUB_TO_RVIZ_2 = rospy.Publisher(RVIZ_PUB_TOPIC_2, PolygonStamped, queue_size=10)
+        self.PUB_TO_RVIZ_3 = rospy.Publisher(RVIZ_PUB_TOPIC_3, PolygonStamped, queue_size=10)
+
+        self.both_polygons = ParkingSolver._create()
+
+    def process(self):
+        rospy.loginfo("I published poly.")
+        self.PUB_TO_PARKING.publish(self.both_polygons[0])
+        self.PUB_TO_RVIZ_1.publish(self.both_polygons[1][0])
+        self.PUB_TO_RVIZ_2.publish(self.both_polygons[1][1])
+        self.PUB_TO_RVIZ_3.publish(self.both_polygons[1][2])
+        return gz_to_map(MazePoint(5, 16)) # or (5, 18), or (5, 14)
+
+    @staticmethod
+    def _create():
+        gz_polygons = list()
+        gz_polygons.append(((4.0, 12.4), (5.6, 14.4), (5.6, 15.6), (4.0, 13.6)))
+        gz_polygons.append(((4.0, 14.4), (5.6, 16.4), (5.6, 17.6), (4.0, 15.6)))
+        gz_polygons.append(((4.0, 16.4), (5.6, 18.4), (5.6, 19.6), (4.0, 17.6)))
+
+        map_polygons = list()
+        polygons = list()
+        polygons_stamped = list()
+        for i in range(0, len(gz_polygons)):
+            map_polygons.append(ParkingSolver._gz_to_map_for_polygon(gz_polygons[i]))
+            polygons.append(ParkingSolver._create_polygon(map_polygons[-1]))
+            polygons_stamped.append(ParkingSolver._create_polygon_stamped(map_polygons[-1]))
+
+        polyes = Polygons()
+        polyes.polygons = tuple(polygons)
+        both_polygons = [polyes, polygons_stamped]
+        return both_polygons
+
+    @staticmethod
+    def _create_polygon(polygon):
+        p1 = Point2D(); p1.x = polygon[0][0]; p1.y = polygon[0][1]
+        p2 = Point2D(); p2.x = polygon[1][0]; p2.y = polygon[1][1]
+        p3 = Point2D(); p3.x = polygon[2][0]; p3.y = polygon[2][1]
+        p4 = Point2D(); p4.x = polygon[3][0]; p4.y = polygon[3][1]
+        poly = Points2D()
+        poly.points = (p1, p2, p3, p4)
+        return poly
+
+    @staticmethod
+    def _create_polygon_stamped(polygon):
+        p1 = Point(); p1.x = polygon[0][0]; p1.y = polygon[0][1]
+        p2 = Point(); p2.x = polygon[1][0]; p2.y = polygon[1][1]
+        p3 = Point(); p3.x = polygon[2][0]; p3.y = polygon[2][1]
+        p4 = Point(); p4.x = polygon[3][0]; p4.y = polygon[3][1]
+
+        polygons_stumped = PolygonStamped()
+        polygons_stumped.header.stamp = rospy.get_rostime()
+        polygons_stumped.header.frame_id = 'map'
+        polygons_stumped.polygon.points = tuple((p1, p2, p3, p4))
+        return polygons_stumped
+
+    @staticmethod
+    def _gz_to_map_for_point(point):
+        result = gz_to_map(MazePoint(point[0], point[1]))
+        return (result.x, result.y)
+
+    @staticmethod
+    def _gz_to_map_for_polygon(polygon):
+        new_polygon = tuple()
+        for point in polygon:
+            new_polygon += (ParkingSolver._gz_to_map_for_point(point),) # , means singleton
+        return new_polygon
+
+    def _status_cb(self, msg):
+        print "I heard statuses with length {}: ".format(len(msg.fullness)),
+        for i in range(0, len(msg.fullness)):
+            print msg.messages[i],
+            if msg.fullness[i] != -1:
+                print "(" + str(msg.fullness[i]) + ") ",
+        print ""
 
 def process_speed():
     return maze_to_map(MazePoint(1, 7))
