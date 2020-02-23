@@ -150,12 +150,12 @@ class MazeSolver:
                      [8, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                      [8, 8, 8, 0, 8, 8, 0, 8, 8, 0],
                      [8, 8, 0, 0, 0, 0, 0, 0, 0, 0]]
-        #edge_walls = [[MazePoint(6, 9), MazePoint(7, 9)]]
+        edge_walls = [[MazePoint(6, 9), MazePoint(7, 9)]]
 
         structure = np.array(structure, np.uint8)
-        self.maze = Maze(structure)#, edge_walls)
+        self.maze = Maze(structure, edge_walls)
         self.maze.set_target(MazePoint(MAZE_TARGET_X, MAZE_TARGET_Y))
-        self.maze.set_state(PointDir(initial_pose.x, initial_pose.y, 'D'))
+        self.maze.set_state(PointDir(initial_pose.x, initial_pose.y, 'U'))
 
         #pygame.init()
         #self.maze.render_maze()
