@@ -15,6 +15,7 @@ from enum import Enum
 
 from maze import MazePoint, PointDir, Maze
 
+
 # Constants
 class State(Enum):
     IDLE = 1
@@ -30,14 +31,6 @@ class State(Enum):
     PARKING_PROCESS = 7
     PARKING_REACHED = 8
 
-NODE_NAME = "solver_node"
-PATH_PUB_NAME = "path"
-GOAL_PUB_NAME = "move_base/goal"
-HARDWARE_SUB_TOPIC = "hardware_status"
-
-POSE_SUB_TOPIC = "pose"
-FRAME_ID = "map"
-
 # Params
 MAZE_TARGET_X = 1
 MAZE_TARGET_Y = 2
@@ -46,10 +39,6 @@ OFFSET_Y = 19
 OFFSET_Z = 3.14
 CELL_SZ = 2
 
-# Global variables
-state = State.IDLE
-hardware_status = False
-white_line_status = False
 
 # Coordinate transform from MazePoint to MazePoint
 def maze_to_gz(p):
@@ -79,106 +68,137 @@ def map_to_maze(p):
     return gz_to_maze(map_to_gz(p))
 
 
-# ROS Callbacks
-def hardware_callback(msg):
-    rospy.logdebug("I heard hardware %s", str(msg.data))
-    global hardware_status
-    if msg.data == 0:
-        hardware_status = False
-    elif msg.data == 1:
-        hardware_status = True
+class MainSolver:
+    def __init__(self):
+        MainSolver.hardware_status = False
+        NODE_NAME = "solver_node"
+        HARDWARE_SUB_TOPIC = "hardware_status"
 
+        rospy.init_node(NODE_NAME, log_level=rospy.DEBUG)
+        self.HARDWARE_SUB = rospy.Subscriber(HARDWARE_SUB_TOPIC, UInt8, MainSolver._hardware_cb, queue_size=10)
+        self.GOAL_CLIENT = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+        self.GOAL_CLIENT.wait_for_server()
+        self.POSE_LISTENER = tf.TransformListener()
+        time.sleep(1)
+        crnt = self._get_maze_current_pose()
+        self.maze = MazeSolver(crnt)
+        init_parking()
 
-def init_maze(crnt):
-    structure = [[8, 8, 8, 0, 0, 0, 0, 1, 0, 0],
-                 [8, 8, 8, 0, 8, 8, 0, 8, 8, 0],
-                 [8, 8, 8, 0, 0, 0, 0, 0, 8, 0],
-                 [8, 8, 8, 0, 8, 0, 8, 0, 0, 0],
-                 [8, 8, 8, 0, 8, 0, 8, 8, 8, 0],
-                 [8, 8, 0, 0, 0, 0, 0, 0, 0, 0],
-                 [8, 8, 8, 0, 8, 8, 0, 8, 8, 0],
-                 [8, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                 [8, 8, 8, 0, 8, 8, 0, 8, 8, 0],
-                 [8, 8, 0, 0, 0, 0, 0, 0, 0, 0]]
+    def process(self):
+        crnt = self._get_maze_current_pose()
+        state = determinate_state(crnt)
+        if state == State.MAZE_PROCESS:
+            goal_point = self.maze.process(crnt)
+        elif state == State.SPEED_PROCESS:
+            goal_point = process_speed()
+        elif state == State.PARKING_PROCESS:
+            goal_point = process_parking()
+        else:
+            self._send_stop_cmd()
+            return
+        self._send_goal(goal_point)
+        rospy.loginfo("%s: crnt = %s, glob_goal = %s", str(state), crnt, goal_point)
 
-    structure = np.array(structure, np.uint8)
-    maze = Maze(structure)
-    maze.set_target(MazePoint(MAZE_TARGET_X, MAZE_TARGET_Y))
-    initial_pose = crnt #Maze.ext_point_2_pointdir([OFFSET_Y, -OFFSET_X], 0)
-    print Maze.ext_point_2_pointdir([OFFSET_Y, -OFFSET_X], 0)
-    print PointDir(initial_pose.x, initial_pose.y, 0)
-    maze.set_state(PointDir(initial_pose.x, initial_pose.y, 'D'))
+    def _get_maze_current_pose(self):
+        trans = self.POSE_LISTENER.lookupTransform('/map', '/base_footprint', rospy.Time(0))
+        point = map_to_maze(MazePoint(trans[0][0], trans[0][1]))
+        #except:
+        #    point = None
+        return point
 
-    return maze
+    def _send_goal(self, point):
+        goal = MoveBaseGoal()
+        goal.target_pose.header.frame_id = "map"
+        goal.target_pose.header.stamp = rospy.Time.now()#rospy.get_rostime()
+        goal.target_pose.pose.position.x = point.x
+        goal.target_pose.pose.position.y = point.y
+        goal.target_pose.pose.orientation.w = 1.0
 
-def render_maze(maze):
-    pygame.init()
-    maze.render_maze()
+        self.GOAL_CLIENT.send_goal(goal)
+        #wait = self.GOAL_CLIENT.wait_for_result(rospy.Duration.from_sec(5.0))
+        #if not wait:
+        #    rospy.logerr("Action server is not available!")
+        #    #rospy.signal_shutdown("Action server is not available!")
+        #else:
+        #    print self.GOAL_CLIENT.get_result()
 
-def pub_path(nodes):
-    path = Path()
-    path.header.seq = 1
-    path.header.frame_id = FRAME_ID
-    for i in range(0, len(nodes)):
-        pose = PoseStamped()
-        pose.header.seq = 1
-        pose.header.frame_id = FRAME_ID
+    def _send_stop_cmd(self):
+        self.GOAL_CLIENT.cancel_goal()
 
-        point = maze_to_map(nodes[i].coord)
-        pose.pose.position.x = point.x
-        pose.pose.position.y = point.y
-        rospy.logdebug("path pose is %s", str(point))
-        path.poses.append(pose)
-    PATH_PUB.publish(path)
+    @staticmethod
+    def _hardware_cb(msg):
+        rospy.logdebug("I heard hardware %s", str(msg.data))
+        if msg.data == 0:
+            MainSolver.hardware_status = False
+        elif msg.data == 1:
+            MainSolver.hardware_status = True
 
+class MazeSolver:
+    def __init__(self, initial_pose):
+        MazeSolver.FRAME_ID = "map"
+        PATH_PUB_NAME = "path"
 
-def get_maze_current_pose(listener):
-    trans = listener.lookupTransform('/map', '/base_footprint', rospy.Time(0))
-    point = map_to_maze(MazePoint(trans[0][0], trans[0][1]))
-    #except:
-    #    point = None
-    return point
+        MazeSolver.PATH_PUB = rospy.Publisher(PATH_PUB_NAME, Path, queue_size=5)
 
-def pose_callback(msg):
-    rospy.logdebug("I heard smth")
+        structure = [[8, 8, 8, 0, 0, 0, 0, 1, 0, 0],
+                     [8, 8, 8, 0, 8, 8, 0, 8, 8, 0],
+                     [8, 8, 8, 0, 0, 0, 0, 0, 8, 0],
+                     [8, 8, 8, 0, 8, 0, 8, 0, 0, 0],
+                     [8, 8, 8, 0, 8, 0, 8, 8, 8, 0],
+                     [8, 8, 0, 0, 0, 0, 0, 0, 0, 0],
+                     [8, 8, 8, 0, 8, 8, 0, 8, 8, 0],
+                     [8, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                     [8, 8, 8, 0, 8, 8, 0, 8, 8, 0],
+                     [8, 8, 0, 0, 0, 0, 0, 0, 0, 0]]
+        #edge_walls = [[MazePoint(6, 9), MazePoint(7, 9)]]
 
+        structure = np.array(structure, np.uint8)
+        self.maze = Maze(structure)#, edge_walls)
+        self.maze.set_target(MazePoint(MAZE_TARGET_X, MAZE_TARGET_Y))
+        self.maze.set_state(PointDir(initial_pose.x, initial_pose.y, 'D'))
 
-def determinate_state(crnt):
-    """
-    crnt - maze current pose
-    """
-    state = State
-    if hardware_status is False or crnt is None:
-        state = State.IDLE
-    elif crnt.x >= 3 or (crnt.x >= 2 and crnt.y <= 5):
-        state = State.MAZE_PROCESS
-    elif crnt.y <= 5:
-        state = State.SPEED_PROCESS
-    elif crnt.y >= 6:
-        state = State.PARKING_PROCESS
-    
-    return state
+        #pygame.init()
+        #self.maze.render_maze()
 
-def process_maze(maze, crnt):
-    path = maze.get_path()
-    local = maze.get_local_target()
-    goal_point = None
-    if crnt is None:
-        rospy.logerr("Maze processing error: crnt pose must exists!")
-    elif local is None:
-        rospy.logerr("Maze processing error: local target must exists!")
-    else:
-        local = local.coord
-        pub_path(path)
-        if local.x == crnt.x and local.y == crnt.y:
-            rospy.logdebug("New path:")
-            for node in path:
-                rospy.logdebug("- %s", node)
-            
-            maze.next_local_target()
-        goal_point = maze_to_map(path[-1].coord)
-        send_goal(GOAL_CLIENT, goal_point)
-    return goal_point
+    def process(self, crnt):
+        path = self.maze.get_path()
+        local = self.maze.get_local_target()
+        goal_point = None
+        if crnt is None:
+            rospy.logerr("Maze processing error: crnt pose must exists!")
+        elif local is None:
+            rospy.logerr("Maze processing error: local target must exists!")
+        else:
+            local = local.coord
+            MazeSolver._pub_path(path)
+            if local.x == crnt.x and local.y == crnt.y:
+                rospy.logdebug("New path:")
+                for node in path:
+                    rospy.logdebug("- %s", node)
+                
+                self.maze.next_local_target()
+            goal_point = maze_to_map(path[-1].coord)
+        return goal_point
+
+    @staticmethod
+    def _pub_path(nodes):
+        path = Path()
+        path.header.seq = 1
+        path.header.frame_id = MazeSolver.FRAME_ID
+        for i in range(0, len(nodes)):
+            pose = PoseStamped()
+            pose.header.seq = 1
+            pose.header.frame_id = MazeSolver.FRAME_ID
+
+            point = maze_to_map(nodes[i].coord)
+            pose.pose.position.x = point.x
+            pose.pose.position.y = point.y
+            rospy.logdebug("path pose is %s", str(point))
+            path.poses.append(pose)
+        MazeSolver.PATH_PUB.publish(path)
+
+def init_parking():
+    pass
 
 def process_speed():
     return maze_to_map(MazePoint(1, 7))
@@ -186,61 +206,27 @@ def process_speed():
 def process_parking():
     return gz_to_map(MazePoint(5, 16)) # or (5, 18), or (5, 14)
 
-def process_main(crnt, local, state):
-    pass
 
-def goal_client_init():
-    goal_client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-    goal_client.wait_for_server()
-    return goal_client
+def determinate_state(crnt):
+    """
+    crnt - maze current pose
+    """
+    state = State
+    if MainSolver.hardware_status is False or crnt is None:
+        state = State.IDLE
+    elif crnt.x >= 3 or (crnt.x >= 2 and crnt.y <= 5):
+        state = State.MAZE_PROCESS
+    elif crnt.y <= 5:
+        state = State.SPEED_PROCESS
+    elif crnt.y >= 6:
+        state = State.PARKING_PROCESS
+    return state
 
-def send_goal(goal_client, point):
-    goal = MoveBaseGoal()
-    goal.target_pose.header.frame_id = "map"
-    goal.target_pose.header.stamp = rospy.Time.now()#rospy.get_rostime()
-    goal.target_pose.pose.position.x = point.x
-    goal.target_pose.pose.position.y = point.y
-    goal.target_pose.pose.orientation.w = 1.0
-
-    goal_client.send_goal(goal)
-    #wait = goal_client.wait_for_result(rospy.Duration.from_sec(5.0))
-    #if not wait:
-    #    rospy.logerr("Action server is not available!")
-    #    #rospy.signal_shutdown("Action server is not available!")
-    #else:
-    #    print goal_client.get_result()
-
-def send_stop_cmd(goal_client):
-    goal_client.cancel_goal()
 
 if __name__=="__main__":
-    # ROS init
-    rospy.init_node(NODE_NAME, log_level=rospy.INFO)
-    PATH_PUB = rospy.Publisher(PATH_PUB_NAME, Path, queue_size=5)
-    HARDWARE_SUB = rospy.Subscriber(HARDWARE_SUB_TOPIC, UInt8, hardware_callback, queue_size=10)
-    GOAL_CLIENT = goal_client_init()
-    POSE_LISTENER = tf.TransformListener()
-    time.sleep(1)
-
-    # Maze init
-    crnt = get_maze_current_pose(POSE_LISTENER)
-    maze = init_maze(crnt)
-    #render_maze(maze)
-
+    solver = MainSolver()
     rate = rospy.Rate(1)
     while not rospy.is_shutdown():
-        crnt = get_maze_current_pose(POSE_LISTENER)
-        state = determinate_state(crnt)
-        if state == State.MAZE_PROCESS:
-            goal_point = process_maze(maze, crnt)
-        elif state == State.SPEED_PROCESS:
-            goal_point = process_speed()
-        elif state == State.PARKING_PROCESS:
-            goal_point = process_parking()
-        else:
-            send_stop_cmd(GOAL_CLIENT)
-            continue
-        send_goal(GOAL_CLIENT, goal_point)
-        rospy.loginfo("%s: crnt = %s, glob_goal = %s", str(state), crnt, goal_point)
+        solver.process()
         rate.sleep()
 
