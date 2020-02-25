@@ -40,17 +40,17 @@ class State(Enum):
 # Params
 MAZE_TARGET_X = 1
 MAZE_TARGET_Y = 2
-OFFSET_X = 1
-OFFSET_Y = 1
-OFFSET_Z = 3.14
+OFFSET_X = 15
+OFFSET_Y = 19
+OFFSET_Z = 3.14 # 1.57 - up, 3.14 - left
 CELL_SZ = 2
 
 
 # Coordinate transform from MazePoint to MazePoint
 def maze_to_gz(p):
-    map_x = p.x * CELL_SZ + 0.5*CELL_SZ
-    map_y = p.y * CELL_SZ + 0.5*CELL_SZ
-    return MazePoint(map_x, map_y)
+    gz_x = p.x * CELL_SZ + 0.5*CELL_SZ
+    gz_y = p.y * CELL_SZ + 0.5*CELL_SZ
+    return MazePoint(gz_x, gz_y)
 
 def gz_to_maze(p):
     maze_x = round((p.x - 0.5*CELL_SZ) / CELL_SZ)
@@ -58,14 +58,14 @@ def gz_to_maze(p):
     return MazePoint(maze_x, maze_y)
 
 def gz_to_map(p):
-    gz_x = (p.x - OFFSET_X) * math.cos(-OFFSET_Z) - (p.y - OFFSET_Y) * math.sin(-OFFSET_Z)
-    gz_y = (p.x - OFFSET_X) * math.sin(-OFFSET_Z) + (p.y - OFFSET_Y) * math.cos(-OFFSET_Z)
-    return MazePoint(gz_x, gz_y)
-
-def map_to_gz(p):
     map_x = (p.x - OFFSET_X) * math.cos(-OFFSET_Z) - (p.y - OFFSET_Y) * math.sin(-OFFSET_Z)
     map_y = (p.x - OFFSET_X) * math.sin(-OFFSET_Z) + (p.y - OFFSET_Y) * math.cos(-OFFSET_Z)
     return MazePoint(map_x, map_y)
+
+def map_to_gz(p):
+    gz_x = OFFSET_X + p.x * math.cos(OFFSET_Z) - p.y * math.sin(OFFSET_Z)
+    gz_y = OFFSET_Y + p.x * math.sin(OFFSET_Z) + p.y * math.cos(OFFSET_Z)
+    return MazePoint(gz_x, gz_y)
 
 def maze_to_map(p):
     return gz_to_map(maze_to_gz(p))
@@ -103,13 +103,12 @@ class MainSolver:
             self._send_stop_cmd()
             return
         self._send_goal(goal_point)
-        rospy.loginfo("%s: crnt = %s, glob_goal = %s", str(state), crnt, goal_point)
+        self.parking.publish_to_rviz()
+        rospy.loginfo("%s: crnt pose (maze) = %s, glob goal(map) = %s", str(state), crnt, goal_point)
 
     def _get_maze_current_pose(self):
         trans = self.POSE_LISTENER.lookupTransform('/map', '/base_footprint', rospy.Time(0))
         point = map_to_maze(MazePoint(trans[0][0], trans[0][1]))
-        #except:
-        #    point = None
         return point
 
     def _send_goal(self, point):
@@ -146,7 +145,7 @@ class MazeSolver:
 
         MazeSolver.PATH_PUB = rospy.Publisher(PATH_PUB_NAME, Path, queue_size=5)
 
-        structure = [[8, 8, 8, 0, 0, 0, 0, 1, 0, 0],
+        structure = [[8, 8, 8, 0, 0, 0, 0, 0, 0, 0],
                      [8, 8, 8, 0, 8, 8, 0, 8, 8, 0],
                      [8, 8, 8, 0, 0, 0, 0, 0, 8, 0],
                      [8, 8, 8, 0, 8, 0, 8, 0, 0, 0],
@@ -161,7 +160,7 @@ class MazeSolver:
         structure = np.array(structure, np.uint8)
         self.maze = Maze(structure, edge_walls)
         self.maze.set_target(MazePoint(MAZE_TARGET_X, MAZE_TARGET_Y))
-        self.maze.set_state(PointDir(initial_pose.x, initial_pose.y, 'U'))
+        self.maze.set_state(PointDir(initial_pose.x, initial_pose.y, 'L'))
 
         #pygame.init()
         #self.maze.render_maze()
@@ -207,30 +206,38 @@ class MazeSolver:
 class ParkingSolver:
     def __init__(self):
         POLY_PUB_TOPIC = "parking_polygones"
-        RVIZ_PUB_TOPIC_1 = "parking_polygones_visualization_1"
-        RVIZ_PUB_TOPIC_2 = "parking_polygones_visualization_2"
-        RVIZ_PUB_TOPIC_3 = "parking_polygones_visualization_3"
+        RVIZ_PUB_TOPIC = "parking_polygones_visualization_"
         STATUS_SUB_TOPIC = "parking_status"
         CMD_TOPIC = "parking_cmd"
 
         rospy.Subscriber(STATUS_SUB_TOPIC, Statuses, self._status_cb, queue_size=10)
         self.PUB_TO_PARKING = rospy.Publisher(POLY_PUB_TOPIC, Polygons, queue_size=10)
-        self.PUB_TO_RVIZ_1 = rospy.Publisher(RVIZ_PUB_TOPIC_1, PolygonStamped, queue_size=10)
-        self.PUB_TO_RVIZ_2 = rospy.Publisher(RVIZ_PUB_TOPIC_2, PolygonStamped, queue_size=10)
-        self.PUB_TO_RVIZ_3 = rospy.Publisher(RVIZ_PUB_TOPIC_3, PolygonStamped, queue_size=10)
+        self.PUB_TO_RVIZ = list()
+        for i in range(3):
+            new_pub = rospy.Publisher(RVIZ_PUB_TOPIC + str(i + 1), PolygonStamped, queue_size=10)
+            self.PUB_TO_RVIZ.append(new_pub)
 
-        self.both_polygons = ParkingSolver._create()
+        self.parking_polygones, self.rviz_polygones = ParkingSolver._create_polygones()
+        self.fullness = list([-1, -1, -1])
+
+    def publish_to_rviz(self):
+        for i in range(3):
+            self.PUB_TO_RVIZ[i].publish(self.rviz_polygones[i])       
 
     def process(self):
-        rospy.loginfo("I published poly.")
-        self.PUB_TO_PARKING.publish(self.both_polygons[0])
-        self.PUB_TO_RVIZ_1.publish(self.both_polygons[1][0])
-        self.PUB_TO_RVIZ_2.publish(self.both_polygons[1][1])
-        self.PUB_TO_RVIZ_3.publish(self.both_polygons[1][2])
-        return gz_to_map(MazePoint(5, 16)) # or (5, 18), or (5, 14)
+        self.PUB_TO_PARKING.publish(self.parking_polygones)
+        
+        goal = gz_to_map(MazePoint(3, 16))
+        if self.fullness[0] >= 0 and self.fullness[0] <= 70:
+            goal = gz_to_map(MazePoint(5, 14))
+        elif self.fullness[1] >= 0 and self.fullness[1] <= 70:
+            goal = gz_to_map(MazePoint(5, 16))
+        elif self.fullness[2] >= 0 and self.fullness[2] <= 70:
+            goal = gz_to_map(MazePoint(5, 18))
+        return goal
 
     @staticmethod
-    def _create():
+    def _create_polygones():
         gz_polygons = list()
         gz_polygons.append(((4.0, 12.4), (5.6, 14.4), (5.6, 15.6), (4.0, 13.6)))
         gz_polygons.append(((4.0, 14.4), (5.6, 16.4), (5.6, 17.6), (4.0, 15.6)))
@@ -244,10 +251,9 @@ class ParkingSolver:
             polygons.append(ParkingSolver._create_polygon(map_polygons[-1]))
             polygons_stamped.append(ParkingSolver._create_polygon_stamped(map_polygons[-1]))
 
-        polyes = Polygons()
-        polyes.polygons = tuple(polygons)
-        both_polygons = [polyes, polygons_stamped]
-        return both_polygons
+        parking_polygones = Polygons()
+        parking_polygones.polygons = tuple(polygons)
+        return [parking_polygones, polygons_stamped]
 
     @staticmethod
     def _create_polygon(polygon):
@@ -291,12 +297,10 @@ class ParkingSolver:
             if msg.fullness[i] != -1:
                 print "(" + str(msg.fullness[i]) + ") ",
         print ""
+        self.fullness = msg.fullness
 
 def process_speed():
     return maze_to_map(MazePoint(1, 7))
-
-def process_parking():
-    return gz_to_map(MazePoint(5, 16)) # or (5, 18), or (5, 14)
 
 
 def determinate_state(crnt):
