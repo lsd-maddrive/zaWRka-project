@@ -53,7 +53,7 @@ if __name__ == "__main__":
     sleep(1)
     tests = list()
     tests.append(Test(MazePoint(9, 8), TF()))
-    tests.append(Test(MazePoint(9, 6), SignStop()))
+    tests.append(Test(MazePoint(9, 7), SignStop()))
     print "go"
     while not rospy.is_shutdown():
         wl_pub.publish(0)

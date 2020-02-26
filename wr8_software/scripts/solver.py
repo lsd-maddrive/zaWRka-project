@@ -104,7 +104,7 @@ CMD_PUB_TOPIC = "parking_cmd"
 
 class MainSolver(object):
     def __init__(self):
-        rospy.init_node(NODE_NAME, log_level=rospy.DEBUG)
+        rospy.init_node(NODE_NAME, log_level=rospy.INFO)
         MainSolver._init_params()
         self.hardware_status = False
         self.hw_sub = rospy.Subscriber(HW_SUB_TOPIC, UInt8, self._hardware_cb, queue_size=10)
@@ -261,7 +261,9 @@ class MazeSolver(object):
 
         # Process signs
         if self.detected_sign_type != SignType.NO_SIGN:
-            self.maze.set_limitation(SIGN_TYPE_TO_MAZE[self.detected_sign_type])
+            rospy.loginfo("A sign has just been detected: %s", str(self.detected_sign_type))
+            self.maze.set_limitation(SIGN_TYPE_TO_MAZE[self.detected_sign_type.value])
+            path = self.maze.get_path()
 
         # Calculate goal and change path if it needs
         local = local.coord
@@ -293,11 +295,11 @@ class MazeSolver(object):
 
     def _sign_cb(self, msg):
         rospy.logdebug("I heard sign %s", str(msg.data))
-        self.detected_sign_type = msg.data
+        self.detected_sign_type = SignType(msg.data)
 
     def _tf_cb(self, msg):
         rospy.logdebug("I heard traffic light %s", str(msg.data))
-        self.tf_color = msg.data
+        self.tf_color = TFColor(msg.data)
         
 
     def _wl_cb(self, msg):
