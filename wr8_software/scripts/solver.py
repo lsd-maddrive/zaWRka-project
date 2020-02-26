@@ -107,6 +107,7 @@ class MainSolver(object):
         rospy.init_node(NODE_NAME, log_level=rospy.INFO)
         MainSolver._init_params()
         self.hardware_status = False
+        self.previous_goal = None
         self.hw_sub = rospy.Subscriber(HW_SUB_TOPIC, UInt8, self._hardware_cb, queue_size=10)
         self.goal_client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         self.goal_client.wait_for_server()
@@ -139,6 +140,7 @@ class MainSolver(object):
         else:
             self._send_goal(goal_point)
         self.parking.publish_to_rviz()
+        self.previous_goal = goal_point
         rospy.loginfo("%s: crnt pose (maze) = %s, glob goal(map) = %s",
                       str(state), maze_crnt_pose, goal_point)
 
@@ -194,7 +196,8 @@ class MainSolver(object):
         #    print self.goal_client.get_result()
 
     def _send_stop_cmd(self):
-        self.goal_client.cancel_goal()
+        if self.previous_goal != None: 
+            self.goal_client.cancel_goal()
 
     def _hardware_cb(self, msg):
         rospy.logdebug("I heard hardware %s", str(msg.data))
