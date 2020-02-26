@@ -24,6 +24,7 @@ START_X = 15
 START_Y = 19
 START_Z = 0 # 0 - right, 1.57 - up
 CELL_SZ = 2
+PARKING_TOLERANCE = 70
 
 
 # Coordinate transform from MazePoint to MazePoint
@@ -80,16 +81,11 @@ RVIZ_PUB_TOPIC = "parking_polygones_visualization_"
 STATUS_SUB_TOPIC = "parking_status"
 CMD_PUB_TOPIC = "parking_cmd"
 
-PARKING_GOALS = tuple((gz_to_map(MazePoint(5, 14)),
-                       gz_to_map(MazePoint(5, 16)),
-                       gz_to_map(MazePoint(5, 18))))
-PARKING_WAITING_GOAL = gz_to_map(MazePoint(3, 16))
-PARKING_TOLERANCE = 70
-
 
 class MainSolver(object):
     def __init__(self):
         rospy.init_node(NODE_NAME, log_level=rospy.DEBUG)
+        MainSolver._init_params()
         MainSolver.hardware_status = False
         self.hw_sub = rospy.Subscriber(HW_SUB_TOPIC, UInt8, MainSolver._hardware_cb, queue_size=10)
         self.goal_client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
@@ -120,6 +116,17 @@ class MainSolver(object):
         self.parking.publish_to_rviz()
         rospy.loginfo("%s: crnt pose (maze) = %s, glob goal(map) = %s",
                       str(state), crnt, goal_point)
+
+    @staticmethod
+    def _init_params():
+        global MAZE_TARGET_X, MAZE_TARGET_y, START_X, START_Y, START_Z, CELL_SZ, PARKING_TOLERANCE
+        MAZE_TARGET_X = rospy.get_param('~maze_target_x', 1)
+        MAZE_TARGET_Y = rospy.get_param('~maze_target_y', 2)
+        START_X = rospy.get_param('~start_x', 15)
+        START_Y = rospy.get_param('~start_y', 19)
+        START_Z = rospy.get_param('~start_yaw', 0) # 0 - right, 1.57 - up
+        CELL_SZ = rospy.get_param('~cell_sz', 2)
+        PARKING_TOLERANCE = rospy.get_param('~parking_tolerance', 70)
 
     @staticmethod
     def _determinate_state(crnt):
@@ -244,6 +251,11 @@ class ParkingSolver(object):
         self.parking_polygones, self.rviz_polygones = ParkingSolver._create_polygones()
         self.fullness = list([-1, -1, -1])
 
+        self.PARKING_GOALS = tuple((gz_to_map(MazePoint(5, 14)),
+                        gz_to_map(MazePoint(5, 16)),
+                        gz_to_map(MazePoint(5, 18))))
+        self.PARKING_WAITING_GOAL = gz_to_map(MazePoint(3, 16))
+
     def start_work(self):
         self.pub_to_cmd.publish(1)
 
@@ -257,14 +269,16 @@ class ParkingSolver(object):
     def process(self):
         self.pub_to_parking.publish(self.parking_polygones)
 
-        goal = PARKING_WAITING_GOAL
+        goal = self.PARKING_WAITING_GOAL
         if len(self.fullness) == 3:
             if self.fullness[0] >= 0 and self.fullness[0] <= PARKING_TOLERANCE:
-                goal = PARKING_GOALS[0]
+                goal = self.PARKING_GOALS[0]
             elif self.fullness[1] >= 0 and self.fullness[1] <= PARKING_TOLERANCE:
-                goal = PARKING_GOALS[1]
+                goal = self.PARKING_GOALS[1]
             elif self.fullness[2] >= 0 and self.fullness[2] <= PARKING_TOLERANCE:
-                goal = PARKING_GOALS[2]
+                goal = self.PARKING_GOALS[2]
+        else:
+            rospy.logwarn("Statuses length is not correct!")
         return goal
 
     @staticmethod
