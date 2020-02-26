@@ -22,7 +22,7 @@ MAZE_TARGET_X = 1
 MAZE_TARGET_Y = 2
 START_X = 15
 START_Y = 19
-START_Z = 0 # 0 - right, 1.57 - up
+START_Z = 0
 CELL_SZ = 2
 PARKING_TOLERANCE = 70
 
@@ -70,8 +70,28 @@ class State(Enum):
     PARKING_PROCESS = 7
     PARKING_REACHED = 8
 
+class TFColor(Enum):
+    UNKNOWN = 0
+    GREEN = 1
+    RED = 2
+
+class SignType(Enum):
+    NO_SIGN = 0
+    STOP = 1
+    ONLY_FORWARD = 2
+    ONLY_RIGHT = 3
+    ONLY_LEFT = 4
+    FORWARD_OR_RIGHT = 5
+    FORWARD_OR_LEFT = 6
+
+SIGN_TYPE_TO_MAZE = tuple(([0, 0, 0], [0, 1, 0], [1, 0, 1], [1, 1, 0],
+                           [0, 1, 1], [1, 0, 0], [0, 0, 1]))
+
 NODE_NAME = "solver_node"
 HW_SUB_TOPIC = "hardware_status"
+SIGN_SUB_TOPIC = "detected_sign_type"
+TF_SUB_TOPIC = "tf_status"
+WL_SUB_TOPIC = "wl_status"
 
 FRAME_ID = "map"
 PATH_PUB_NAME = "path"
@@ -86,8 +106,8 @@ class MainSolver(object):
     def __init__(self):
         rospy.init_node(NODE_NAME, log_level=rospy.DEBUG)
         MainSolver._init_params()
-        MainSolver.hardware_status = False
-        self.hw_sub = rospy.Subscriber(HW_SUB_TOPIC, UInt8, MainSolver._hardware_cb, queue_size=10)
+        self.hardware_status = False
+        self.hw_sub = rospy.Subscriber(HW_SUB_TOPIC, UInt8, self._hardware_cb, queue_size=10)
         self.goal_client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         self.goal_client.wait_for_server()
         self.pose_listener = tf.TransformListener()
@@ -97,25 +117,30 @@ class MainSolver(object):
         self.parking = ParkingSolver()
 
     def process(self):
-        crnt = self._get_maze_current_pose()
-        state = MainSolver._determinate_state(crnt)
-        if state == State.MAZE_PROCESS:
+        maze_crnt_pose = self._get_maze_current_pose()
+        state = self._determinate_stage(maze_crnt_pose)
+        goal_point = None
+
+        if state == State.MAZE_PROCESS or state == State.MAZE_WAIT_TL or \
+           state == State.MAZE_WAIT_SIGNS or state == State.MAZE_TARGET_REACHED:
             self.parking.stop_work()
-            goal_point = self.maze.process(crnt)
-        elif state == State.SPEED_PROCESS:
+            goal_point = self.maze.process(maze_crnt_pose)
+            if goal_point is None:
+                state = State.MAZE_WAIT_TL
+        elif state == State.SPEED_PROCESS or state == State.SPEED_REACHED:
             self.parking.stop_work()
             goal_point = process_speed()
-        elif state == State.PARKING_PROCESS:
+        elif state == State.PARKING_PROCESS or state == State.PARKING_REACHED:
             self.parking.start_work()
             goal_point = self.parking.process()
-        else:
+        if goal_point is None:
             self._send_stop_cmd()
             self.parking.stop_work()
-            return
-        self._send_goal(goal_point)
+        else:
+            self._send_goal(goal_point)
         self.parking.publish_to_rviz()
         rospy.loginfo("%s: crnt pose (maze) = %s, glob goal(map) = %s",
-                      str(state), crnt, goal_point)
+                      str(state), maze_crnt_pose, goal_point)
 
     @staticmethod
     def _init_params():
@@ -128,13 +153,12 @@ class MainSolver(object):
         CELL_SZ = rospy.get_param('~cell_sz', 2)
         PARKING_TOLERANCE = rospy.get_param('~parking_tolerance', 70)
 
-    @staticmethod
-    def _determinate_state(crnt):
+    def _determinate_stage(self, crnt):
         """
         crnt - maze current pose
         """
-        state = State
-        if MainSolver.hardware_status is False or crnt is None:
+        state = State.IDLE
+        if self.hardware_status is False or crnt is None:
             state = State.IDLE
         elif crnt.x >= 3 or (crnt.x >= 2 and crnt.y <= 5):
             state = State.MAZE_PROCESS
@@ -149,13 +173,17 @@ class MainSolver(object):
         point = map_to_maze(MazePoint(trans[0][0], trans[0][1]))
         return point
 
-    def _send_goal(self, point):
+    def _send_goal(self, map_point, gz_angle = 0):
+        """
+        gz_angle: 0 - right, 1.57 - up
+        """
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = FRAME_ID
         goal.target_pose.header.stamp = rospy.Time.now()#rospy.get_rostime()
-        goal.target_pose.pose.position.x = point.x
-        goal.target_pose.pose.position.y = point.y
-        goal.target_pose.pose.orientation.w = 1.0
+        goal.target_pose.pose.position.x = map_point.x
+        goal.target_pose.pose.position.y = map_point.y
+        goal.target_pose.pose.orientation.z = math.sin((gz_angle - START_Z) / 2)
+        goal.target_pose.pose.orientation.w = math.cos((gz_angle - START_Z) / 2)
 
         self.goal_client.send_goal(goal)
         #wait = self.goal_client.wait_for_result(rospy.Duration.from_sec(5.0))
@@ -168,17 +196,23 @@ class MainSolver(object):
     def _send_stop_cmd(self):
         self.goal_client.cancel_goal()
 
-    @staticmethod
-    def _hardware_cb(msg):
+    def _hardware_cb(self, msg):
         rospy.logdebug("I heard hardware %s", str(msg.data))
         if msg.data == 0:
-            MainSolver.hardware_status = False
+            self.hardware_status = False
         elif msg.data == 1:
-            MainSolver.hardware_status = True
+            self.hardware_status = True
 
 class MazeSolver(object):
     def __init__(self, initial_pose):
+        self.is_wl_appeared = False
+        self.tf_color = TFColor.UNKNOWN
+        self.detected_sign_type = SignType.NO_SIGN
+
         MazeSolver.PATH_PUB = rospy.Publisher(PATH_PUB_NAME, Path, queue_size=5)
+        rospy.Subscriber(SIGN_SUB_TOPIC, UInt8, self._sign_cb, queue_size=10)
+        rospy.Subscriber(TF_SUB_TOPIC, UInt8, self._tf_cb, queue_size=10)
+        rospy.Subscriber(WL_SUB_TOPIC, UInt8, self._wl_cb, queue_size=10)
 
         structure = [[8, 8, 8, 0, 0, 0, 0, 0, 0, 0],
                      [8, 8, 8, 0, 8, 8, 0, 8, 8, 0],
@@ -200,24 +234,44 @@ class MazeSolver(object):
         #pygame.init()
         #self.maze.render_maze()
 
-    def process(self, crnt):
+    def process(self, maze_crnt_pose):
+        """ Calcaulate map point
+        Return goal_point (in map format) if success and None if white line or error
+        """
         path = self.maze.get_path()
         local = self.maze.get_local_target()
         goal_point = None
-        if crnt is None:
-            rospy.logerr("Maze processing error: crnt pose must exists!")
+
+        # Process errors
+        if maze_crnt_pose is None:
+            rospy.logerr("Maze processing error: maze crnt pose must exists!")
+            return None
         elif local is None:
             rospy.logerr("Maze processing error: local target must exists!")
-        else:
-            local = local.coord
-            MazeSolver._pub_path(path)
-            if local.x == crnt.x and local.y == crnt.y:
-                rospy.logdebug("New path:")
-                for node in path:
-                    rospy.logdebug("- %s", node)
+            return None
 
-                self.maze.next_local_target()
-            goal_point = maze_to_map(path[-1].coord)
+        # Process traffic light
+        if self.is_wl_appeared == True:
+            if self.tf_color == TFColor.GREEN:
+                rospy.loginfo("TF green color detected. Way is clear.")
+                self.is_wl_appeared = False
+            else:
+                rospy.loginfo("A white line has been detected. Waiting for TF green color.")
+                return None
+
+        # Process signs
+        if self.detected_sign_type != SignType.NO_SIGN:
+            self.maze.set_limitation(SIGN_TYPE_TO_MAZE[self.detected_sign_type])
+
+        # Calculate goal and change path if it needs
+        local = local.coord
+        MazeSolver._pub_path(path)
+        if local.x == maze_crnt_pose.x and local.y == maze_crnt_pose.y:
+            rospy.logdebug("New path:")
+            for node in path:
+                rospy.logdebug("- %s", node)
+            self.maze.next_local_target()
+        goal_point = maze_to_map(path[-1].coord)
         return goal_point
 
     @staticmethod
@@ -236,6 +290,22 @@ class MazeSolver(object):
             rospy.logdebug("path pose is %s", str(point))
             path.poses.append(pose)
         MazeSolver.PATH_PUB.publish(path)
+
+    def _sign_cb(self, msg):
+        rospy.logdebug("I heard sign %s", str(msg.data))
+        self.detected_sign_type = msg.data
+
+    def _tf_cb(self, msg):
+        rospy.logdebug("I heard traffic light %s", str(msg.data))
+        self.tf_color = msg.data
+        
+
+    def _wl_cb(self, msg):
+        rospy.logdebug("I heard white line %s", str(msg.data))
+        if msg.data == 0:
+            self.is_wl_appeared = False
+        else:
+            self.is_wl_appeared = True
 
 
 class ParkingSolver(object):
