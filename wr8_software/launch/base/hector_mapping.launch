@@ -14,7 +14,7 @@
     <param name="odom_frame" value="$(arg odom_frame)" />
 
     <param name="map_resolution" value="$(arg map_resol)"/>
-    <param name="map_size" value="500"/>
+    <param name="map_size" value="750"/>
 
     <param name="map_start_x" value="0.4"/>
     <param name="map_start_y" value="0.6" />
