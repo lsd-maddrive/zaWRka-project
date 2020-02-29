@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="frequency" default="5" />
+
+  <node name="frequency_converter" pkg="frequency_converter" type="frequency_converter_node" output="screen">
+    <param name="frequency" value="$(arg frequency)"/>
+    <param name="in_stereo_ns" value="stereo_camera"/>
+    <param name="out_stereo_ns" value="stereo_camera_converted"/>
+  </node>
+</launch>
