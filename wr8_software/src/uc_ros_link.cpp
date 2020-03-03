@@ -7,6 +7,7 @@
 #include <condition_variable>
 using namespace std;
 
+// #define BOOST_ASIO_ENABLE_HANDLER_TRACKING
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 namespace asio = boost::asio;
@@ -129,10 +130,14 @@ public:
         if ( ec ) {
             ROS_ERROR_STREAM("Failed to read / info: " << ec.message().c_str());
             // async_read_some_();
-            isPollerActive_ = false;
-            this_thread::sleep_for(1s);
-            ros::shutdown();
-            return;
+            // if ( ec == asio::error::eof ) {
+                // async_read_some_();
+            // } else {
+                isPollerActive_ = false;
+                this_thread::sleep_for(1s);
+                ros::shutdown();
+                return;
+            // }
         }
 
         // ROS_INFO_STREAM("Readed " << to_string(bytes_transferred));
@@ -392,6 +397,14 @@ int main (int argc, char **argv)
     if ( !n_pr.getParam("baud", baudRate) )
     {
         ROS_WARN_STREAM("Parameter 'baud' not set -> use default " << to_string(baudRate));
+    }
+    
+    int start_delay_sec;
+    n_pr.param<int>("start_delay_sec", start_delay_sec, 0);
+
+    if ( start_delay_sec > 0 )
+    {
+        this_thread::sleep_for(chrono::seconds(start_delay_sec));
     }
 
     if ( !g_serial.open(portName, baudRate) )
