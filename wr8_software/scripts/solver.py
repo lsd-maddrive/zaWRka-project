@@ -104,7 +104,7 @@ CMD_PUB_TOPIC = "parking_cmd"
 
 class MainSolver(object):
     def __init__(self):
-        rospy.init_node(NODE_NAME, log_level=rospy.INFO)
+        rospy.init_node(NODE_NAME, log_level=rospy.DEBUG)
         MainSolver._init_params()
         self.hardware_status = False
         self.previous_goal = None
@@ -205,7 +205,11 @@ class MainSolver(object):
         if msg.data == 0:
             self.hardware_status = False
         elif msg.data == 1:
-            self.hardware_status = True
+            rospy.Timer(rospy.Duration(5), self._change_hw_status_cb, oneshot=True)
+
+    def _change_hw_status_cb(self, event):
+        rospy.loginfo("Solver was started!")
+        self.hardware_status = True
 
 class MazeSolver(object):
     def __init__(self, initial_pose):
@@ -305,7 +309,6 @@ class MazeSolver(object):
     def _tf_cb(self, msg):
         rospy.logdebug("I heard traffic light %s", str(msg.data))
         self.tf_color = TFColor(msg.data)
-        
 
     def _wl_cb(self, msg):
         rospy.logdebug("I heard white line %s", str(msg.data))
