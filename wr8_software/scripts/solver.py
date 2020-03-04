@@ -84,8 +84,11 @@ class SignType(Enum):
     FORWARD_OR_RIGHT = 5
     FORWARD_OR_LEFT = 6
 
-SIGN_TYPE_TO_MAZE = tuple(([0, 0, 0], [0, 1, 0], [1, 0, 1], [1, 1, 0],
-                           [0, 1, 1], [1, 0, 0], [0, 0, 1]))
+# Hack: Maze have inverse left and right!?
+# SIGN_TYPE_TO_MAZE = tuple(([0, 0, 0], [0, 1, 0], [1, 0, 1], [1, 1, 0],
+#                            [0, 1, 1], [1, 0, 0], [0, 0, 1]))
+SIGN_TYPE_TO_MAZE = tuple(([0, 0, 0], [0, 1, 0], [1, 0, 1], [0, 1, 1],
+                           [1, 1, 0], [0, 0, 1], [1, 0, 0]))
 
 NODE_NAME = "solver_node"
 HW_SUB_TOPIC = "hardware_status"
@@ -244,44 +247,52 @@ class MazeSolver(object):
 
     def process(self, maze_crnt_pose):
         """ Calcaulate map point
-        Return goal_point (in map format) if success and None if white line or error
+        Return goal_point (in map format) if success, default goal_point if
+        error and and None if white line
         """
+        DEFAULT_GOAL_POINT = gz_to_map(MazePoint(MAZE_TARGET_X, MAZE_TARGET_Y))
+        WHITE_LINE_GOAL_POINT = None
         path = self.maze.get_path()
         local = self.maze.get_local_target()
-        goal_point = None
+        goal_point = DEFAULT_GOAL_POINT
         gz_direction = 1.57
 
         # Process errors
         if maze_crnt_pose is None:
             rospy.logerr("Maze processing error: maze crnt pose must exists!")
-            return goal_point, gz_direction
+            return DEFAULT_GOAL_POINT, gz_direction
         elif local is None:
             rospy.logerr("Maze processing error: local target must exists!")
-            return goal_point, gz_direction
+            return DEFAULT_GOAL_POINT, gz_direction
 
         # Process traffic light
         if self.is_wl_appeared == True:
             if self.tf_color == TFColor.GREEN:
-                rospy.loginfo("TF green color detected. Way is clear.")
+                rospy.loginfo("TF green color was detected. Way is clear.")
                 self.is_wl_appeared = False
             else:
-                rospy.loginfo("A white line has been detected. Waiting for TF green color.")
-                return goal_point, gz_direction
+                rospy.loginfo("A white line was detected. Waiting for TF green color.")
+                return WHITE_LINE_GOAL_POINT, gz_direction
 
         # Process signs
         if self.detected_sign_type != SignType.NO_SIGN:
-            rospy.loginfo("A sign has just been detected: %s", str(self.detected_sign_type))
+            rospy.loginfo("A sign was detected: %s", str(self.detected_sign_type))
             self.maze.set_limitation(SIGN_TYPE_TO_MAZE[self.detected_sign_type.value])
             path = self.maze.get_path()
 
         # Calculate goal and change path if it needs
         local = local.coord
         MazeSolver._pub_path(path)
-        if local.x == maze_crnt_pose.x and local.y == maze_crnt_pose.y:
+        if local == maze_crnt_pose:
+            if self.maze.next_local_target() == False:
+                rospy.logerr("Current path length is 0, can't get next tartet!")
+                return DEFAULT_GOAL_POINT, gz_direction
+            if len(path) == 0:
+                rospy.logerr("Path is empty!")
+                return DEFAULT_GOAL_POINT, gz_direction
             rospy.logdebug("New path:")
             for node in path:
                 rospy.logdebug("- %s", node)
-            self.maze.next_local_target()
         goal_point = maze_to_map(path[-1].coord)
         return goal_point, gz_direction
 
@@ -298,7 +309,6 @@ class MazeSolver(object):
             point = maze_to_map(nodes[i].coord)
             pose.pose.position.x = point.x
             pose.pose.position.y = point.y
-            rospy.logdebug("path pose is %s", str(point))
             path.poses.append(pose)
         MazeSolver.PATH_PUB.publish(path)
 
