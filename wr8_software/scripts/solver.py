@@ -131,6 +131,9 @@ class MainSolver(object):
         if state == State.MAZE_PROCESS or state == State.MAZE_WAIT_TL or \
            state == State.MAZE_WAIT_SIGNS or state == State.MAZE_TARGET_REACHED:
             self.parking.stop_work()
+            if self.maze.is_recovery_need == True:
+                self.maze.reinit(maze_crnt_pose)
+                self.maze.is_recovery_need = False
             goal_point, gz_direction = self.maze.process(maze_crnt_pose)
             if goal_point is None:
                 state = State.MAZE_WAIT_TL
@@ -215,35 +218,40 @@ class MainSolver(object):
         self.hardware_status = True
 
 class MazeSolver(object):
-    def __init__(self, initial_pose):
+    STRUCTURE = np.array([[8, 8, 8, 0, 0, 0, 0, 0, 0, 0],
+                          [8, 8, 8, 0, 8, 8, 0, 8, 8, 0],
+                          [8, 8, 8, 0, 0, 0, 0, 0, 8, 0],
+                          [8, 8, 8, 0, 8, 0, 8, 0, 0, 0],
+                          [8, 8, 8, 0, 8, 0, 8, 8, 8, 0],
+                          [8, 8, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [8, 8, 8, 0, 8, 8, 0, 8, 8, 0],
+                          [8, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                          [8, 8, 8, 0, 8, 8, 0, 8, 8, 0],
+                          [8, 8, 0, 0, 0, 0, 0, 0, 0, 0]], np.uint8)
+    EDGE_WALLS = [[MazePoint(6, 9), MazePoint(7, 9)]]
+
+    def __init__(self, maze_initial_pose):
         self.is_wl_appeared = False
         self.tf_color = TFColor.UNKNOWN
         self.detected_sign_type = SignType.NO_SIGN
+        self.is_recovery_need = False
 
         MazeSolver.PATH_PUB = rospy.Publisher(PATH_PUB_NAME, Path, queue_size=5)
         rospy.Subscriber(SIGN_SUB_TOPIC, UInt8, self._sign_cb, queue_size=10)
         rospy.Subscriber(TF_SUB_TOPIC, UInt8, self._tf_cb, queue_size=10)
         rospy.Subscriber(WL_SUB_TOPIC, UInt8, self._wl_cb, queue_size=10)
 
-        structure = [[8, 8, 8, 0, 0, 0, 0, 0, 0, 0],
-                     [8, 8, 8, 0, 8, 8, 0, 8, 8, 0],
-                     [8, 8, 8, 0, 0, 0, 0, 0, 8, 0],
-                     [8, 8, 8, 0, 8, 0, 8, 0, 0, 0],
-                     [8, 8, 8, 0, 8, 0, 8, 8, 8, 0],
-                     [8, 8, 0, 0, 0, 0, 0, 0, 0, 0],
-                     [8, 8, 8, 0, 8, 8, 0, 8, 8, 0],
-                     [8, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                     [8, 8, 8, 0, 8, 8, 0, 8, 8, 0],
-                     [8, 8, 0, 0, 0, 0, 0, 0, 0, 0]]
-        edge_walls = [[MazePoint(6, 9), MazePoint(7, 9)]]
-
-        structure = np.array(structure, np.uint8)
-        self.maze = Maze(structure, edge_walls)
+        self.maze = Maze(MazeSolver.STRUCTURE, MazeSolver.EDGE_WALLS)
         self.maze.set_target(MazePoint(MAZE_TARGET_X, MAZE_TARGET_Y))
-        self.maze.set_state(PointDir(initial_pose.x, initial_pose.y, 'L'))
+        self.maze.set_state(PointDir(maze_initial_pose.x, maze_initial_pose.y, 'L'))
 
         #pygame.init()
         #self.maze.render_maze()
+
+    def reinit(self, maze_initial_pose):
+        self.maze = Maze(MazeSolver.STRUCTURE, MazeSolver.EDGE_WALLS)
+        self.maze.set_target(MazePoint(MAZE_TARGET_X, MAZE_TARGET_Y))
+        self.maze.set_state(PointDir(maze_initial_pose.x, maze_initial_pose.y, 'L'))
 
     def process(self, maze_crnt_pose):
         """ Calcaulate map point
@@ -260,9 +268,11 @@ class MazeSolver(object):
         # Process errors
         if maze_crnt_pose is None:
             rospy.logerr("Maze processing error: maze crnt pose must exists!")
+            self.is_recovery_need = True
             return DEFAULT_GOAL_POINT, gz_direction
         elif local is None:
             rospy.logerr("Maze processing error: local target must exists!")
+            self.is_recovery_need = True
             return DEFAULT_GOAL_POINT, gz_direction
 
         # Process traffic light
@@ -281,18 +291,19 @@ class MazeSolver(object):
             path = self.maze.get_path()
 
         # Calculate goal and change path if it needs
-        local = local.coord
         MazeSolver._pub_path(path)
-        if local == maze_crnt_pose:
+        if local.coord == maze_crnt_pose:
             if self.maze.next_local_target() == False:
                 rospy.logerr("Current path length is 0, can't get next tartet!")
-                return DEFAULT_GOAL_POINT, gz_direction
-            if len(path) == 0:
-                rospy.logerr("Path is empty!")
+                self.is_recovery_need = True
                 return DEFAULT_GOAL_POINT, gz_direction
             rospy.logdebug("New path:")
             for node in path:
                 rospy.logdebug("- %s", node)
+        if len(path) == 0:
+            rospy.logerr("Path is empty!")
+            self.is_recovery_need = True
+            return DEFAULT_GOAL_POINT, gz_direction
         goal_point = maze_to_map(path[-1].coord)
         return goal_point, gz_direction
 

@@ -413,9 +413,11 @@ class Maze:
             limits {list} -- [left, forward, right]
         """
         if self._local_target_node is None:
+            self.logger.warn("self._local_target_node is None")
             return
 
         if self._local_target_node.is_turn():
+            self.logger.warn("self._local_target_node.is_turn")
             return None
 
         self._local_target_node.dir_limitations[0] = limits[0]
@@ -489,6 +491,8 @@ class Maze:
 
                     cameFrom[way_node] = cur_node
 
+        self.logger.error("Can't find path or path is empty!")
+        self._current_path = []
         return []
 
     def get_path(self):
