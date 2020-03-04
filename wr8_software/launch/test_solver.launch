@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="x" default="15" />
+  <arg name="y" default="19" />
+  <arg name="yaw" default="0" /> <!--# 0 - right, 1.57 - up -->
+
+  <include file="$(find wr8_software)/launch/gazebo/gz_slam.launch">
+    <arg name="world_name" value="maze2020v1.world" />
+    <arg name="x" value="$(arg x)" />
+    <arg name="y" value="$(arg y)" />
+    <arg name="yaw" value="$(arg yaw)" />
+    <arg name="gz_gui" value="false" />
+    <arg name="enable_stereo" default="true" />
+  </include>
+
+  <node pkg="wr8_software" type="solver.py" name="solver" output="screen">
+    <param name="maze_target_x" value="1"/>
+    <param name="maze_target_y" value="2"/>
+    <param name="start_x" value="$(arg x)"/>
+    <param name="start_y" value="$(arg y)"/>
+    <param name="start_yaw" value="$(arg yaw)"/>
+    <param name="cell_sz" value="2"/>
+    <param name="parking_tolerance" value="70"/>
+  </node>
+
+  <include file="$(find car_parking)/launch/car_parking.launch">
+  </include>
+
+  <node pkg="wr8_software" type="test_solver.py" name="test_solver" output="screen">
+  </node>
+</launch>
