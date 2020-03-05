@@ -17,15 +17,55 @@
         8,
         1
       ],
-      "orient": 0
+      "orient": 1
     },
     {
       "name": "traffic_light",
       "pos": [
         8,
-        6
+        8
       ],
       "orient": 1
+    },
+    {
+      "name": "traffic_light",
+      "pos": [
+        5,
+        8
+      ],
+      "orient": 3
+    },
+    {
+      "name": "traffic_light",
+      "pos": [
+        4,
+        8
+      ],
+      "orient": 3
+    },
+    {
+      "name": "traffic_light",
+      "pos": [
+        4,
+        6
+      ],
+      "orient": 3
+    },
+    {
+      "name": "traffic_light",
+      "pos": [
+        5,
+        6
+      ],
+      "orient": 3
+    },
+    {
+      "name": "traffic_light",
+      "pos": [
+        7,
+        6
+      ],
+      "orient": 3
     },
     {
       "name": "traffic_light",
@@ -34,6 +74,22 @@
         6
       ],
       "orient": 1
+    },
+    {
+      "name": "traffic_light",
+      "pos": [
+        5,
+        8
+      ],
+      "orient": 0
+    },
+    {
+      "name": "traffic_light",
+      "pos": [
+        7,
+        8
+      ],
+      "orient": 2
     },
     {
       "name": "wall",
@@ -119,33 +175,6 @@
     {
       "name": "wall",
       "pnts": [
-        0,
-        10,
-        2,
-        10
-      ]
-    },
-    {
-      "name": "wall",
-      "pnts": [
-        0,
-        0,
-        0,
-        10
-      ]
-    },
-    {
-      "name": "wall",
-      "pnts": [
-        3,
-        0,
-        0,
-        0
-      ]
-    },
-    {
-      "name": "wall",
-      "pnts": [
         7,
         2,
         7,
@@ -324,58 +353,31 @@
       ]
     },
     {
-      "name": "sign",
-      "pos": [
-        5,
-        4
-      ],
-      "orient": 3,
-      "type": "only left sign"
-    },
-    {
-      "name": "sign",
-      "pos": [
-        9,
-        6
-      ],
-      "orient": 3,
-      "type": "only left sign"
-    },
-    {
-      "name": "sign",
-      "pos": [
-        2,
-        9
-      ],
-      "orient": 2,
-      "type": "only forward sign"
-    },
-    {
-      "name": "sign",
-      "pos": [
+      "name": "wall",
+      "pnts": [
         3,
-        9
-      ],
-      "orient": 3,
-      "type": "only forward sign"
-    },
-    {
-      "name": "sign",
-      "pos": [
-        3,
-        9
-      ],
-      "orient": 1,
-      "type": "only forward sign"
-    },
-    {
-      "name": "sign",
-      "pos": [
         4,
-        9
-      ],
-      "orient": 0,
-      "type": "only forward sign"
+        2,
+        4
+      ]
+    },
+    {
+      "name": "wall",
+      "pnts": [
+        3,
+        5,
+        3,
+        4
+      ]
+    },
+    {
+      "name": "wall",
+      "pnts": [
+        2,
+        5,
+        3,
+        5
+      ]
     },
     {
       "name": "sign",
@@ -392,8 +394,8 @@
         8,
         2
       ],
-      "orient": 0,
-      "type": "only right sign"
+      "orient": 1,
+      "type": "stop sign"
     },
     {
       "name": "sign",
@@ -401,50 +403,58 @@
         7,
         1
       ],
-      "orient": 1,
+      "orient": 3,
       "type": "only right sign"
     },
     {
       "name": "sign",
       "pos": [
-        8,
+        2,
+        1
+      ],
+      "orient": 1,
+      "type": "forward or right sign"
+    },
+    {
+      "name": "sign",
+      "pos": [
+        2,
         4
       ],
-      "orient": 0,
+      "orient": 1,
       "type": "stop sign"
     },
     {
-      "name": "square",
-      "pos": [
-        4,
-        6
-      ]
-    },
-    {
-      "name": "square",
+      "name": "sign",
       "pos": [
         5,
         6
-      ]
+      ],
+      "orient": 0,
+      "type": "only forward sign"
+    },
+    {
+      "name": "sign",
+      "pos": [
+        8,
+        6
+      ],
+      "orient": 1,
+      "type": "forward or left sign"
+    },
+    {
+      "name": "sign",
+      "pos": [
+        8,
+        6
+      ],
+      "orient": 0,
+      "type": "only right sign"
     },
     {
       "name": "square",
       "pos": [
         4,
-        8
-      ]
-    },
-    {
-      "name": "square",
-      "pos": [
-        5,
-        8
-      ]
-    },
-    {
-      "name": "square",
-      "pos": [
-        7,
         6
       ]
     },
@@ -458,14 +468,42 @@
     {
       "name": "square",
       "pos": [
-        7,
+        8,
         8
       ]
     },
     {
       "name": "square",
       "pos": [
-        8,
+        4,
+        8
+      ]
+    },
+    {
+      "name": "square",
+      "pos": [
+        7,
+        6
+      ]
+    },
+    {
+      "name": "square",
+      "pos": [
+        5,
+        6
+      ]
+    },
+    {
+      "name": "square",
+      "pos": [
+        5,
+        8
+      ]
+    },
+    {
+      "name": "square",
+      "pos": [
+        7,
         8
       ]
     },
@@ -481,13 +519,6 @@
       "pos": [
         2,
         8
-      ]
-    },
-    {
-      "name": "box",
-      "pos": [
-        2,
-        4
       ]
     }
   ]
