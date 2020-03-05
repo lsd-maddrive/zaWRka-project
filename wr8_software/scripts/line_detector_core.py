@@ -9,13 +9,9 @@ class LineDetector(object):
     def __init__(self, __angle_threshold = math.pi/8, __similarity_threshold = 25):
         self.__angle_threshold = __angle_threshold
         self.__similarity_threshold = __similarity_threshold
-    
-    @staticmethod
-    def __convert(image):
-        return image
 
     def process(self, image):
-        frame = LineDetector.__convert(image)
+        frame = image[len(image) * 5 / 8 : len(image)]
         frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         # cv2.imshow('image', frame_gray)
         frame_bin = cv2.adaptiveThreshold(frame_gray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,11,4)
@@ -32,7 +28,7 @@ class LineDetector(object):
             for i in range(0, len(lines)):
                 rho = lines[i][0][0]
                 theta = lines[i][0][1]
-                if abs(theta - math.pi / 2) > math.pi / self.__angle_threshold:
+                if abs(theta - math.pi / 2) > self.__angle_threshold:
                     continue
 
                 continue_outer_loop = False
@@ -43,17 +39,17 @@ class LineDetector(object):
                 if continue_outer_loop:
                     continue
 
-                # a = math.cos(theta)
-                # b = math.sin(theta)
-                # x0 = a * rho
-                # y0 = b * rho
-                # pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
-                # pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
-                # cv2.line(lines_gray, pt1, pt2, (0,0,255), 3, cv2.LINE_AA)
+                a = math.cos(theta)
+                b = math.sin(theta)
+                x0 = a * rho
+                y0 = b * rho
+                pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
+                pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
+                cv2.line(lines_gray, pt1, pt2, (0,0,255), 3, cv2.LINE_AA)
                 added_lines.append((rho, theta))
-        
-        # cv2.imshow('Lines', lines_gray)
-        return len(added_lines) >= 2
+
+        cv2.imshow('Lines', lines_gray)
+        return len(added_lines) >= 2, lines_gray
 
 
 if __name__ == "__main__":
@@ -61,7 +57,7 @@ if __name__ == "__main__":
     cap = cv2.VideoCapture(0)
     while(1):
         _, frame = cap.read()
-        print(line_detector.process(frame))
+        print(line_detector.process(frame)[0])
         k = cv2.waitKey(5) & 0xFF
 
         if k == 27:
