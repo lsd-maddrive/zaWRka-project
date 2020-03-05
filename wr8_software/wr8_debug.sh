@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-# stop_base.sh
+rosrun wr8_software wr8_stop.sh
 
 roslaunch wr8_software debug_launch.launch  camera_s:=false \
 											camera_r:=false \

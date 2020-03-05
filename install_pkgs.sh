@@ -39,3 +39,10 @@ git -C teleop_tools pull  || git clone https://github.com/KaiL4eK/teleop_tools.g
 git -C madproto pull  || git clone https://github.com/KaiL4eK/madproto.git
 git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
 git -C elp_stereo_camera pull					|| git clone https://github.com/KaiL4eK/elp_stereo_camera.git
+
+echo "Installing device rules"
+echo  'KERNEL=="ttyUSB*", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", MODE:="0666", GROUP:="dialout",  SYMLINK+="ydlidar"' >/etc/udev/rules.d/ydlidar.rules
+
+service udev reload
+sleep 2
+service udev restart
