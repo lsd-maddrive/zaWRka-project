@@ -15,6 +15,7 @@ import numpy as np
 import pygame
 
 from maze import MazePoint, PointDir, Maze
+from line_detector_ros import LineDetectorRos
 
 
 # Params
@@ -107,7 +108,7 @@ CMD_PUB_TOPIC = "parking_cmd"
 
 class MainSolver(object):
     def __init__(self):
-        rospy.init_node(NODE_NAME, log_level=rospy.DEBUG)
+        rospy.init_node(NODE_NAME, log_level=rospy.INFO)
         MainSolver._init_params()
         self.hardware_status = False
         self.previous_goal = None
@@ -147,12 +148,13 @@ class MainSolver(object):
         if goal_point is None:
             self._send_stop_cmd()
             self.parking.stop_work()
+            rospy.loginfo("%s: from %s to None (gz)", str(state), maze_to_gz(maze_crnt_pose))
         else:
             self._send_goal(goal_point, gz_direction)
+            rospy.loginfo("%s: from %s to %s (gz)",
+                          str(state), maze_to_gz(maze_crnt_pose), map_to_gz(goal_point))
         self.parking.publish_to_rviz()
         self.previous_goal = goal_point
-        rospy.loginfo("%s: crnt pose (maze) = %s, glob goal(map) = %s, %f",
-                      str(state), maze_crnt_pose, goal_point, gz_direction)
 
     @staticmethod
     def _init_params():
@@ -235,15 +237,14 @@ class MazeSolver(object):
         self.tf_color = TFColor.UNKNOWN
         self.detected_sign_type = SignType.NO_SIGN
         self.is_recovery_need = False
+        self.line_detector = LineDetectorRos(math.pi/32, 10)
 
         MazeSolver.PATH_PUB = rospy.Publisher(PATH_PUB_NAME, Path, queue_size=5)
         rospy.Subscriber(SIGN_SUB_TOPIC, UInt8, self._sign_cb, queue_size=10)
         rospy.Subscriber(TF_SUB_TOPIC, UInt8, self._tf_cb, queue_size=10)
         rospy.Subscriber(WL_SUB_TOPIC, UInt8, self._wl_cb, queue_size=10)
 
-        self.maze = Maze(MazeSolver.STRUCTURE, MazeSolver.EDGE_WALLS)
-        self.maze.set_target(MazePoint(MAZE_TARGET_X, MAZE_TARGET_Y))
-        self.maze.set_state(PointDir(maze_initial_pose.x, maze_initial_pose.y, 'L'))
+        self.reinit(maze_initial_pose)
 
         #pygame.init()
         #self.maze.render_maze()
@@ -254,9 +255,10 @@ class MazeSolver(object):
         self.maze.set_state(PointDir(maze_initial_pose.x, maze_initial_pose.y, 'L'))
 
     def process(self, maze_crnt_pose):
-        """ Calcaulate map point
-        Return goal_point (in map format) if success, default goal_point if
-        error and and None if white line
+        """ Calcaulate goal_point (in map format) and update path if necessary
+        - if success: return actual goal point and pub path
+        - if error: return default goal_point
+        - if white line: return None that means stop
         """
         DEFAULT_GOAL_POINT = gz_to_map(MazePoint(MAZE_TARGET_X, MAZE_TARGET_Y))
         WHITE_LINE_GOAL_POINT = None
@@ -264,8 +266,9 @@ class MazeSolver(object):
         local = self.maze.get_local_target()
         goal_point = DEFAULT_GOAL_POINT
         gz_direction = 1.57
+        is_path_updated = False
 
-        # Process errors
+        # Process errors in old path
         if maze_crnt_pose is None:
             rospy.logerr("Maze processing error: maze crnt pose must exists!")
             self.is_recovery_need = True
@@ -275,35 +278,50 @@ class MazeSolver(object):
             self.is_recovery_need = True
             return DEFAULT_GOAL_POINT, gz_direction
 
-        # Process traffic light
+        # Process white line and traffic light
+        self.line_detector.process()
         if self.is_wl_appeared == True:
             if self.tf_color == TFColor.GREEN:
                 rospy.loginfo("TF green color was detected. Way is clear.")
                 self.is_wl_appeared = False
+            elif self.tf_color == TFColor.UNKNOWN:
+                rospy.logwarn("There is no TF signal. Was it white line detection error?")
+                self.is_wl_appeared = False
             else:
-                rospy.loginfo("A white line was detected. Waiting for TF green color.")
+                rospy.logdebug("Waiting for TF green color.")
                 return WHITE_LINE_GOAL_POINT, gz_direction
 
-        # Process signs
-        if self.detected_sign_type != SignType.NO_SIGN:
-            rospy.loginfo("A sign was detected: %s", str(self.detected_sign_type))
-            self.maze.set_limitation(SIGN_TYPE_TO_MAZE[self.detected_sign_type.value])
-            path = self.maze.get_path()
-
-        # Calculate goal and change path if it needs
-        MazeSolver._pub_path(path)
+        # Update next local target and pub new path if possible
         if local.coord == maze_crnt_pose:
             if self.maze.next_local_target() == False:
                 rospy.logerr("Current path length is 0, can't get next tartet!")
                 self.is_recovery_need = True
                 return DEFAULT_GOAL_POINT, gz_direction
-            rospy.logdebug("New path:")
+            if len(path) == 0:
+                rospy.logerr("Path is empty!")
+                self.is_recovery_need = True
+                return DEFAULT_GOAL_POINT, gz_direction
+            is_path_updated = True
+        
+        # Process signs
+        if self.detected_sign_type != SignType.NO_SIGN:
+            rospy.loginfo("A sign was detected: %s", str(self.detected_sign_type))
+            self.maze.set_limitation(SIGN_TYPE_TO_MAZE[self.detected_sign_type.value])
+            path = self.maze.get_path()
+            if len(path) == 0:
+                rospy.logerr("Path is empty!")
+                self.is_recovery_need = True
+                return DEFAULT_GOAL_POINT, gz_direction
+            is_path_updated = True
+
+        # Display new path
+        if is_path_updated == True:
+            rospy.loginfo("New path was created.")
             for node in path:
                 rospy.logdebug("- %s", node)
-        if len(path) == 0:
-            rospy.logerr("Path is empty!")
-            self.is_recovery_need = True
-            return DEFAULT_GOAL_POINT, gz_direction
+
+        # Return actual goal point
+        MazeSolver._pub_path(path)
         goal_point = maze_to_map(path[-1].coord)
         return goal_point, gz_direction
 
@@ -324,19 +342,19 @@ class MazeSolver(object):
         MazeSolver.PATH_PUB.publish(path)
 
     def _sign_cb(self, msg):
-        rospy.logdebug("I heard sign %s", str(msg.data))
-        self.detected_sign_type = SignType(msg.data)
+        if self.detected_sign_type != SignType(msg.data):
+            self.detected_sign_type = SignType(msg.data)
+            rospy.loginfo("A sign was detected: %s", str(msg.data))
 
     def _tf_cb(self, msg):
-        rospy.logdebug("I heard traffic light %s", str(msg.data))
-        self.tf_color = TFColor(msg.data)
+        if self.tf_color != TFColor(msg.data):
+            self.tf_color = TFColor(msg.data)
+            rospy.loginfo("A traffic light was detected: %s", str(msg.data))
 
     def _wl_cb(self, msg):
-        rospy.logdebug("I heard white line %s", str(msg.data))
-        if msg.data == 0:
-            self.is_wl_appeared = False
-        else:
+        if msg.data == 1 and self.is_wl_appeared != True:
             self.is_wl_appeared = True
+            rospy.loginfo("A white line was detected: %s", str(msg.data))
 
 
 class ParkingSolver(object):
@@ -453,7 +471,7 @@ def process_speed():
 
 if __name__ == "__main__":
     solver = MainSolver()
-    RATE = rospy.Rate(1)
+    RATE = rospy.Rate(3)
     while not rospy.is_shutdown():
         solver.process()
         RATE.sleep()

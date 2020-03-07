@@ -8,7 +8,7 @@ import tf
 from std_msgs.msg import UInt8
 
 from maze import MazePoint
-from solver import map_to_maze, TF_SUB_TOPIC, WL_SUB_TOPIC, SIGN_SUB_TOPIC, TFColor, SignType
+from solver import map_to_maze, map_to_gz, TF_SUB_TOPIC, WL_SUB_TOPIC, SIGN_SUB_TOPIC, TFColor, SignType
 
 
 def get_cur_maze_pose(pose_listener):
@@ -55,31 +55,44 @@ class TF(object):
     previous_tf_color = TFColor.UNKNOWN
     previous_wl_status = 0
 
+    def __init__(self, tf_topic_name):
+        self.pub = rospy.Publisher(tf_topic_name, UInt8, queue_size=10)
+        self.color = TFColor.RED
+        rospy.Timer(rospy.Duration(5), self._pub_cb, oneshot=True)
+
     def do(self, time = 7.5):
         TF.tf_color = TFColor.RED
+        self.color = TF.tf_color
+        self._pub_cb()
         TF.wl_status = 1
         rospy.Timer(rospy.Duration(time), self._change_tf_and_wl_cb, oneshot=True)
+
+    def _pub_cb(self, event=None):
+        if self.color == TFColor.RED:
+            self.pub.publish(1)
+        elif self.color == TFColor.GREEN:
+            self.pub.publish(2)
+        else:
+            self.pub.publish(0)
 
     def _change_tf_and_wl_cb(self, event):
         TF.tf_color = TFColor.GREEN
         TF.wl_status = 0
+        self.pub.publish(TF.tf_color.value)
+        self.color = TF.tf_color
+        self._pub_cb()
 
 
 class Test(object):
     def __init__(self, point, obj):
         self.point = point
         self.is_it_called_before = False
-        self.is_it_missed_before = False
+        #self.is_it_missed_before = False
         self.obj = obj
 
     def process(self, cur_maze_pose):
         if cur_maze_pose is None:
             return
-
-        if self.point == cur_maze_pose and self.is_it_missed_before == False:
-            self.is_it_missed_before = True
-            return
-
         if self.point == cur_maze_pose and self.is_it_called_before == False:
             self.obj.do()
             self.is_it_called_before = True
@@ -95,7 +108,7 @@ if __name__ == "__main__":
     pose_listener = tf.TransformListener()
     sleep(1)
     tests = list()
-    tests.append(Test(MazePoint(9, 8), TF()))
+    tests.append(Test(MazePoint(9, 8), TF('traffic_light_0_topic')))
     tests.append(Test(MazePoint(9, 7), SignStop()))
     tests.append(Test(MazePoint(7, 7), SignRight()))
     tests.append(Test(MazePoint(3, 8), SignForwardOrRight()))
@@ -103,11 +116,11 @@ if __name__ == "__main__":
     tests.append(Test(MazePoint(5, 4), SignForward()))
     tests.append(Test(MazePoint(8, 4), SignRight()))
     tests.append(Test(MazePoint(9, 3), SignForwardOrLeft()))
-    tests.append(Test(MazePoint(9, 1), TF()))
-    tests.append(Test(MazePoint(5, 0), TF()))
-    tests.append(Test(MazePoint(4, 0), TF()))
-    tests.append(Test(MazePoint(5, 2), TF()))
-    tests.append(Test(MazePoint(4, 2), TF()))
+    tests.append(Test(MazePoint(9, 1), TF('traffic_light_1_topic')))
+    tests.append(Test(MazePoint(5, 0), TF('traffic_light_2_topic')))
+    tests.append(Test(MazePoint(4, 0), TF('traffic_light_3_topic')))
+    tests.append(Test(MazePoint(5, 2), TF('traffic_light_4_topic')))
+    tests.append(Test(MazePoint(4, 2), TF('traffic_light_5_topic')))
 
     while not rospy.is_shutdown():
         cur_maze_point = get_cur_maze_pose(pose_listener)
@@ -118,7 +131,7 @@ if __name__ == "__main__":
 
         if TF.previous_wl_status != TF.wl_status:
             TF.previous_wl_status = TF.wl_status
-            wl_pub.publish(TF.wl_status)
+            #wl_pub.publish(TF.wl_status)
             rospy.logdebug("White line set to %d", TF.wl_status)
 
         if TF.previous_tf_color != TF.tf_color:
@@ -131,4 +144,4 @@ if __name__ == "__main__":
             sign_pub.publish(Sign.sign_type.value)
             rospy.logdebug("Sign set to %s", str(Sign.sign_type))
 
-        rospy.sleep(1)
+        rospy.sleep(0.5)
