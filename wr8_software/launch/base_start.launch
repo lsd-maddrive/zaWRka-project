@@ -8,7 +8,7 @@
     <arg name="solver" default="false" />
     <arg name="gui_server" default="false" />
     <arg name="bag_record" default="false" />
-    <arg name="stereo" default="false" />
+    <arg name="stereo_r" default="false" />
 
     <include if="$(arg uc)" file="$(find wr8_software)/launch/base/serial_uc_link.launch">
         <arg name="start_delay_sec" value="0" />
@@ -22,17 +22,12 @@
     </node>
 
     <include if="$(arg camera_s)" file="$(find wr8_software)/launch/base/signs_camera.launch">
-        <arg name="device" value="/dev/v4l/by-id/usb-HD_USB_Camera_HD_USB_Camera_SN0001-video-index0" />
+        <arg name="device" value="/dev/top_camera" />
         <arg name="frame_id" value="signs_camera" />
     </include>
     
-    <include if="$(arg stereo)" file="$(find wr8_software)/launch/base/stereo_camera.launch">
-        <!-- All defaults -->
-    </include>
-
-    <include if="$(arg camera_r)" file="$(find wr8_software)/launch/base/road_camera.launch">
-        <arg name="device" value="/dev/v4l/by-id/usb-046d_0825_CA00E440-video-index0" />
-        <arg name="frame_id" value="road_camera" />
+    <include if="$(arg stereo_r)" file="$(find wr8_software)/launch/base/stereo_camera.launch">
+        <arg name="device" value="/dev/elp_stereo" />
     </include>
 
     <include if="$(arg gui_server)" file="$(find wr8_gui_server)/launch/gui_server.launch">

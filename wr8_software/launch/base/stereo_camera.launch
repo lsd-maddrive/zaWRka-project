@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-	<arg name="video_device" default="/dev/elp_stereo" />
+	<arg name="device" default="/dev/elp_stereo" />
 
     <arg name="pi/2" value="1.5707963267948966" />
 
@@ -13,7 +13,7 @@
     <include file="$(find elp_stereo_camera)/launch/camera_driver_elp.launch">
         <arg name="camera_name" value="stereo_camera" />
         <arg name="tf_frame_name" value="stereo_camera_optical_frame" />
-        <arg name="video_device" value="$(arg video_device)" />
+        <arg name="video_device" value="$(arg device)" />
         <arg name="calib_data_path" value="$(find wr8_software)/calib/elp_stereo" />
         <arg name="camera_info" value="true" />
     </include>

@@ -1,11 +1,6 @@
 <?xml version="1.0"?>
 <launch>
 	<!-- <group ns="robot"> -->
-		<node name="road_image_view" pkg="image_view" type="image_view" respawn="false" output="screen">
-			<remap from="image" to="road_camera/image_raw"/>
-			<param name="autosize" value="true" />
-			<param name="image_transport" value="compressed" />
-		</node>
 
 		<node name="signs_image_view" pkg="image_view" type="image_view" respawn="false" output="screen">
 			<remap from="image" to="signs_camera/image_raw"/>
@@ -16,6 +11,7 @@
 		<node name="stereo_image_view" pkg="image_view" type="stereo_view" output="screen">
 			<remap from="stereo" to="stereo_camera" />
 			<remap from="image" to="image_rect_color" />
+			<param name="image_transport" value="compressed" />
 		</node>
 
 	<!-- </group> -->
