@@ -6,5 +6,6 @@ elp_stereo_camera
 **/.vscode
 **/*.bag
 **/madproto
+**/mad_detector
 deps
 teleop_tools

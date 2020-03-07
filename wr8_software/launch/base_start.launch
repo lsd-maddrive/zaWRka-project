@@ -9,6 +9,7 @@
     <arg name="gui_server" default="false" />
     <arg name="bag_record" default="false" />
     <arg name="stereo_r" default="false" />
+    <arg name="detector" default="false" />
 
     <include if="$(arg uc)" file="$(find wr8_software)/launch/base/serial_uc_link.launch">
         <arg name="start_delay_sec" value="0" />
@@ -31,6 +32,13 @@
     </include>
 
     <include if="$(arg gui_server)" file="$(find wr8_gui_server)/launch/gui_server.launch">
+    </include>
+
+    <include if="$(arg detector)" file="$(find mad_detector)/launch/start.launch">
+        <arg name="input" default="signs_camera/image_raw" />
+        <arg name="compressed" default="true" />
+        <arg name="save_folder" default="" />
+        <arg name="gui_enabled" default="false" />
     </include>
 
     <node if="$(arg bag_record)" pkg="rosbag" type="record" name="rosbag_record" args="-o $(env HOME)/bags/main /signs_camera/image_raw/compressed /road_camera/image_raw/compressed /tf /cmd_vel /odom_pose /state /scan /diagnostics /rosout"/>   

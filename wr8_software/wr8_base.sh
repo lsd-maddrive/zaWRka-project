@@ -7,4 +7,5 @@ roslaunch wr8_software base_start.launch   camera_s:=true \
 											lidar:=true \
 											gui_server:=false \
 											uc:=true \
-											stereo_r:=true
+											stereo_r:=true \
+											detector:=true

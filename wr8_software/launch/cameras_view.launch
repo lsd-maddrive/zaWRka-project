@@ -9,7 +9,8 @@
 		</node>
 
 		<node name="stereo_image_view" pkg="image_view" type="stereo_view" output="screen">
-			<remap from="stereo" to="stereo_camera" />
+			<!-- <remap from="stereo" to="stereo_camera" /> -->
+			<remap from="stereo" to="stereo_camera_converted" />
 			<remap from="image" to="image_rect_color" />
 			<param name="image_transport" value="compressed" />
 		</node>
