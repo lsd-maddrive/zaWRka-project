@@ -10,6 +10,7 @@ from geometry_msgs.msg import PoseStamped, PolygonStamped, Point
 from nav_msgs.msg import Path
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from car_parking.msg import Point2D, Points2D, Polygons, Statuses
+from mad_detector.msg import Detection, Detections
 
 import numpy as np
 import pygame
@@ -112,7 +113,7 @@ class MainSolver(object):
         MainSolver._init_params()
         self.hardware_status = False
         self.previous_goal = None
-        self.hw_sub = rospy.Subscriber(HW_SUB_TOPIC, UInt8, self._hardware_cb, queue_size=10)
+        rospy.Subscriber(HW_SUB_TOPIC, UInt8, self._hardware_cb, queue_size=10)
         self.goal_client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         self.goal_client.wait_for_server()
         self.pose_listener = tf.TransformListener()
@@ -190,19 +191,12 @@ class MainSolver(object):
         """
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = FRAME_ID
-        goal.target_pose.header.stamp = rospy.Time.now()#rospy.get_rostime()
+        goal.target_pose.header.stamp = rospy.Time.now()
         goal.target_pose.pose.position.x = map_point.x
         goal.target_pose.pose.position.y = map_point.y
         goal.target_pose.pose.orientation.z = math.sin((gz_angle - START_Z) / 2)
         goal.target_pose.pose.orientation.w = math.cos((gz_angle - START_Z) / 2)
-
         self.goal_client.send_goal(goal)
-        #wait = self.goal_client.wait_for_result(rospy.Duration.from_sec(5.0))
-        #if not wait:
-        #    rospy.logerr("Action server is not available!")
-        #    #rospy.signal_shutdown("Action server is not available!")
-        #else:
-        #    print self.goal_client.get_result()
 
     def _send_stop_cmd(self):
         if self.previous_goal != None: 
@@ -219,6 +213,7 @@ class MainSolver(object):
         rospy.loginfo("Solver was started!")
         self.hardware_status = True
 
+
 class MazeSolver(object):
     STRUCTURE = np.array([[8, 8, 8, 0, 0, 0, 0, 0, 0, 0],
                           [8, 8, 8, 0, 8, 8, 0, 8, 8, 0],
@@ -233,15 +228,18 @@ class MazeSolver(object):
     EDGE_WALLS = [[MazePoint(6, 9), MazePoint(7, 9)]]
 
     def __init__(self, maze_initial_pose):
+        self.wl_msg = UInt8()
         self.is_wl_appeared = False
+        self.tf_msg = Detections()
         self.tf_color = TFColor.UNKNOWN
-        self.detected_sign_type = SignType.NO_SIGN
+        self.sign_msg = UInt8()
+        self.sign_type = SignType.NO_SIGN
         self.is_recovery_need = False
         self.line_detector = LineDetectorRos(math.pi/32, 10)
 
         MazeSolver.PATH_PUB = rospy.Publisher(PATH_PUB_NAME, Path, queue_size=5)
         rospy.Subscriber(SIGN_SUB_TOPIC, UInt8, self._sign_cb, queue_size=10)
-        rospy.Subscriber(TF_SUB_TOPIC, UInt8, self._tf_cb, queue_size=10)
+        rospy.Subscriber(TF_SUB_TOPIC, Detections, self._tf_cb, queue_size=10)
         rospy.Subscriber(WL_SUB_TOPIC, UInt8, self._wl_cb, queue_size=10)
 
         self.reinit(maze_initial_pose)
@@ -264,9 +262,7 @@ class MazeSolver(object):
         WHITE_LINE_GOAL_POINT = None
         path = self.maze.get_path()
         local = self.maze.get_local_target()
-        goal_point = DEFAULT_GOAL_POINT
         gz_direction = 1.57
-        is_path_updated = False
 
         # Process errors in old path
         if maze_crnt_pose is None:
@@ -279,16 +275,17 @@ class MazeSolver(object):
             return DEFAULT_GOAL_POINT, gz_direction
 
         # Process white line and traffic light
-        self.line_detector.process()
+        self._update_status_of_white_line()
+        self._update_status_of_crnt_tf()
         if self.is_wl_appeared == True:
             if self.tf_color == TFColor.GREEN:
-                rospy.loginfo("TF green color was detected. Way is clear.")
+                rospy.loginfo("There is WL and TF is green: way is clear.")
                 self.is_wl_appeared = False
             elif self.tf_color == TFColor.UNKNOWN:
-                rospy.logwarn("There is no TF signal. Was it white line detection error?")
+                rospy.logwarn("There is WL but TF is unknown: is it error?")
                 self.is_wl_appeared = False
             else:
-                rospy.logdebug("Waiting for TF green color.")
+                rospy.loginfo_throttle(2, "There is WL and TF is red: wait...")
                 return WHITE_LINE_GOAL_POINT, gz_direction
 
         # Update next local target and pub new path if possible
@@ -301,29 +298,60 @@ class MazeSolver(object):
                 rospy.logerr("Path is empty!")
                 self.is_recovery_need = True
                 return DEFAULT_GOAL_POINT, gz_direction
-            is_path_updated = True
         
         # Process signs
-        if self.detected_sign_type != SignType.NO_SIGN:
-            rospy.loginfo("A sign was detected: %s", str(self.detected_sign_type))
-            self.maze.set_limitation(SIGN_TYPE_TO_MAZE[self.detected_sign_type.value])
+        self._update_status_of_crnt_sign()
+        if self.sign_type != SignType.NO_SIGN:
+            rospy.loginfo("A sign was detected: %s", str(self.sign_type))
+            self.maze.set_limitation(SIGN_TYPE_TO_MAZE[self.sign_type.value])
             path = self.maze.get_path()
             if len(path) == 0:
                 rospy.logerr("Path is empty!")
                 self.is_recovery_need = True
                 return DEFAULT_GOAL_POINT, gz_direction
-            is_path_updated = True
-
-        # Display new path
-        if is_path_updated == True:
-            rospy.loginfo("New path was created.")
-            for node in path:
-                rospy.logdebug("- %s", node)
 
         # Return actual goal point
         MazeSolver._pub_path(path)
         goal_point = maze_to_map(path[-1].coord)
         return goal_point, gz_direction
+
+    def _update_status_of_crnt_tf(self):
+        previous_tf_color = self.tf_color
+
+        if len(self.tf_msg.detections) == 0:
+            self.tf_color = TFColor.UNKNOWN
+        elif self.tf_msg.detections[0].object_class == "traffic_light_red":
+            self.tf_color = TFColor.RED
+        elif self.tf_msg.detections[0].object_class == "traffic_light_green":
+            self.tf_color = TFColor.GREEN
+        else:
+            self.tf_color = TFColor.UNKNOWN
+
+        if previous_tf_color != self.tf_color:
+            rospy.loginfo("A TF was status has been changed to %s", str(self.tf_color))
+
+    def _update_status_of_crnt_sign(self):
+        previous_sign_type = self.sign_type
+
+        if self.sign_msg is None:
+            self.sign_type = SignType.UNKNOWN
+        else:
+            self.sign_type = SignType(self.sign_msg.data)
+
+        if previous_sign_type != self.sign_type:
+            rospy.loginfo("A sign status has been changed to %s", str(self.sign_type))
+
+    def _update_status_of_white_line(self):
+        previous_wl_status = self.is_wl_appeared
+
+        if self.wl_msg.data == 1:
+            self.is_wl_appeared = True
+        else:
+            self.is_wl_appeared = False
+
+        if previous_wl_status != self.is_wl_appeared:
+            rospy.loginfo("A white line status has been changed to %d", self.wl_msg.data)
+        self.line_detector.process()
 
     @staticmethod
     def _pub_path(nodes):
@@ -342,19 +370,13 @@ class MazeSolver(object):
         MazeSolver.PATH_PUB.publish(path)
 
     def _sign_cb(self, msg):
-        if self.detected_sign_type != SignType(msg.data):
-            self.detected_sign_type = SignType(msg.data)
-            rospy.loginfo("A sign was detected: %s", str(msg.data))
+        self.sign_msg = msg
 
     def _tf_cb(self, msg):
-        if self.tf_color != TFColor(msg.data):
-            self.tf_color = TFColor(msg.data)
-            rospy.loginfo("A traffic light was detected: %s", str(msg.data))
+        self.tf_msg = msg
 
     def _wl_cb(self, msg):
-        if msg.data == 1 and self.is_wl_appeared != True:
-            self.is_wl_appeared = True
-            rospy.loginfo("A white line was detected: %s", str(msg.data))
+        self.wl_msg = msg
 
 
 class ParkingSolver(object):

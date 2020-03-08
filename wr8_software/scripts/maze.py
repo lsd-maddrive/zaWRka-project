@@ -280,8 +280,8 @@ class Maze:
                         node.map_neighbours[i] = 1
 
                     node.update_state()
-                    print('Value for point: {} / {} / {}'.format(point,
-                                                                 node.map_neighbours, node.is_main()))
+                    #print('Value for point: {} / {} / {}'.format(point,
+                    #                                             node.map_neighbours, node.is_main()))
                     if node.is_main():
                         self.nodes[point] = node
                     else:

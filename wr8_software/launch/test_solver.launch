@@ -9,7 +9,7 @@
     <arg name="x" value="$(arg x)" />
     <arg name="y" value="$(arg y)" />
     <arg name="yaw" value="$(arg yaw)" />
-    <arg name="gz_gui" value="false" />
+    <arg name="gz_gui" value="true" />
     <arg name="enable_stereo" default="true" />
   </include>
 

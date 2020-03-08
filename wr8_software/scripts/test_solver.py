@@ -6,10 +6,16 @@ from time import sleep
 import rospy
 import tf
 from std_msgs.msg import UInt8
+from mad_detector.msg import Detection, Detections
 
 from maze import MazePoint
 from solver import map_to_maze, map_to_gz, TF_SUB_TOPIC, WL_SUB_TOPIC, SIGN_SUB_TOPIC, TFColor, SignType
 
+TF_COLOR_TO_MSG = {
+    TFColor.UNKNOWN : " ",
+    TFColor.GREEN : "traffic_light_green",
+    TFColor.RED : "traffic_light_red",
+    }
 
 def get_cur_maze_pose(pose_listener):
     try:
@@ -64,8 +70,7 @@ class TF(object):
         TF.tf_color = TFColor.RED
         self.color = TF.tf_color
         self._pub_cb()
-        TF.wl_status = 1
-        rospy.Timer(rospy.Duration(time), self._change_tf_and_wl_cb, oneshot=True)
+        rospy.Timer(rospy.Duration(time), self._change_tf_cb, oneshot=True)
 
     def _pub_cb(self, event=None):
         if self.color == TFColor.RED:
@@ -75,9 +80,8 @@ class TF(object):
         else:
             self.pub.publish(0)
 
-    def _change_tf_and_wl_cb(self, event):
+    def _change_tf_cb(self, event):
         TF.tf_color = TFColor.GREEN
-        TF.wl_status = 0
         self.pub.publish(TF.tf_color.value)
         self.color = TF.tf_color
         self._pub_cb()
@@ -98,8 +102,8 @@ class Test(object):
             self.is_it_called_before = True
 
 
-rospy.init_node("test_solver", log_level=rospy.DEBUG)
-tf_pub = rospy.Publisher(TF_SUB_TOPIC, UInt8, queue_size=5)
+rospy.init_node("test_solver", log_level=rospy.INFO)
+tf_pub = rospy.Publisher(TF_SUB_TOPIC, Detections, queue_size=5)
 wl_pub = rospy.Publisher(WL_SUB_TOPIC, UInt8, queue_size=5)
 sign_pub = rospy.Publisher(SIGN_SUB_TOPIC, UInt8, queue_size=5)
 
@@ -129,19 +133,17 @@ if __name__ == "__main__":
         for test in tests:
             test.process(cur_maze_point)
 
-        if TF.previous_wl_status != TF.wl_status:
-            TF.previous_wl_status = TF.wl_status
-            #wl_pub.publish(TF.wl_status)
-            rospy.logdebug("White line set to %d", TF.wl_status)
-
         if TF.previous_tf_color != TF.tf_color:
             TF.previous_tf_color = TF.tf_color
-            tf_pub.publish(TF.tf_color.value)
-            rospy.logdebug("TF set to %s", str(TF.tf_color))
+            msg = Detections()
+            msg.detections.append(Detection())
+            msg.detections[0].object_class = TF_COLOR_TO_MSG[TF.tf_color]
+            tf_pub.publish(msg)
+            rospy.loginfo("Test: TF has been set to %s", str(TF.tf_color))
             
         if Sign.previous_sign_type != Sign.sign_type:
             Sign.previous_sign_type = Sign.sign_type
             sign_pub.publish(Sign.sign_type.value)
-            rospy.logdebug("Sign set to %s", str(Sign.sign_type))
+            rospy.loginfo("Test: Sign has been set to %s", str(Sign.sign_type))
 
         rospy.sleep(0.5)
