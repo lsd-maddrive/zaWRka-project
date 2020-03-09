@@ -5,25 +5,37 @@ import cv2
 import numpy as np
 
 
-class LineDetector(object):    
-    def __init__(self, __angle_threshold = math.pi/8, __similarity_threshold = 25):
+class LineDetector(object):
+    IMG_TOP = 0.618
+    IMG_BOT = 1
+    def __init__(self, __angle_threshold = math.pi/8,\
+                 __similarity_threshold = 25, __draw_lines = False):
         self.__angle_threshold = __angle_threshold
         self.__similarity_threshold = __similarity_threshold
+        self.__draw_lines = __draw_lines
 
-    def process(self, image):
-        frame = image[len(image) * 5 / 8 : len(image)]
+
+    def process(self, img):
+        """
+        Return lines and image with lines
+        """
+        frame = img[int(LineDetector.IMG_TOP * len(img)) : int(LineDetector.IMG_BOT * len(img))]
         frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        # cv2.imshow('image', frame_gray)
         frame_bin = cv2.adaptiveThreshold(frame_gray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,11,4)
         kernel = np.ones((2,2),np.uint8)
         frame_erode = cv2.erode(frame_bin,kernel)
         frame_edges = cv2.Canny(frame_erode, threshold1=50, threshold2=150, apertureSize=3, L2gradient=False)
-        lines_gray= np.copy(frame)
+        #       cv2.HoughLines(image, rho, theta, threshold[, lines[, srn[, stn]]]) 
         lines = cv2.HoughLines(frame_edges, 1, np.pi / 180, 150, None, 0, 0)
+        added_lines = []
+
+        # cv2.imshow('img', frame_gray)
         # cv2.imshow('bin', frame_bin)
         # cv2.imshow('erode', frame_erode)
         # cv2.imshow('Canny', frame_edges)
-        added_lines = []
+
+        lines_gray = np.copy(frame) if self.__draw_lines == True else None
+
         if lines is not None:
             for i in range(0, len(lines)):
                 rho = lines[i][0][0]
@@ -39,17 +51,19 @@ class LineDetector(object):
                 if continue_outer_loop:
                     continue
 
-                a = math.cos(theta)
-                b = math.sin(theta)
-                x0 = a * rho
-                y0 = b * rho
-                pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
-                pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
-                cv2.line(lines_gray, pt1, pt2, (0,0,255), 3, cv2.LINE_AA)
                 added_lines.append((rho, theta))
 
-        cv2.imshow('Lines', lines_gray)
-        return len(added_lines) >= 2, lines_gray
+                if lines_gray != None:
+                    a = math.cos(theta)
+                    b = math.sin(theta)
+                    x0 = a * rho
+                    y0 = b * rho
+                    pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
+                    pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
+                    cv2.line(lines_gray, pt1, pt2, (0,0,255), 3, cv2.LINE_AA)
+
+        #cv2.imshow('Lines', lines_gray)
+        return added_lines, lines_gray
 
 
 if __name__ == "__main__":
@@ -62,8 +76,3 @@ if __name__ == "__main__":
 
         if k == 27:
             break
-    # WAITING_PERIOD = 1
-    # while not rospy.is_shutdown():
-    #     result = line_detector.process("some_image")
-    #     print "result is ", result
-    #     time.sleep(WAITING_PERIOD)
