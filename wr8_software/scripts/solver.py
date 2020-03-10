@@ -235,7 +235,7 @@ class MazeSolver(object):
         self.sign_msg = UInt8()
         self.sign_type = SignType.NO_SIGN
         self.is_recovery_need = False
-        self.line_detector = LineDetectorRos(math.pi/32, 10)
+        self.line_detector = LineDetectorRos(math.pi*7/16, math.pi*9/16, 10, "stereo_camera_converted/left/image_raw", "img_from_core")
 
         MazeSolver.PATH_PUB = rospy.Publisher(PATH_PUB_NAME, Path, queue_size=5)
         rospy.Subscriber(SIGN_SUB_TOPIC, UInt8, self._sign_cb, queue_size=10)
@@ -344,14 +344,12 @@ class MazeSolver(object):
     def _update_status_of_white_line(self):
         previous_wl_status = self.is_wl_appeared
 
-        if self.wl_msg.data == 1:
-            self.is_wl_appeared = True
-        else:
-            self.is_wl_appeared = False
+        result = self.line_detector.process()
+        if result is not None:
+            self.is_wl_appeared = True if len(result) >= 2 else False
 
         if previous_wl_status != self.is_wl_appeared:
             rospy.loginfo("A white line status has been changed to %d", self.wl_msg.data)
-        self.line_detector.process()
 
     @staticmethod
     def _pub_path(nodes):
