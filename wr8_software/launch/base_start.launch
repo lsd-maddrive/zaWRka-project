@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-   
+
     <arg name="lidar" default="false" />
     <arg name="camera_s" default="false" />
     <arg name="camera_r" default="false" />
@@ -26,7 +26,7 @@
         <arg name="device" value="/dev/top_camera" />
         <arg name="frame_id" value="signs_camera" />
     </include>
-    
+
     <include if="$(arg stereo_r)" file="$(find wr8_software)/launch/base/stereo_camera.launch">
         <arg name="device" value="/dev/elp_stereo" />
     </include>
@@ -35,11 +35,11 @@
     </include>
 
     <include if="$(arg detector)" file="$(find mad_detector)/launch/start.launch">
-        <arg name="input" default="signs_camera/image_raw" />
-        <arg name="compressed" default="true" />
-        <arg name="save_folder" default="" />
-        <arg name="gui_enabled" default="false" />
+        <arg name="input" value="signs_camera/image_raw" />
+        <arg name="compressed" value="true" />
+        <arg name="processing_rate" value="5" />
     </include>
 
-    <node if="$(arg bag_record)" pkg="rosbag" type="record" name="rosbag_record" args="-o $(env HOME)/bags/main /signs_camera/image_raw/compressed /road_camera/image_raw/compressed /tf /cmd_vel /odom_pose /state /scan /diagnostics /rosout"/>   
+    <!-- TODO - fix this for recording -->
+    <node if="$(arg bag_record)" pkg="rosbag" type="record" name="rosbag_record" args="-o $(env HOME)/bags/main /signs_camera/image_raw/compressed /road_camera/image_raw/compressed /tf /cmd_vel /odom_pose /state /scan /diagnostics /rosout"/>
 </launch>

@@ -41,3 +41,5 @@ git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone htt
 git -C elp_stereo_camera pull					|| git clone https://github.com/KaiL4eK/elp_stereo_camera.git
 git -C mad_detector pull						|| git clone https://github.com/KaiL4eK/mad_detector.git
 
+# Install models in local folder
+cd mad_detector && ./get_models.sh
