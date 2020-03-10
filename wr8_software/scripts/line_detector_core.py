@@ -8,9 +8,10 @@ import numpy as np
 class LineDetector(object):
     IMG_TOP = 0.618
     IMG_BOT = 1
-    def __init__(self, __angle_threshold = math.pi/8,\
+    def __init__(self, __min_theta = math.pi*3/8, __max_theta = math.pi*5/8,\
                  __similarity_threshold = 25, __draw_lines = False):
-        self.__angle_threshold = __angle_threshold
+        self.min_theta = __min_theta
+        self.max_theta = __max_theta
         self.__similarity_threshold = __similarity_threshold
         self.__draw_lines = __draw_lines
 
@@ -25,23 +26,20 @@ class LineDetector(object):
         kernel = np.ones((2,2),np.uint8)
         frame_erode = cv2.erode(frame_bin,kernel)
         frame_edges = cv2.Canny(frame_erode, threshold1=50, threshold2=150, apertureSize=3, L2gradient=False)
-        #       cv2.HoughLines(image, rho, theta, threshold[, lines[, srn[, stn]]]) 
-        lines = cv2.HoughLines(frame_edges, 1, np.pi / 180, 150, None, 0, 0)
+        lines = cv2.HoughLines(frame_edges, 1, np.pi / 180, 150, None, 0, 0, self.min_theta, self.max_theta)
+
         added_lines = []
 
-        # cv2.imshow('img', frame_gray)
-        # cv2.imshow('bin', frame_bin)
-        # cv2.imshow('erode', frame_erode)
-        # cv2.imshow('Canny', frame_edges)
+        #cv2.imshow('img', frame_gray)
+        #cv2.imshow('bin', frame_bin)
+        #cv2.imshow('erode', frame_erode)
+        #cv2.imshow('Canny', frame_edges)
 
         lines_gray = np.copy(frame) if self.__draw_lines == True else None
-
         if lines is not None:
             for i in range(0, len(lines)):
                 rho = lines[i][0][0]
                 theta = lines[i][0][1]
-                if abs(theta - math.pi / 2) > self.__angle_threshold:
-                    continue
 
                 continue_outer_loop = False
                 for (rho1, theta1) in added_lines:
@@ -53,7 +51,7 @@ class LineDetector(object):
 
                 added_lines.append((rho, theta))
 
-                if lines_gray != None:
+                if lines_gray is not None:
                     a = math.cos(theta)
                     b = math.sin(theta)
                     x0 = a * rho
@@ -67,7 +65,7 @@ class LineDetector(object):
 
 
 if __name__ == "__main__":
-    line_detector = LineDetector()
+    line_detector = LineDetector(math.pi*3/8, math.pi*5/8, 25, True)
     cap = cv2.VideoCapture(0)
     while(1):
         _, frame = cap.read()

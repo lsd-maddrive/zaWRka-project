@@ -8,8 +8,8 @@ from cv_bridge import CvBridge, CvBridgeError
 from line_detector_core import LineDetector
 
 class LineDetectorRos(object):
-    def __init__(self, angle_threshold, similarity_threshold, img_sub_topic, img_pub_topic = None):
-        self.detector = LineDetector(angle_threshold, similarity_threshold)
+    def __init__(self, min_theta, max_theta, similarity_threshold, img_sub_topic, img_pub_topic = None):
+        self.detector = LineDetector(min_theta, max_theta, similarity_threshold, img_pub_topic is not None)
         self.bridge = CvBridge()
         self.msg = None
 
@@ -31,7 +31,6 @@ class LineDetectorRos(object):
                 self.img_pub.publish(img_to_ros)
         except CvBridgeError as e:
             rospy.logerr(e)
-
         return added_lines
 
     def _image_cb(self, msg):
@@ -46,7 +45,7 @@ if __name__ == "__main__":
     STATUS_PUB_TOPIC = "wl_status"
 
     rospy.init_node(NODE_NAME, log_level=rospy.DEBUG)
-    line_detector = LineDetectorRos(math.pi/32, 10, IMG_SUB_TOPIC, IMG_PUB_TOPIC)
+    line_detector = LineDetectorRos(math.pi*7/16, math.pi*9/16, 10, IMG_SUB_TOPIC, IMG_PUB_TOPIC)
 
     status_pub = rospy.Publisher(STATUS_PUB_TOPIC, UInt8, queue_size=5)
 
