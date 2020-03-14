@@ -9,10 +9,10 @@ OBJECT_SPAWN_Z = OBJECT_HEIGHT / 2
 WALL_WIDTH = float(0.01)
 
 ORIENTATIONS_2_YAW_ANGLE = {
-    objects.CellQuarter.LEFT_BOT: 0,
-    objects.CellQuarter.RIGHT_BOT: m.pi/2,
-    objects.CellQuarter.LEFT_TOP: m.pi*3/2,
-    objects.CellQuarter.RIGHT_TOP: m.pi,
+    objects.CellQuarter.LEFT_BOT: m.pi / 2,
+    objects.CellQuarter.RIGHT_BOT: m.pi,
+    objects.CellQuarter.LEFT_TOP: m.pi * 2,
+    objects.CellQuarter.RIGHT_TOP: m.pi * 3 / 2,
 }
 
 
@@ -180,13 +180,13 @@ class GazeboTrafficLight(GazeboObject):
 
         # Shift relative to real position
         if self.base.orient == objects.CellQuarter.RIGHT_TOP:
-            pos += ds.Point2D(0.75, 0)
-        elif self.base.orient == objects.CellQuarter.RIGHT_BOT:
-            pos += ds.Point2D(0, 0.75)
-        elif self.base.orient == objects.CellQuarter.LEFT_BOT:
-            pos += ds.Point2D(-0.75, 0)
-        elif self.base.orient == objects.CellQuarter.LEFT_TOP:
             pos += ds.Point2D(0, -0.75)
+        elif self.base.orient == objects.CellQuarter.RIGHT_BOT:
+            pos += ds.Point2D(0.75, 0)
+        elif self.base.orient == objects.CellQuarter.LEFT_BOT:
+            pos += ds.Point2D(0, 0.75)
+        elif self.base.orient == objects.CellQuarter.LEFT_TOP:
+            pos += ds.Point2D(-0.75, 0)
 
         self._swap_axes(pos)
         self._turn_to_physical(pos)

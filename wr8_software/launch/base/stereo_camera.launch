@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-	<arg name="video_device" default="/dev/elp_stereo" />
+	<arg name="device" default="/dev/elp_stereo" />
 
     <arg name="pi/2" value="1.5707963267948966" />
 
@@ -13,12 +13,18 @@
     <include file="$(find elp_stereo_camera)/launch/camera_driver_elp.launch">
         <arg name="camera_name" value="stereo_camera" />
         <arg name="tf_frame_name" value="stereo_camera_optical_frame" />
-        <arg name="video_device" value="$(arg video_device)" />
+        <arg name="video_device" value="$(arg device)" />
         <arg name="calib_data_path" value="$(find wr8_software)/calib/elp_stereo" />
         <arg name="camera_info" value="true" />
     </include>
 
-    <node ns="stereo_camera" pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen">
+    <node name="frequency_converter_stereo" pkg="frequency_converter" type="frequency_converter_node" output="screen">
+      <param name="frequency" value="10"/>
+      <param name="in_stereo_ns" value="stereo_camera"/>
+      <param name="out_stereo_ns" value="stereo_camera_converted"/>
+    </node>
+
+    <node ns="stereo_camera_converted" pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen">
         <!-- Modified defaults -->
         <param name="speckle_range" value="4" />
         <param name="min_disparity" value="-24" />
@@ -28,8 +34,7 @@
 
     <!-- Included to have same parameters as set for driver -->
     <include file="$(find wr8_software)/launch/base/stereo_2_laserscan.launch">
-        <arg name="stereo_cloud" value="stereo_camera/points2" />
+        <arg name="stereo_cloud" value="stereo_camera_converted/points2" />
         <arg name="target_frame" value="stereo_camera_link" />
     </include>
-
 </launch>

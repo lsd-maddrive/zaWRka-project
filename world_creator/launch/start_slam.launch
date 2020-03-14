@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <launch>
   <include file="$(find wr8_software)/launch/gazebo/gz_slam.launch">
-    <env name="GAZEBO_MODEL_PATH" value="$(find world_creator)/models" />
 
     <arg name="world_name" value="maze2020v1.world" />
     <arg name="x" value="2" />
     <arg name="y" value="2" />
-    <arg name="gz_gui" value="true" />
+    <arg name="gz_gui" value="false" />
+    <arg name="enable_stereo" default="true" />
   </include>
 </launch>

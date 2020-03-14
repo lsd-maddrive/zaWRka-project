@@ -25,7 +25,7 @@
 
   <group if="$(arg enable_stereo)">
     <include file="$(find wr8_software)/launch/base/stereo_2_laserscan.launch">
-      <arg name="stereo_cloud" value="stereo_camera/points2" />
+      <arg name="stereo_cloud" value="stereo_camera_converted/points2" />
       <arg name="target_frame" value="stereo_camera_optical_frame" />
     </include>
   </group>

@@ -3,7 +3,7 @@
 <launch>
   <arg name="x" default="0" />
   <arg name="y" default="0" />
-  <arg name="initial_pose" default="-x $(arg x) -y $(arg y) -z 0.5 -R 0 -P 0 -Y 1.57" />
+  <arg name="initial_pose" default="-x $(arg x) -y $(arg y) -z 0.025 -R 0 -P 0 -Y 1.57" />
   <arg name="world_name" default="RFMaze.v2.world" />
   <arg name="gz_gui" default="false" />
   <arg name="urdf_file" default="$(find wr8_description)/urdf/model.urdf.xacro" />
@@ -21,7 +21,7 @@
     <remap from="joint_states" to="car/joint_states" />
   </node>
 
-  <env name="GAZEBO_MODEL_PATH" value="$(find wr8_description)/worlds" />
+  <env name="GAZEBO_MODEL_PATH" value="$(find wr8_description)/worlds:$(find world_creator)/models" />
 
   <!-- Run gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -34,9 +34,13 @@
 
   <!-- Processing of stereo vision -->
   <group if="$(arg enable_stereo)">
-	<node ns="stereo_camera" pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen">
+    <node name="frequency_converter" pkg="frequency_converter" type="frequency_converter_node" output="screen">
+      <param name="frequency" value="5"/>
+      <param name="in_stereo_ns" value="stereo_camera"/>
+      <param name="out_stereo_ns" value="stereo_camera_converted"/>
+    </node>
+	  <node ns="stereo_camera_converted" pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen">
     </node>
   </group>
-
 
 </launch>
