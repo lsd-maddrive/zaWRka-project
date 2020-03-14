@@ -133,6 +133,7 @@ class MainSolver(object):
         if state == State.MAZE_PROCESS or state == State.MAZE_WAIT_TL or \
            state == State.MAZE_WAIT_SIGNS or state == State.MAZE_TARGET_REACHED:
             self.parking.stop_work()
+            self.maze.start_async_processing()
             if self.maze.is_recovery_need == True:
                 self.maze.reinit(maze_crnt_pose)
                 self.maze.is_recovery_need = False
@@ -141,9 +142,11 @@ class MainSolver(object):
                 state = State.MAZE_WAIT_TL
         elif state == State.SPEED_PROCESS or state == State.SPEED_REACHED:
             self.parking.stop_work()
+            self.maze.stop_async_processing()
             goal_point, gz_direction = process_speed()
         elif state == State.PARKING_PROCESS or state == State.PARKING_REACHED:
             self.parking.start_work()
+            self.maze.stop_async_processing()
             goal_point, gz_direction = self.parking.process()
 
         if goal_point is None:
@@ -252,6 +255,12 @@ class MazeSolver(object):
         self.maze.set_target(MazePoint(MAZE_TARGET_X, MAZE_TARGET_Y))
         self.maze.set_state(PointDir(maze_initial_pose.x, maze_initial_pose.y, 'L'))
 
+    def start_async_processing(self):
+        self.line_detector.enable()
+
+    def stop_async_processing(self):
+        self.line_detector.disable()
+
     def process(self, maze_crnt_pose):
         """ Calcaulate goal_point (in map format) and update path if necessary
         - if success: return actual goal point and pub path
@@ -344,7 +353,7 @@ class MazeSolver(object):
     def _update_status_of_white_line(self):
         previous_wl_status = self.is_wl_appeared
 
-        result = self.line_detector.process()
+        result = self.line_detector.get_lines()
         if result is not None:
             self.is_wl_appeared = True if len(result) >= 2 else False
 
