@@ -35,14 +35,11 @@ sudo apt install ros-$ROS_DISTRO-base-local-planner \
 
 sudo apt remove ros-$ROS_DISTRO-key-teleop
 
-git -C teleop_tools pull  || git clone https://github.com/KaiL4eK/teleop_tools.git
-git -C madproto pull  || git clone https://github.com/KaiL4eK/madproto.git
+git -C teleop_tools pull  						|| git clone https://github.com/KaiL4eK/teleop_tools.git
+git -C madproto pull  							|| git clone https://github.com/KaiL4eK/madproto.git
 git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
 git -C elp_stereo_camera pull					|| git clone https://github.com/KaiL4eK/elp_stereo_camera.git
+git -C mad_detector pull						|| git clone https://github.com/KaiL4eK/mad_detector.git
 
-echo "Installing device rules"
-echo  'KERNEL=="ttyUSB*", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", MODE:="0666", GROUP:="dialout",  SYMLINK+="ydlidar"' >/etc/udev/rules.d/ydlidar.rules
-
-service udev reload
-sleep 2
-service udev restart
+# Install models in local folder
+cd mad_detector && ./get_models.sh
