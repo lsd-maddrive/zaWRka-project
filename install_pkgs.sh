@@ -6,6 +6,12 @@ if [ "$CALL_DIR" != "." ]; then
 	exit 1
 fi
 
+if [ -z "$ROS_DISTRO" ]
+then
+	echo "ROS_DISTRO is not set!"
+	exit 1
+fi
+
 sudo apt install ros-$ROS_DISTRO-base-local-planner \
 					ros-$ROS_DISTRO-gazebo-ros-control \
 					ros-$ROS_DISTRO-costmap-converter \
