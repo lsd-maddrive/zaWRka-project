@@ -6,6 +6,12 @@ if [ "$CALL_DIR" != "." ]; then
 	exit 1
 fi
 
+if [ -z "$ROS_DISTRO" ]
+then
+	echo "ROS_DISTRO is not set!"
+	exit 1
+fi
+
 sudo apt install ros-$ROS_DISTRO-base-local-planner \
 					ros-$ROS_DISTRO-gazebo-ros-control \
 					ros-$ROS_DISTRO-costmap-converter \
@@ -39,7 +45,3 @@ git -C teleop_tools pull  						|| git clone https://github.com/KaiL4eK/teleop_t
 git -C madproto pull  							|| git clone https://github.com/KaiL4eK/madproto.git
 git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
 git -C elp_stereo_camera pull					|| git clone https://github.com/KaiL4eK/elp_stereo_camera.git
-git -C mad_detector pull						|| git clone https://github.com/KaiL4eK/mad_detector.git
-
-# Install models in local folder
-cd mad_detector && ./get_models.sh
