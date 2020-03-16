@@ -9,13 +9,14 @@ from std_msgs.msg import UInt8
 from mad_detector.msg import Detection, Detections
 
 from maze import MazePoint
-from solver import map_to_maze, map_to_gz, TF_SUB_TOPIC, WL_SUB_TOPIC, SIGN_SUB_TOPIC, TFColor, SignType
+from solver import map_to_maze, map_to_gz, TL_SUB_TOPIC, WL_SUB_TOPIC, SIGN_SUB_TOPIC, TLColor, SignType
 
-TF_COLOR_TO_MSG = {
-    TFColor.UNKNOWN : " ",
-    TFColor.GREEN : "traffic_light_green",
-    TFColor.RED : "traffic_light_red",
+TL_COLOR_TO_MSG = {
+    TLColor.UNKNOWN : " ",
+    TLColor.GREEN : "traffic_light_green",
+    TLColor.RED : "traffic_light_red",
     }
+
 
 def get_cur_maze_pose(pose_listener):
     try:
@@ -25,125 +26,141 @@ def get_cur_maze_pose(pose_listener):
         point = None
     return point
 
-class Sign(object):
-    previous_sign_type = SignType.NO_SIGN
+
+class RoadState(object):
+    """
+    Singleton of test state
+    """
     sign_type = SignType.NO_SIGN
-    def __init__(self):
-        Sign.sign_type = SignType.NO_SIGN
+    prev_sign_type = SignType.NO_SIGN
 
-class SignStop(Sign):
-    def do(self):
-        Sign.sign_type = SignType.STOP
+    tl_color = TLColor.UNKNOWN
+    prev_tl_color = TLColor.UNKNOWN
 
-class SignForward(Sign):
-    def do(self):
-        Sign.sign_type = SignType.ONLY_FORWARD
+    @staticmethod
+    def set_sign_type(sign_type):
+        RoadState.sign_type = sign_type
+    @staticmethod
+    def get_sign_type():
+        return RoadState.sign_type
+    @staticmethod
+    def is_sign_changed():
+        return RoadState.sign_type == RoadState.prev_sign_type
+    @staticmethod
+    def update_prev_sign_type():
+        RoadState.prev_sign_type = RoadState.sign_type
 
-class SignRight(Sign):
-    def do(self):
-        Sign.sign_type = SignType.ONLY_RIGHT
-
-class SignLeft(Sign):
-    def do(self):
-        Sign.sign_type = SignType.ONLY_LEFT
-
-class SignForwardOrRight(Sign):
-    def do(self):
-        Sign.sign_type = SignType.FORWARD_OR_RIGHT
-
-class SignForwardOrLeft(Sign):
-    def do(self):
-        Sign.sign_type = SignType.FORWARD_OR_LEFT
-
-class TF(object):
-    tf_color = TFColor.UNKNOWN
-    wl_status = 0
-    previous_tf_color = TFColor.UNKNOWN
-    previous_wl_status = 0
-
-    def __init__(self, tf_topic_name):
-        self.pub = rospy.Publisher(tf_topic_name, UInt8, queue_size=10)
-        self.color = TFColor.RED
-        rospy.Timer(rospy.Duration(5), self._pub_cb, oneshot=True)
-
-    def do(self, time = 7.5):
-        TF.tf_color = TFColor.RED
-        self.color = TF.tf_color
-        self._pub_cb()
-        rospy.Timer(rospy.Duration(time), self._change_tf_cb, oneshot=True)
-
-    def _pub_cb(self, event=None):
-        if self.color == TFColor.RED:
-            self.pub.publish(1)
-        elif self.color == TFColor.GREEN:
-            self.pub.publish(2)
-        else:
-            self.pub.publish(0)
-
-    def _change_tf_cb(self, event):
-        TF.tf_color = TFColor.GREEN
-        self.pub.publish(TF.tf_color.value)
-        self.color = TF.tf_color
-        self._pub_cb()
+    @staticmethod
+    def set_tl_type(tl_color):
+        RoadState.tl_color = tl_color
+    @staticmethod
+    def get_tl_type():
+        return RoadState.tl_color
+    @staticmethod
+    def get_tl_type_string():
+        return TL_COLOR_TO_MSG[RoadState.tl_color]
+    @staticmethod
+    def is_tl_changed():
+        return RoadState.tl_color == RoadState.prev_tl_color
+    @staticmethod
+    def update_prev_tl_type():
+        RoadState.prev_tl_color = RoadState.tl_color
 
 
-class Test(object):
-    def __init__(self, point, obj):
-        self.point = point
-        self.is_it_called_before = False
-        #self.is_it_missed_before = False
-        self.obj = obj
+class AbstractRoadObject(object):
+    def __init__(self, _obj_point):
+        self._obj_point = _obj_point
+        self._is_it_called_before = False
 
     def process(self, cur_maze_pose):
         if cur_maze_pose is None:
             return
-        if self.point == cur_maze_pose and self.is_it_called_before == False:
-            self.obj.do()
-            self.is_it_called_before = True
+        if self._obj_point == cur_maze_pose and self._is_it_called_before == False:
+            self.do()
+            self._is_it_called_before = True
+
+    def do(self):
+        pass
+
+
+class Sign(AbstractRoadObject):
+    def __init__(self, obj_point, sign_type):
+        AbstractRoadObject.__init__(self, obj_point)
+        self.SIGN_TYPE = sign_type
+    def do(self):
+        RoadState.set_sign_type(self.SIGN_TYPE)
+
+
+class TL(AbstractRoadObject):
+    def __init__(self, obj_point, tl_topic_name):
+        AbstractRoadObject.__init__(self, obj_point)
+        self.pub = rospy.Publisher(tl_topic_name, UInt8, queue_size=10)
+        self.color = TLColor.RED
+        rospy.Timer(rospy.Duration(5), self._pub_cb, oneshot=True)
+
+    def do(self, time = 7.5):
+        RoadState.set_tl_type(TLColor.RED)
+        self.color = RoadState.get_tl_type()
+        self._pub_cb()
+        rospy.Timer(rospy.Duration(time), self._change_tl_cb, oneshot=True)
+
+    def _pub_cb(self, event=None):
+        if self.color == TLColor.RED:
+            self.pub.publish(1)
+        elif self.color == TLColor.GREEN:
+            self.pub.publish(2)
+        else:
+            self.pub.publish(0)
+
+    def _change_tl_cb(self, event):
+        RoadState.set_tl_type(TLColor.GREEN)
+        self.pub.publish(RoadState.get_tl_type().value)
+        self.color = RoadState.get_tl_type()
+        self._pub_cb()
 
 
 rospy.init_node("test_solver", log_level=rospy.INFO)
-tf_pub = rospy.Publisher(TF_SUB_TOPIC, Detections, queue_size=5)
+tl_pub = rospy.Publisher(TL_SUB_TOPIC, Detections, queue_size=5)
 wl_pub = rospy.Publisher(WL_SUB_TOPIC, UInt8, queue_size=5)
 sign_pub = rospy.Publisher(SIGN_SUB_TOPIC, UInt8, queue_size=5)
+
 
 if __name__ == "__main__":
     sleep(1)
     pose_listener = tf.TransformListener()
     sleep(1)
-    tests = list()
-    tests.append(Test(MazePoint(9, 8), TF('traffic_light_0_topic')))
-    tests.append(Test(MazePoint(9, 7), SignStop()))
-    tests.append(Test(MazePoint(7, 7), SignRight()))
-    tests.append(Test(MazePoint(3, 8), SignForwardOrRight()))
-    tests.append(Test(MazePoint(3, 5), SignStop()))
-    tests.append(Test(MazePoint(5, 4), SignForward()))
-    tests.append(Test(MazePoint(8, 4), SignRight()))
-    tests.append(Test(MazePoint(9, 3), SignForwardOrLeft()))
-    tests.append(Test(MazePoint(9, 1), TF('traffic_light_1_topic')))
-    tests.append(Test(MazePoint(5, 0), TF('traffic_light_2_topic')))
-    tests.append(Test(MazePoint(4, 0), TF('traffic_light_3_topic')))
-    tests.append(Test(MazePoint(5, 2), TF('traffic_light_4_topic')))
-    tests.append(Test(MazePoint(4, 2), TF('traffic_light_5_topic')))
+    road_objects = list((TL(MazePoint(9, 8), 'traffic_light_0_topic'),
+                        Sign(MazePoint(9, 7), SignType.BRICK),
+                        Sign(MazePoint(7, 7), SignType.ONLY_RIGHT),
+                        Sign(MazePoint(3, 8), SignType.FORWARD_OR_RIGHT),
+                        Sign(MazePoint(3, 5), SignType.BRICK),
+                        Sign(MazePoint(5, 4), SignType.ONLY_FORWARD),
+                        Sign(MazePoint(8, 4), SignType.ONLY_RIGHT),
+                        Sign(MazePoint(9, 3), SignType.FORWARD_OR_LEFT),
+                        TL(MazePoint(9, 1), 'traffic_light_1_topic'),
+                        TL(MazePoint(5, 0), 'traffic_light_2_topic'),
+                        TL(MazePoint(4, 0), 'traffic_light_3_topic'),
+                        TL(MazePoint(5, 2), 'traffic_light_4_topic'),
+                        TL(MazePoint(4, 2), 'traffic_light_5_topic')))
 
     while not rospy.is_shutdown():
         cur_maze_point = get_cur_maze_pose(pose_listener)
-        Sign.sign_type = SignType.NO_SIGN
+        RoadState.set_sign_type(SignType.NO_SIGN)
         
-        for test in tests:
-            test.process(cur_maze_point)
+        for road_obj in road_objects:
+            road_obj.process(cur_maze_point)
 
-        if TF.previous_tf_color != TF.tf_color:
-            TF.previous_tf_color = TF.tf_color
+        if not RoadState.is_tl_changed():
+            RoadState.update_prev_tl_type()
             msg = Detections()
             msg.detections.append(Detection())
-            msg.detections[0].object_class = TF_COLOR_TO_MSG[TF.tf_color]
-            tf_pub.publish(msg)
-            rospy.loginfo("Test: TF has been set to %s", str(TF.tf_color))
+            msg.detections[0].object_class = RoadState.get_tl_type_string()
+            tl_pub.publish(msg)
+            rospy.loginfo("Test: TL has been set to %s", RoadState.get_tl_type())
             
-        if Sign.previous_sign_type != Sign.sign_type:
-            Sign.previous_sign_type = Sign.sign_type
-            sign_pub.publish(Sign.sign_type.value)
-            rospy.loginfo("Test: Sign has been set to %s", str(Sign.sign_type))
+        if not RoadState.is_sign_changed():
+            RoadState.update_prev_sign_type()
+            sign_pub.publish(RoadState.get_sign_type().value)
+            rospy.loginfo("Test: Sign has been set to %s", RoadState.get_sign_type())
 
         rospy.sleep(0.5)

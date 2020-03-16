@@ -72,14 +72,14 @@ class State(Enum):
     PARKING_PROCESS = 7
     PARKING_REACHED = 8
 
-class TFColor(Enum):
+class TLColor(Enum):
     UNKNOWN = 0
     GREEN = 1
     RED = 2
 
 class SignType(Enum):
     NO_SIGN = 0
-    STOP = 1
+    BRICK = 1
     ONLY_FORWARD = 2
     ONLY_RIGHT = 3
     ONLY_LEFT = 4
@@ -95,11 +95,11 @@ SIGN_TYPE_TO_MAZE = tuple(([0, 0, 0], [0, 1, 0], [1, 0, 1], [0, 1, 1],
 NODE_NAME = "solver_node"
 HW_SUB_TOPIC = "hardware_status"
 SIGN_SUB_TOPIC = "detected_sign_type"
-TF_SUB_TOPIC = "tf_status"
+TL_SUB_TOPIC = "tl_status"
 WL_SUB_TOPIC = "wl_status"
+PATH_PUB_TOPIC = "path"
 
 FRAME_ID = "map"
-PATH_PUB_NAME = "path"
 
 POLY_PUB_TOPIC = "parking_polygones"
 RVIZ_PUB_TOPIC = "parking_polygones_visualization_"
@@ -233,16 +233,16 @@ class MazeSolver(object):
     def __init__(self, maze_initial_pose):
         self.wl_msg = UInt8()
         self.is_wl_appeared = False
-        self.tf_msg = Detections()
-        self.tf_color = TFColor.UNKNOWN
+        self.tl_msg = Detections()
+        self.tl_color = TLColor.UNKNOWN
         self.sign_msg = UInt8()
         self.sign_type = SignType.NO_SIGN
         self.is_recovery_need = False
         self.line_detector = LineDetectorRos(math.pi*7/16, math.pi*9/16, 10, "stereo_camera_converted/left/image_raw", "img_from_core")
 
-        MazeSolver.PATH_PUB = rospy.Publisher(PATH_PUB_NAME, Path, queue_size=5)
+        self.PATH_PUB = rospy.Publisher(PATH_PUB_TOPIC, Path, queue_size=5)
         rospy.Subscriber(SIGN_SUB_TOPIC, UInt8, self._sign_cb, queue_size=10)
-        rospy.Subscriber(TF_SUB_TOPIC, Detections, self._tf_cb, queue_size=10)
+        rospy.Subscriber(TL_SUB_TOPIC, Detections, self._tl_cb, queue_size=10)
         rospy.Subscriber(WL_SUB_TOPIC, UInt8, self._wl_cb, queue_size=10)
 
         self.reinit(maze_initial_pose)
@@ -285,16 +285,16 @@ class MazeSolver(object):
 
         # Process white line and traffic light
         self._update_status_of_white_line()
-        self._update_status_of_crnt_tf()
+        self._update_status_of_crnt_tl()
         if self.is_wl_appeared == True:
-            if self.tf_color == TFColor.GREEN:
-                rospy.loginfo("There is WL and TF is green: way is clear.")
+            if self.tl_color == TLColor.GREEN:
+                rospy.loginfo("There is WL and TL is green: way is clear.")
                 self.is_wl_appeared = False
-            elif self.tf_color == TFColor.UNKNOWN:
-                rospy.logwarn("There is WL but TF is unknown: is it error?")
+            elif self.tl_color == TLColor.UNKNOWN:
+                rospy.logwarn("There is WL but TL is unknown: is it error?")
                 self.is_wl_appeared = False
             else:
-                rospy.loginfo_throttle(2, "There is WL and TF is red: wait...")
+                rospy.loginfo_throttle(2, "There is WL and TL is red: wait...")
                 return WHITE_LINE_GOAL_POINT, gz_direction
 
         # Update next local target and pub new path if possible
@@ -320,24 +320,24 @@ class MazeSolver(object):
                 return DEFAULT_GOAL_POINT, gz_direction
 
         # Return actual goal point
-        MazeSolver._pub_path(path)
+        self._pub_path(path)
         goal_point = maze_to_map(path[-1].coord)
         return goal_point, gz_direction
 
-    def _update_status_of_crnt_tf(self):
-        previous_tf_color = self.tf_color
+    def _update_status_of_crnt_tl(self):
+        previous_tl_color = self.tl_color
 
-        if len(self.tf_msg.detections) == 0:
-            self.tf_color = TFColor.UNKNOWN
-        elif self.tf_msg.detections[0].object_class == "traffic_light_red":
-            self.tf_color = TFColor.RED
-        elif self.tf_msg.detections[0].object_class == "traffic_light_green":
-            self.tf_color = TFColor.GREEN
+        if len(self.tl_msg.detections) == 0:
+            self.tl_color = TLColor.UNKNOWN
+        elif self.tl_msg.detections[0].object_class == "traffic_light_red":
+            self.tl_color = TLColor.RED
+        elif self.tl_msg.detections[0].object_class == "traffic_light_green":
+            self.tl_color = TLColor.GREEN
         else:
-            self.tf_color = TFColor.UNKNOWN
+            self.tl_color = TLColor.UNKNOWN
 
-        if previous_tf_color != self.tf_color:
-            rospy.loginfo("A TF was status has been changed to %s", str(self.tf_color))
+        if previous_tl_color != self.tl_color:
+            rospy.loginfo("A TL was status has been changed to %s", str(self.tl_color))
 
     def _update_status_of_crnt_sign(self):
         previous_sign_type = self.sign_type
@@ -360,8 +360,7 @@ class MazeSolver(object):
         if previous_wl_status != self.is_wl_appeared:
             rospy.loginfo("A white line status has been changed to %d", self.wl_msg.data)
 
-    @staticmethod
-    def _pub_path(nodes):
+    def _pub_path(self, nodes):
         path = Path()
         path.header.seq = 1
         path.header.frame_id = FRAME_ID
@@ -374,13 +373,13 @@ class MazeSolver(object):
             pose.pose.position.x = point.x
             pose.pose.position.y = point.y
             path.poses.append(pose)
-        MazeSolver.PATH_PUB.publish(path)
+        self.PATH_PUB.publish(path)
 
     def _sign_cb(self, msg):
         self.sign_msg = msg
 
-    def _tf_cb(self, msg):
-        self.tf_msg = msg
+    def _tl_cb(self, msg):
+        self.tl_msg = msg
 
     def _wl_cb(self, msg):
         self.wl_msg = msg
