@@ -418,9 +418,10 @@ class Maze:
         if self._local_target_node.is_turn():
             return None
 
-        self._local_target_node.dir_limitations[0] = limits[0]
+        # Because it is [r, f, l] inside - swap for better understanding
+        self._local_target_node.dir_limitations[0] = limits[2]
         self._local_target_node.dir_limitations[1] = limits[1]
-        self._local_target_node.dir_limitations[2] = limits[2]
+        self._local_target_node.dir_limitations[2] = limits[0]
 
     def _update_path(self):
         if self._target_node is None:
@@ -489,7 +490,10 @@ class Maze:
 
                     cameFrom[way_node] = cur_node
 
-        return []
+        # No path was found
+        self._current_path = []
+        self.logger.debug('Path not found')
+        raise Exception('Solver / No path found')
 
     def get_path(self):
         self._update_path()
@@ -672,10 +676,13 @@ if __name__ == "__main__":
         # Test that limitation not work on turns
         if maze.get_local_target().idx == 1:
             maze.set_limitation([1, 0, 1])
+            logging.info('set limitation: {}'.format([1, 0, 1]))
         elif maze.get_local_target().idx == 5:
+            maze.set_limitation([1, 0, 0])
+            logging.info('set limitation: {}'.format([1, 0, 0]))
+        elif maze.get_local_target().idx == 4:
             maze.set_limitation([1, 0, 1])
-        elif maze.get_local_target().idx == 10:
-            maze.set_limitation([1, 0, 1])
+            logging.info('set limitation: {}'.format([1, 0, 1]))
 
         maze.next_local_target()
 
