@@ -27,7 +27,7 @@
     <arg name="yaw"               value="$(arg yaw)"/>
   </include>
 
-  <include file="$(find wr8_software)/launch/rviz_slam_view.launch"/>
+  <include file="$(find wr8_software)/launch/rviz_localization_view.launch"/>
 
   <group if="$(arg enable_stereo)">
     <include file="$(find wr8_software)/launch/base/stereo_2_laserscan.launch">
