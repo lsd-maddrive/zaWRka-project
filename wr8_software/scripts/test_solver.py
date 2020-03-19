@@ -130,7 +130,7 @@ if __name__ == "__main__":
     pose_listener = tf.TransformListener()
     sleep(1)
     road_objects = list((TL(MazePoint(9, 8), 'traffic_light_0_topic'),
-                        Sign(MazePoint(9, 7), SignType.BRICK),
+                        Sign(MazePoint(9, 7), SignType.ONLY_RIGHT),
                         Sign(MazePoint(7, 7), SignType.ONLY_RIGHT),
                         Sign(MazePoint(3, 8), SignType.FORWARD_OR_RIGHT),
                         Sign(MazePoint(3, 5), SignType.BRICK),

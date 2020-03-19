@@ -22,8 +22,8 @@ from line_detector_ros import LineDetectorRos
 # Params
 MAZE_TARGET_X = 1
 MAZE_TARGET_Y = 2
-START_X = 15
-START_Y = 19
+START_X = 0
+START_Y = 0
 START_Z = 0
 CELL_SZ = 2
 PARKING_TOLERANCE = 70
@@ -86,11 +86,8 @@ class SignType(Enum):
     FORWARD_OR_RIGHT = 5
     FORWARD_OR_LEFT = 6
 
-# Hack: Maze have inverse left and right!?
-# SIGN_TYPE_TO_MAZE = tuple(([0, 0, 0], [0, 1, 0], [1, 0, 1], [1, 1, 0],
-#                            [0, 1, 1], [1, 0, 0], [0, 0, 1]))
-SIGN_TYPE_TO_MAZE = tuple(([0, 0, 0], [0, 1, 0], [1, 0, 1], [0, 1, 1],
-                           [1, 1, 0], [0, 0, 1], [1, 0, 0]))
+SIGN_TYPE_TO_MAZE = tuple(([0, 0, 0], [0, 1, 0], [1, 0, 1], [1, 1, 0],
+                           [0, 1, 1], [1, 0, 0], [0, 0, 1]))
 
 NODE_NAME = "solver_node"
 HW_SUB_TOPIC = "hardware_status"
@@ -165,8 +162,8 @@ class MainSolver(object):
         global MAZE_TARGET_X, MAZE_TARGET_y, START_X, START_Y, START_Z, CELL_SZ, PARKING_TOLERANCE
         MAZE_TARGET_X = rospy.get_param('~maze_target_x', 1)
         MAZE_TARGET_Y = rospy.get_param('~maze_target_y', 2)
-        START_X = rospy.get_param('~start_x', 15)
-        START_Y = rospy.get_param('~start_y', 19)
+        START_X = rospy.get_param('~start_x', 0)
+        START_Y = rospy.get_param('~start_y', 0)
         START_Z = rospy.get_param('~start_yaw', 0) # 0 - right, 1.57 - up
         CELL_SZ = rospy.get_param('~cell_sz', 2)
         PARKING_TOLERANCE = rospy.get_param('~parking_tolerance', 70)
@@ -269,7 +266,13 @@ class MazeSolver(object):
         """
         DEFAULT_GOAL_POINT = gz_to_map(MazePoint(MAZE_TARGET_X, MAZE_TARGET_Y))
         WHITE_LINE_GOAL_POINT = None
-        path = self.maze.get_path()
+        try:
+            path = self.maze.get_path()
+        except:
+            rospy.logerr("Maze processing error: path can't be empty!")
+            self.is_recovery_need = True
+            return DEFAULT_GOAL_POINT, gz_direction
+
         local = self.maze.get_local_target()
         gz_direction = 1.57
 
@@ -313,9 +316,10 @@ class MazeSolver(object):
         if self.sign_type != SignType.NO_SIGN:
             rospy.loginfo("A sign was detected: %s", str(self.sign_type))
             self.maze.set_limitation(SIGN_TYPE_TO_MAZE[self.sign_type.value])
-            path = self.maze.get_path()
-            if len(path) == 0:
-                rospy.logerr("Path is empty!")
+            try:
+                path = self.maze.get_path()
+            except:
+                rospy.logerr("Maze processing error: path is empty!")
                 self.is_recovery_need = True
                 return DEFAULT_GOAL_POINT, gz_direction
 
