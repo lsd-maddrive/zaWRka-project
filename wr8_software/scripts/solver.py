@@ -22,39 +22,20 @@ from line_detector_ros import LineDetectorRos
 # Params
 MAZE_TARGET_X = 1
 MAZE_TARGET_Y = 2
-START_X = 0
-START_Y = 0
-START_Z = 0
 CELL_SZ = 2
 PARKING_TOLERANCE = 70
 
 
 # Coordinate transform from MazePoint to MazePoint
-def maze_to_gz(p):
-    gz_x = p.x * CELL_SZ + 0.5*CELL_SZ
-    gz_y = p.y * CELL_SZ + 0.5*CELL_SZ
-    return MazePoint(gz_x, gz_y)
+def maze_to_map(p):
+    map_x = p.x * CELL_SZ + 0.5*CELL_SZ
+    map_y = p.y * CELL_SZ + 0.5*CELL_SZ
+    return MazePoint(map_x, map_y)
 
-def gz_to_maze(p):
+def map_to_maze(p):
     maze_x = round((p.x - 0.5*CELL_SZ) / CELL_SZ)
     maze_y = round((p.y - 0.5*CELL_SZ) / CELL_SZ)
     return MazePoint(maze_x, maze_y)
-
-def gz_to_map(p):
-    map_x = (p.x - START_X) * math.cos(-START_Z) - (p.y - START_Y) * math.sin(-START_Z)
-    map_y = (p.x - START_X) * math.sin(-START_Z) + (p.y - START_Y) * math.cos(-START_Z)
-    return MazePoint(map_x, map_y)
-
-def map_to_gz(p):
-    gz_x = START_X + p.x * math.cos(START_Z) - p.y * math.sin(START_Z)
-    gz_y = START_Y + p.x * math.sin(START_Z) + p.y * math.cos(START_Z)
-    return MazePoint(gz_x, gz_y)
-
-def maze_to_map(p):
-    return gz_to_map(maze_to_gz(p))
-
-def map_to_maze(p):
-    return gz_to_maze(map_to_gz(p))
 
 
 # Constants
@@ -125,7 +106,7 @@ class MainSolver(object):
         maze_crnt_pose = self._get_maze_current_pose()
         state = self._determinate_stage(maze_crnt_pose)
         goal_point = None
-        gz_direction = 0
+        map_direction = 0
 
         if state == State.MAZE_PROCESS or state == State.MAZE_WAIT_TL or \
            state == State.MAZE_WAIT_SIGNS or state == State.MAZE_TARGET_REACHED:
@@ -134,37 +115,34 @@ class MainSolver(object):
             if self.maze.is_recovery_need == True:
                 self.maze.reinit(maze_crnt_pose)
                 self.maze.is_recovery_need = False
-            goal_point, gz_direction = self.maze.process(maze_crnt_pose)
+            goal_point, map_direction = self.maze.process(maze_crnt_pose)
             if goal_point is None:
                 state = State.MAZE_WAIT_TL
         elif state == State.SPEED_PROCESS or state == State.SPEED_REACHED:
             self.parking.stop_work()
             self.maze.stop_async_processing()
-            goal_point, gz_direction = process_speed()
+            goal_point, map_direction = process_speed()
         elif state == State.PARKING_PROCESS or state == State.PARKING_REACHED:
             self.parking.start_work()
             self.maze.stop_async_processing()
-            goal_point, gz_direction = self.parking.process()
+            goal_point, map_direction = self.parking.process()
 
         if goal_point is None:
             self._send_stop_cmd()
             self.parking.stop_work()
-            rospy.loginfo("%s: from %s to None (gz)", str(state), maze_to_gz(maze_crnt_pose))
+            rospy.loginfo("%s: from %s to None", str(state), maze_to_map(maze_crnt_pose))
         else:
-            self._send_goal(goal_point, gz_direction)
-            rospy.loginfo("%s: from %s to %s (gz)",
-                          str(state), maze_to_gz(maze_crnt_pose), map_to_gz(goal_point))
+            self._send_goal(goal_point, map_direction)
+            rospy.loginfo("%s: from %s to %s",
+                          str(state), maze_to_map(maze_crnt_pose), goal_point)
         self.parking.publish_to_rviz()
         self.previous_goal = goal_point
 
     @staticmethod
     def _init_params():
-        global MAZE_TARGET_X, MAZE_TARGET_y, START_X, START_Y, START_Z, CELL_SZ, PARKING_TOLERANCE
+        global MAZE_TARGET_X, MAZE_TARGET_y, CELL_SZ, PARKING_TOLERANCE
         MAZE_TARGET_X = rospy.get_param('~maze_target_x', 1)
         MAZE_TARGET_Y = rospy.get_param('~maze_target_y', 2)
-        START_X = rospy.get_param('~start_x', 0)
-        START_Y = rospy.get_param('~start_y', 0)
-        START_Z = rospy.get_param('~start_yaw', 0) # 0 - right, 1.57 - up
         CELL_SZ = rospy.get_param('~cell_sz', 2)
         PARKING_TOLERANCE = rospy.get_param('~parking_tolerance', 70)
 
@@ -185,17 +163,17 @@ class MainSolver(object):
         point = map_to_maze(MazePoint(trans[0][0], trans[0][1]))
         return point
 
-    def _send_goal(self, map_point, gz_angle = 0):
+    def _send_goal(self, map_point, map_angle = 0):
         """
-        gz_angle: 0 - right, 1.57 - up
+        map_angle: 0 - right, 1.57 - up
         """
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = FRAME_ID
         goal.target_pose.header.stamp = rospy.Time.now()
         goal.target_pose.pose.position.x = map_point.x
         goal.target_pose.pose.position.y = map_point.y
-        goal.target_pose.pose.orientation.z = math.sin((gz_angle - START_Z) / 2)
-        goal.target_pose.pose.orientation.w = math.cos((gz_angle - START_Z) / 2)
+        goal.target_pose.pose.orientation.z = math.sin(map_angle / 2)
+        goal.target_pose.pose.orientation.w = math.cos(map_angle / 2)
         self.goal_client.send_goal(goal)
 
     def _send_stop_cmd(self):
@@ -264,27 +242,28 @@ class MazeSolver(object):
         - if error: return default goal_point
         - if white line: return None that means stop
         """
-        DEFAULT_GOAL_POINT = gz_to_map(MazePoint(MAZE_TARGET_X, MAZE_TARGET_Y))
+        DEFAULT_GOAL_POINT = MazePoint(MAZE_TARGET_X, MAZE_TARGET_Y)
         WHITE_LINE_GOAL_POINT = None
+        MAP_DIRECTION = 1.57
+
         try:
             path = self.maze.get_path()
         except:
             rospy.logerr("Maze processing error: path can't be empty!")
             self.is_recovery_need = True
-            return DEFAULT_GOAL_POINT, gz_direction
+            return DEFAULT_GOAL_POINT, MAP_DIRECTION
 
         local = self.maze.get_local_target()
-        gz_direction = 1.57
 
         # Process errors in old path
         if maze_crnt_pose is None:
             rospy.logerr("Maze processing error: maze crnt pose must exists!")
             self.is_recovery_need = True
-            return DEFAULT_GOAL_POINT, gz_direction
+            return DEFAULT_GOAL_POINT, MAP_DIRECTION
         elif local is None:
             rospy.logerr("Maze processing error: local target must exists!")
             self.is_recovery_need = True
-            return DEFAULT_GOAL_POINT, gz_direction
+            return DEFAULT_GOAL_POINT, MAP_DIRECTION
 
         # Process white line and traffic light
         self._update_status_of_white_line()
@@ -298,18 +277,18 @@ class MazeSolver(object):
                 self.is_wl_appeared = False
             else:
                 rospy.loginfo_throttle(2, "There is WL and TL is red: wait...")
-                return WHITE_LINE_GOAL_POINT, gz_direction
+                return WHITE_LINE_GOAL_POINT, MAP_DIRECTION
 
         # Update next local target and pub new path if possible
         if local.coord == maze_crnt_pose:
             if self.maze.next_local_target() == False:
                 rospy.logerr("Current path length is 0, can't get next tartet!")
                 self.is_recovery_need = True
-                return DEFAULT_GOAL_POINT, gz_direction
+                return DEFAULT_GOAL_POINT, MAP_DIRECTION
             if len(path) == 0:
                 rospy.logerr("Path is empty!")
                 self.is_recovery_need = True
-                return DEFAULT_GOAL_POINT, gz_direction
+                return DEFAULT_GOAL_POINT, MAP_DIRECTION
         
         # Process signs
         self._update_status_of_crnt_sign()
@@ -321,12 +300,12 @@ class MazeSolver(object):
             except:
                 rospy.logerr("Maze processing error: path is empty!")
                 self.is_recovery_need = True
-                return DEFAULT_GOAL_POINT, gz_direction
+                return DEFAULT_GOAL_POINT, MAP_DIRECTION
 
         # Return actual goal point
         self._pub_path(path)
         goal_point = maze_to_map(path[-1].coord)
-        return goal_point, gz_direction
+        return goal_point, MAP_DIRECTION
 
     def _update_status_of_crnt_tl(self):
         previous_tl_color = self.tl_color
@@ -402,10 +381,10 @@ class ParkingSolver(object):
         self.parking_polygones, self.rviz_polygones = ParkingSolver._create_polygones()
         self.fullness = list([-1, -1, -1])
 
-        self.PARKING_GOALS = tuple((gz_to_map(MazePoint(5, 14)),
-                        gz_to_map(MazePoint(5, 16)),
-                        gz_to_map(MazePoint(5, 18))))
-        self.PARKING_WAITING_GOAL = gz_to_map(MazePoint(3, 16))
+        self.PARKING_GOALS = tuple((MazePoint(5, 14),
+                                    MazePoint(5, 16),
+                                    MazePoint(5, 18)))
+        self.PARKING_WAITING_GOAL = MazePoint(3, 16)
 
     def start_work(self):
         self.pub_to_cmd.publish(1)
@@ -415,39 +394,40 @@ class ParkingSolver(object):
 
     def publish_to_rviz(self):
         for i in range(3):
-            self.pub_to_rviz[i].publish(self.rviz_polygones[i])
+            polygon = self.rviz_polygones[i]
+            self.pub_to_rviz[i].publish(polygon)
 
     def process(self):
         self.pub_to_parking.publish(self.parking_polygones)
 
         goal = self.PARKING_WAITING_GOAL
-        gz_direction = 1.57
+        map_direction = 1.57
         if len(self.fullness) == 3:
             if self.fullness[0] >= 0 and self.fullness[0] <= PARKING_TOLERANCE:
                 goal = self.PARKING_GOALS[0]
-                gz_direction = 0.785
+                map_direction = 0.785
             elif self.fullness[1] >= 0 and self.fullness[1] <= PARKING_TOLERANCE:
                 goal = self.PARKING_GOALS[1]
-                gz_direction = 0.785
+                map_direction = 0.785
             elif self.fullness[2] >= 0 and self.fullness[2] <= PARKING_TOLERANCE:
                 goal = self.PARKING_GOALS[2]
-                gz_direction = 0.785
+                map_direction = 0.785
         else:
             rospy.logwarn("Statuses length is not correct!")
-        return goal, gz_direction
+        return goal, map_direction
 
     @staticmethod
     def _create_polygones():
-        gz_polygons = list()
-        gz_polygons.append(((4.0, 12.4), (5.6, 14.4), (5.6, 15.6), (4.0, 13.6)))
-        gz_polygons.append(((4.0, 14.4), (5.6, 16.4), (5.6, 17.6), (4.0, 15.6)))
-        gz_polygons.append(((4.0, 16.4), (5.6, 18.4), (5.6, 19.6), (4.0, 17.6)))
+        list_polygons = list()
+        list_polygons.append(((4.0, 12.4), (5.6, 14.4), (5.6, 15.6), (4.0, 13.6)))
+        list_polygons.append(((4.0, 14.4), (5.6, 16.4), (5.6, 17.6), (4.0, 15.6)))
+        list_polygons.append(((4.0, 16.4), (5.6, 18.4), (5.6, 19.6), (4.0, 17.6)))
 
         map_polygons = list()
         polygons = list()
         polygons_stamped = list()
-        for i in range(0, len(gz_polygons)):
-            map_polygons.append(ParkingSolver._gz_to_map_for_polygon(gz_polygons[i]))
+        for i in range(0, len(list_polygons)):
+            map_polygons.append(ParkingSolver._create_map_polygon(list_polygons[i]))
             polygons.append(ParkingSolver._create_polygon(map_polygons[-1]))
             polygons_stamped.append(ParkingSolver._create_polygon_stamped(map_polygons[-1]))
         parking_polygones = Polygons()
@@ -477,15 +457,10 @@ class ParkingSolver(object):
         return polygons_stumped
 
     @staticmethod
-    def _gz_to_map_for_point(point):
-        result = gz_to_map(MazePoint(point[0], point[1]))
-        return (result.x, result.y)
-
-    @staticmethod
-    def _gz_to_map_for_polygon(polygon):
+    def _create_map_polygon(polygon):
         new_polygon = tuple()
         for point in polygon:
-            new_polygon += (ParkingSolver._gz_to_map_for_point(point),) # , means singleton
+            new_polygon += ((point[0], point[1]),) # , means singleton
         return new_polygon
 
     def _status_cb(self, msg):

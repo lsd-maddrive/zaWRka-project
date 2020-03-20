@@ -9,7 +9,7 @@ from std_msgs.msg import UInt8
 from mad_detector.msg import Detection, Detections
 
 from maze import MazePoint
-from solver import map_to_maze, map_to_gz, TL_SUB_TOPIC, WL_SUB_TOPIC, SIGN_SUB_TOPIC, TLColor, SignType
+from solver import map_to_maze, TL_SUB_TOPIC, WL_SUB_TOPIC, SIGN_SUB_TOPIC, TLColor, SignType
 
 TL_COLOR_TO_MSG = {
     TLColor.UNKNOWN : " ",
