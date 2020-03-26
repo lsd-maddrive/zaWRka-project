@@ -5,7 +5,7 @@
   <arg name="x" default="0"/>
   <arg name="y" default="0"/>
   <arg name="yaw" default="0"/>
-  <arg name="map" default="map2_h" doc="[map2_h, depart]"/>
+  <arg name="map" default="maze2020v1" doc="[maze2020v1, map2_h, depart]"/>
 
   <node name="map_server" pkg="map_server" type="map_server" args="$(find wr8_software)/maps/$(arg map).yaml" />
 

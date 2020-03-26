@@ -2,9 +2,9 @@
 <!-- Run simulation for solve problem of localization -->
 <launch>
   <arg name="wp_global_planner" default="true" doc="[true - wp_global_planner, false - global_planner]"/>
-  <arg name="world_name" default="RFMaze.v2.world" />
-  <arg name="x" default="0"/>
-  <arg name="y" default="0"/>
+  <arg name="world_name" default="maze2020v1.world" />
+  <arg name="x" default="15"/>
+  <arg name="y" default="19"/>
   <arg name="yaw" default="0"/>
   <arg name="gz_gui" default="false"/>
   <arg name="enable_stereo" default="true"/>

@@ -2,9 +2,9 @@
 <!-- Run simulation for solve problem of slam -->
 <launch>
   <arg name="wp_global_planner" default="true" doc="[true - wp_global_planner, false - global_planner]"/>
-  <arg name="world_name" default="RFMaze.v2.world" />
-  <arg name="x" default="0" />
-  <arg name="y" default="0" />
+  <arg name="world_name" default="maze2020v1.world" />
+  <arg name="x" default="15" />
+  <arg name="y" default="19" />
   <arg name="yaw" default="0" />
   <arg name="gz_gui" default="false" />
   <arg name="enable_stereo" default="true" />
@@ -21,6 +21,9 @@
   <include file="$(find wr8_software)/launch/slam.launch">
     <arg name="mapping_algorithm" value="hector_mapping" />
     <arg name="wp_global_planner" value="$(arg wp_global_planner)" />
+    <arg name="x" value="$(arg x)" />
+    <arg name="y" value="$(arg y)" />
+    <arg name="yaw" value="$(arg yaw)" />
   </include>
 
   <include file="$(find wr8_software)/launch/rviz_slam_view.launch"/>

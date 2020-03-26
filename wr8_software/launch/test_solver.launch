@@ -7,7 +7,6 @@
   <arg name="enable_stereo" default="true" />
   <arg name="gz_gui"        default="false" />
 
-
   <group if="$(arg localization)">
     <include file="$(find wr8_software)/launch/gazebo/gz_localization.launch">
       <arg name="world_name"    value="maze2020v1.world" />
@@ -28,11 +27,6 @@
       <arg name="gz_gui"        value="$(arg gz_gui)" />
       <arg name="enable_stereo" value="$(arg enable_stereo)" />
     </include>
-    <node pkg="wr8_software" type="set_initial_pose.py" name="set_initial_pose" output="screen">
-      <param name="start_x" value="$(arg x)"/>
-      <param name="start_y" value="$(arg y)"/>
-      <param name="start_yaw" value="$(arg yaw)"/>
-    </node>
   </group>
 
   <node pkg="wr8_software" type="solver.py" name="solver" output="screen">
