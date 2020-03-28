@@ -1,4 +1,16 @@
 #!/usr/bin/env python
+"""
+    This node subscribes on START_BTN_TOPIC.
+    If start button is pressed, it will determinate one of 3 possible stage
+and publish a goal using move_base action.
+    For each stages, this node do smth specific things:
+    1. Maze: subscribes on SIGN_SUB_TOPIC and WL_SUB_TOPIC to get info from
+detectors and publish path to waypoint global planner.
+    2. Speed stage: do nothing specific things.
+    3. Parking stage: subscribes on STATUS_SUB_TOPIC with info about free
+parking place and determinate goal on free place.
+"""
+
 import math
 from enum import Enum
 
@@ -24,21 +36,26 @@ MAZE_TARGET_X = 1
 MAZE_TARGET_Y = 2
 CELL_SZ = 2
 PARKING_TOLERANCE = 70
-
-
-# Coordinate transform from MazePoint to MazePoint
-def maze_to_map(p):
-    map_x = p.x * CELL_SZ + 0.5*CELL_SZ
-    map_y = p.y * CELL_SZ + 0.5*CELL_SZ
-    return MazePoint(map_x, map_y)
-
-def map_to_maze(p):
-    maze_x = round((p.x - 0.5*CELL_SZ) / CELL_SZ)
-    maze_y = round((p.y - 0.5*CELL_SZ) / CELL_SZ)
-    return MazePoint(maze_x, maze_y)
+FRAME_ID = "map"
 
 
 # Constants
+SIGN_TYPE_TO_MAZE = tuple(([0, 0, 0], [0, 1, 0], [1, 0, 1], [1, 1, 0],
+                           [0, 1, 1], [1, 0, 0], [0, 0, 1]))
+
+NODE_NAME = "solver_node"
+START_BTN_TOPIC = "start_btn_status"
+
+SIGN_SUB_TOPIC = "detected_sign_type"
+TL_SUB_TOPIC = "tl_status"
+WL_SUB_TOPIC = "wl_status"
+PATH_PUB_TOPIC = "path"
+
+POLY_PUB_TOPIC = "parking_polygones"
+RVIZ_PUB_TOPIC = "parking_polygones_visualization_"
+STATUS_SUB_TOPIC = "parking_status"
+CMD_PUB_TOPIC = "parking_cmd"
+
 class State(Enum):
     IDLE = 1
 
@@ -67,22 +84,17 @@ class SignType(Enum):
     FORWARD_OR_RIGHT = 5
     FORWARD_OR_LEFT = 6
 
-SIGN_TYPE_TO_MAZE = tuple(([0, 0, 0], [0, 1, 0], [1, 0, 1], [1, 1, 0],
-                           [0, 1, 1], [1, 0, 0], [0, 0, 1]))
 
-NODE_NAME = "solver_node"
-HW_SUB_TOPIC = "hardware_status"
-SIGN_SUB_TOPIC = "detected_sign_type"
-TL_SUB_TOPIC = "tl_status"
-WL_SUB_TOPIC = "wl_status"
-PATH_PUB_TOPIC = "path"
+# Coordinate transform from MazePoint to MazePoint
+def maze_to_map(p):
+    map_x = p.x * CELL_SZ + 0.5*CELL_SZ
+    map_y = p.y * CELL_SZ + 0.5*CELL_SZ
+    return MazePoint(map_x, map_y)
 
-FRAME_ID = "map"
-
-POLY_PUB_TOPIC = "parking_polygones"
-RVIZ_PUB_TOPIC = "parking_polygones_visualization_"
-STATUS_SUB_TOPIC = "parking_status"
-CMD_PUB_TOPIC = "parking_cmd"
+def map_to_maze(p):
+    maze_x = round((p.x - 0.5*CELL_SZ) / CELL_SZ)
+    maze_y = round((p.y - 0.5*CELL_SZ) / CELL_SZ)
+    return MazePoint(maze_x, maze_y)
 
 
 class MainSolver(object):
@@ -91,7 +103,7 @@ class MainSolver(object):
         MainSolver._init_params()
         self.hardware_status = False
         self.previous_goal = None
-        rospy.Subscriber(HW_SUB_TOPIC, UInt8, self._hardware_cb, queue_size=10)
+        rospy.Subscriber(START_BTN_TOPIC, UInt8, self._hardware_cb, queue_size=10)
         self.goal_client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         self.goal_client.wait_for_server()
         self.pose_listener = tf.TransformListener()
@@ -145,6 +157,7 @@ class MainSolver(object):
         MAZE_TARGET_Y = rospy.get_param('~maze_target_y', 2)
         CELL_SZ = rospy.get_param('~cell_sz', 2)
         PARKING_TOLERANCE = rospy.get_param('~parking_tolerance', 70)
+        FRAME_ID = rospy.get_param('~frame_id', 'map')
 
     def _determinate_stage(self, maze_crnt_pose):
         state = State.IDLE
@@ -159,7 +172,7 @@ class MainSolver(object):
         return state
 
     def _get_maze_current_pose(self):
-        trans = self.pose_listener.lookupTransform('/map', '/base_footprint', rospy.Time(0))
+        trans = self.pose_listener.lookupTransform(FRAME_ID, 'base_footprint', rospy.Time(0))
         point = map_to_maze(MazePoint(trans[0][0], trans[0][1]))
         return point
 

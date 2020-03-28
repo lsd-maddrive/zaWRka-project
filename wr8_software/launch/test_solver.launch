@@ -34,6 +34,7 @@
     <param name="maze_target_y" value="2"/>
     <param name="cell_sz" value="2"/>
     <param name="parking_tolerance" value="70"/>
+    <param name="frame_id" value="map"/>
   </node>
 
   <include file="$(find car_parking)/launch/car_parking.launch">

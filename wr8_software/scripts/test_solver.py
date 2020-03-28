@@ -20,7 +20,7 @@ TL_COLOR_TO_MSG = {
 
 def get_cur_maze_pose(pose_listener):
     try:
-        trans = pose_listener.lookupTransform('/map', '/base_footprint', rospy.Time(0))
+        trans = pose_listener.lookupTransform('map', 'base_footprint', rospy.Time(0))
         point = map_to_maze(MazePoint(trans[0][0], trans[0][1]))
     except:
         point = None

@@ -12,6 +12,7 @@ if __name__ == "__main__":
     x = rospy.get_param('~start_x', 0)
     y = rospy.get_param('~start_y', 0)
     yaw = rospy.get_param('~start_yaw', 0)
+    frame_id = rospy.get_param('~frame_id', 'map')
     time.sleep(1)
 
     # Create msg and publish
@@ -19,7 +20,7 @@ if __name__ == "__main__":
     now = rospy.get_rostime()
     msg.header.stamp.secs = now.secs
     msg.header.stamp.nsecs = now.nsecs
-    msg.header.frame_id = "map"
+    msg.header.frame_id = frame_id
     msg.pose.pose.position.x = x
     msg.pose.pose.position.y = y
     msg.pose.pose.orientation.z = math.sin(yaw / 2)

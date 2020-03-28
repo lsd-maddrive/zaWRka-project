@@ -35,5 +35,6 @@
     <param name="start_x" value="$(arg x)"/>
     <param name="start_y" value="$(arg y)"/>
     <param name="start_yaw" value="$(arg yaw)"/>
+    <param name="frame_id" value="map"/>
   </node>
 </launch>
