@@ -22,10 +22,10 @@ from geometry_msgs.msg import PoseStamped, PolygonStamped, Point
 from nav_msgs.msg import Path
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from car_parking.msg import Point2D, Points2D, Polygons, Statuses
-from mad_detector.msg import Detection, Detections
+from mad_detector.msg import Detections
 
 import numpy as np
-import pygame
+#import pygame
 
 from maze import MazePoint, PointDir, Maze
 from line_detector_ros import LineDetectorRos
@@ -47,7 +47,6 @@ NODE_NAME = "solver_node"
 START_BTN_TOPIC = "start_btn_status"
 
 SIGN_SUB_TOPIC = "detected_sign_type"
-TL_SUB_TOPIC = "tl_status"
 WL_SUB_TOPIC = "wl_status"
 PATH_PUB_TOPIC = "path"
 
@@ -84,6 +83,27 @@ class SignType(Enum):
     FORWARD_OR_RIGHT = 5
     FORWARD_OR_LEFT = 6
 
+TL_TYPE_FROM_STR = {"traffic_light_green": TLColor.GREEN,
+                    "traffic_light_red": TLColor.RED}
+
+SIGN_TYPE_FROM_STR = {"brick": SignType.BRICK,
+                      "forward": SignType.ONLY_FORWARD,
+                      "right": SignType.ONLY_RIGHT,
+                      "left": SignType.ONLY_LEFT,
+                      "forward_left": SignType.FORWARD_OR_RIGHT,
+                      "forward_right": SignType.FORWARD_OR_LEFT}
+
+TL_COLOR_TO_STR = {TLColor.UNKNOWN : " ",
+                   TLColor.GREEN : "traffic_light_green",
+                   TLColor.RED : "traffic_light_red"}
+
+SIGN_TYPE_TO_STR = {SignType.NO_SIGN : " ",
+                    SignType.BRICK : "brick",
+                    SignType.ONLY_FORWARD : "forward",
+                    SignType.ONLY_RIGHT : "right",
+                    SignType.ONLY_LEFT : "left",
+                    SignType.FORWARD_OR_RIGHT : "forward_left",
+                    SignType.FORWARD_OR_LEFT : "forward_right"}
 
 # Coordinate transform from MazePoint to MazePoint
 def maze_to_map(p):
@@ -124,7 +144,7 @@ class MainSolver(object):
            state == State.MAZE_WAIT_SIGNS or state == State.MAZE_TARGET_REACHED:
             self.parking.stop_work()
             self.maze.start_async_processing()
-            if self.maze.is_recovery_need == True:
+            if self.maze.is_recovery_need:
                 self.maze.reinit(maze_crnt_pose)
                 self.maze.is_recovery_need = False
             goal_point, map_direction = self.maze.process(maze_crnt_pose)
@@ -152,7 +172,7 @@ class MainSolver(object):
 
     @staticmethod
     def _init_params():
-        global MAZE_TARGET_X, MAZE_TARGET_y, CELL_SZ, PARKING_TOLERANCE
+        global MAZE_TARGET_X, MAZE_TARGET_Y, CELL_SZ, PARKING_TOLERANCE, FRAME_ID
         MAZE_TARGET_X = rospy.get_param('~maze_target_x', 1)
         MAZE_TARGET_Y = rospy.get_param('~maze_target_y', 2)
         CELL_SZ = rospy.get_param('~cell_sz', 2)
@@ -176,7 +196,7 @@ class MainSolver(object):
         point = map_to_maze(MazePoint(trans[0][0], trans[0][1]))
         return point
 
-    def _send_goal(self, map_point, map_angle = 0):
+    def _send_goal(self, map_point, map_angle=0):
         """
         map_angle: 0 - right, 1.57 - up
         """
@@ -190,7 +210,7 @@ class MainSolver(object):
         self.goal_client.send_goal(goal)
 
     def _send_stop_cmd(self):
-        if self.previous_goal != None: 
+        if self.previous_goal != None:
             self.goal_client.cancel_goal()
 
     def _hardware_cb(self, msg):
@@ -221,16 +241,17 @@ class MazeSolver(object):
     def __init__(self, maze_initial_pose):
         self.wl_msg = UInt8()
         self.is_wl_appeared = False
-        self.tl_msg = Detections()
         self.tl_color = TLColor.UNKNOWN
-        self.sign_msg = UInt8()
+        self.sign_msg = Detections()
         self.sign_type = SignType.NO_SIGN
         self.is_recovery_need = False
-        self.line_detector = LineDetectorRos(math.pi*7/16, math.pi*9/16, 10, "stereo_camera_converted/left/image_raw", "img_from_core")
+        self.line_detector = LineDetectorRos(math.pi*7/16, math.pi*9/16, 10, \
+                                             "stereo_camera_converted/left/image_raw", \
+                                             "img_from_core")
 
         self.PATH_PUB = rospy.Publisher(PATH_PUB_TOPIC, Path, queue_size=5)
-        rospy.Subscriber(SIGN_SUB_TOPIC, UInt8, self._sign_cb, queue_size=10)
-        rospy.Subscriber(TL_SUB_TOPIC, Detections, self._tl_cb, queue_size=10)
+        #rospy.Subscriber(SIGN_SUB_TOPIC, UInt8, self._sign_cb, queue_size=10)
+        rospy.Subscriber(SIGN_SUB_TOPIC, Detections, self._sign_cb, queue_size=10)
         rospy.Subscriber(WL_SUB_TOPIC, UInt8, self._wl_cb, queue_size=10)
 
         self.reinit(maze_initial_pose)
@@ -280,8 +301,8 @@ class MazeSolver(object):
 
         # Process white line and traffic light
         self._update_status_of_white_line()
-        self._update_status_of_crnt_tl()
-        if self.is_wl_appeared == True:
+        self._update_status_of_crnt_sign()
+        if self.is_wl_appeared:
             if self.tl_color == TLColor.GREEN:
                 rospy.loginfo("There is WL and TL is green: way is clear.")
                 self.is_wl_appeared = False
@@ -294,7 +315,7 @@ class MazeSolver(object):
 
         # Update next local target and pub new path if possible
         if local.coord == maze_crnt_pose:
-            if self.maze.next_local_target() == False:
+            if self.maze.next_local_target() is False:
                 rospy.logerr("Current path length is 0, can't get next tartet!")
                 self.is_recovery_need = True
                 return DEFAULT_GOAL_POINT, MAP_DIRECTION
@@ -302,9 +323,8 @@ class MazeSolver(object):
                 rospy.logerr("Path is empty!")
                 self.is_recovery_need = True
                 return DEFAULT_GOAL_POINT, MAP_DIRECTION
-        
+
         # Process signs
-        self._update_status_of_crnt_sign()
         if self.sign_type != SignType.NO_SIGN:
             rospy.loginfo("A sign was detected: %s", str(self.sign_type))
             self.maze.set_limitation(SIGN_TYPE_TO_MAZE[self.sign_type.value])
@@ -320,29 +340,22 @@ class MazeSolver(object):
         goal_point = maze_to_map(path[-1].coord)
         return goal_point, MAP_DIRECTION
 
-    def _update_status_of_crnt_tl(self):
-        previous_tl_color = self.tl_color
-
-        if len(self.tl_msg.detections) == 0:
-            self.tl_color = TLColor.UNKNOWN
-        elif self.tl_msg.detections[0].object_class == "traffic_light_red":
-            self.tl_color = TLColor.RED
-        elif self.tl_msg.detections[0].object_class == "traffic_light_green":
-            self.tl_color = TLColor.GREEN
-        else:
-            self.tl_color = TLColor.UNKNOWN
-
-        if previous_tl_color != self.tl_color:
-            rospy.loginfo("A TL was status has been changed to %s", str(self.tl_color))
-
     def _update_status_of_crnt_sign(self):
+        previous_tl_color = self.tl_color
         previous_sign_type = self.sign_type
 
-        if self.sign_msg is None:
-            self.sign_type = SignType.UNKNOWN
-        else:
-            self.sign_type = SignType(self.sign_msg.data)
+        self.tl_color = TLColor.UNKNOWN
+        self.sign_type = SignType.NO_SIGN
+        for detection in self.sign_msg.detections:
+            sign_type = SIGN_TYPE_FROM_STR.get(detection.object_class)
+            tl_type = TL_TYPE_FROM_STR.get(detection.object_class)
+            if sign_type is not None:
+                self.sign_type = sign_type
+            if tl_type is not None:
+                self.tl_color = tl_type
 
+        if previous_tl_color != self.tl_color:
+            rospy.loginfo("A TL status has been changed to %s", str(self.tl_color))
         if previous_sign_type != self.sign_type:
             rospy.loginfo("A sign status has been changed to %s", str(self.sign_type))
 
@@ -373,9 +386,6 @@ class MazeSolver(object):
 
     def _sign_cb(self, msg):
         self.sign_msg = msg
-
-    def _tl_cb(self, msg):
-        self.tl_msg = msg
 
     def _wl_cb(self, msg):
         self.wl_msg = msg
