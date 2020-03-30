@@ -3,6 +3,9 @@
 <launch>
   <arg name="mapping_algorithm" default="hector_mapping" doc="[gmapping, heactor_mapping]"/>
   <arg name="wp_global_planner" default="false" doc="[true - wp_global_planner, false - global_planner]"/>
+  <arg name="x"                 default="15" />
+  <arg name="y"                 default="19" />
+  <arg name="yaw"               default="0" />
 
   <include file="$(find wr8_software)/launch/base/move_base.launch">
     <arg name="base_frame"    value="base_link" />
@@ -27,4 +30,11 @@
     <arg name="update_rate"   value="10" />
     <arg name="publish_rate"  value="6.0" />
   </include>
+
+  <node pkg="wr8_software" type="set_initial_pose.py" name="set_initial_pose" output="screen">
+    <param name="start_x" value="$(arg x)"/>
+    <param name="start_y" value="$(arg y)"/>
+    <param name="start_yaw" value="$(arg yaw)"/>
+    <param name="frame_id" value="map"/>
+  </node>
 </launch>

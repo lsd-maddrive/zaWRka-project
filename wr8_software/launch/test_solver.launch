@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="x"             default="15" />
+  <arg name="y"             default="19" />
+  <arg name="yaw"           default="0"     doc="[0 - right, 1.57 - up]" />
+  <arg name="localization"  default="false" doc="[false means SLAM, true means localization]" />
+  <arg name="enable_stereo" default="true" />
+  <arg name="gz_gui"        default="false" />
+
+  <group if="$(arg localization)">
+    <include file="$(find wr8_software)/launch/gazebo/gz_localization.launch">
+      <arg name="world_name"    value="maze2020v1.world" />
+      <arg name="x"             value="$(arg x)" />
+      <arg name="y"             value="$(arg y)" />
+      <arg name="yaw"           value="$(arg yaw)" />
+      <arg name="gz_gui"        value="$(arg gz_gui)" />
+      <arg name="enable_stereo" value="$(arg enable_stereo)" />
+      <arg name="map"           value="maze2020v1" />
+    </include>
+  </group>
+  <group unless="$(arg localization)">
+    <include file="$(find wr8_software)/launch/gazebo/gz_slam.launch">
+      <arg name="world_name"    value="maze2020v1.world" />
+      <arg name="x"             value="$(arg x)" />
+      <arg name="y"             value="$(arg y)" />
+      <arg name="yaw"           value="$(arg yaw)" />
+      <arg name="gz_gui"        value="$(arg gz_gui)" />
+      <arg name="enable_stereo" value="$(arg enable_stereo)" />
+    </include>
+  </group>
+
+  <node pkg="wr8_software" type="solver.py" name="solver" output="screen">
+    <param name="maze_target_x" value="1"/>
+    <param name="maze_target_y" value="2"/>
+    <param name="cell_sz" value="2"/>
+    <param name="parking_tolerance" value="70"/>
+    <param name="frame_id" value="map"/>
+  </node>
+
+  <include file="$(find car_parking)/launch/car_parking.launch">
+  </include>
+
+  <node pkg="wr8_software" type="test_solver.py" name="test_solver" output="screen">
+  </node>
+</launch>

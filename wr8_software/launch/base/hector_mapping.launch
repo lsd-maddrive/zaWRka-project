@@ -17,7 +17,7 @@
     <param name="map_size" value="750"/>
 
     <param name="map_start_x" value="0.4"/>
-    <param name="map_start_y" value="0.6" />
+    <param name="map_start_y" value="0.4" />
 
     <param name="map_multi_res_levels" value="2" />
 

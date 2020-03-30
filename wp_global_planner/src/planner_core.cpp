@@ -486,7 +486,7 @@ void WPGlobalPlanner::deletePassedWaypoints(const geometry_msgs::PoseStamped& st
 
         if(PAsquare < POINT_RADIUS_SQUARE_){
             wp_path_.pop_front();
-            ROS_INFO("Waypoint was removed: start is [%f, %f], deleted is [%f, %f]",
+            ROS_DEBUG("Waypoint was removed: start is [%f, %f], deleted is [%f, %f]",
                      Px, Py, Ax, Ay);
         }
         else{
@@ -497,7 +497,7 @@ void WPGlobalPlanner::deletePassedWaypoints(const geometry_msgs::PoseStamped& st
 
 //
 void WPGlobalPlanner::waypointCallback(const geometry_msgs::PointStamped::ConstPtr& waypoint){
-    ROS_INFO("Point detected!");
+    ROS_DEBUG("Point detected!");
     is_path_should_be_updated_ = true;
     if(waypoints_.empty()){
         waypoints_.push_back(geometry_msgs::PoseStamped());
@@ -559,7 +559,7 @@ void WPGlobalPlanner::fragmentWaypoints(const geometry_msgs::PoseStamped& curren
 //
 void WPGlobalPlanner::pathCallback(const nav_msgs::Path::ConstPtr& path){
     const size_t MAX_NUMBER_OF_WP = 100;
-    ROS_INFO("Path detected!");
+    ROS_DEBUG("Path detected!");
     is_path_should_be_updated_ = true;
     waypoints_.clear();
     if(path->poses.size() > MAX_NUMBER_OF_WP){
@@ -569,7 +569,7 @@ void WPGlobalPlanner::pathCallback(const nav_msgs::Path::ConstPtr& path){
         waypoints_.push_back(geometry_msgs::PoseStamped());
         waypoints_.back().header = iter->header;
         waypoints_.back().pose.position = iter->pose.position;
-        ROS_INFO("wp: %f / %f", waypoints_.back().pose.position.x, waypoints_.back().pose.position.y);
+        ROS_DEBUG("wp: %f / %f", waypoints_.back().pose.position.x, waypoints_.back().pose.position.y);
     }
 }
 
