@@ -9,3 +9,6 @@
 	path = teb_local_planner
 	url = https://github.com/rst-tu-dortmund/teb_local_planner.git
 	branch = melodic-devel
+[submodule "smart_vehicle_gui"]
+	path = smart_vehicle_gui
+	url = https://github.com/lilSpeedwagon/smart_vehicle_gui
