@@ -9,3 +9,6 @@
 	path = teb_local_planner
 	url = https://github.com/rst-tu-dortmund/teb_local_planner.git
 	branch = melodic-devel
+[submodule "world_creator"]
+	path = world_creator
+	url = git@github.com:PonomarevDA/world_creator.git
