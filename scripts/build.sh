@@ -4,4 +4,6 @@ catkin build \
     wr8_description \
     wr8_software \
     wp_global_planner \
-	controller_wr_driver
+	frequency_converter \
+	parking_detector \
+	car_parking
