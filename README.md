@@ -1,17 +1,4 @@
-# MadDrive project
-
-## How to start (preinstallation)
-
-1. Clone repo with `git clone https://github.com/lsd-maddrive/zaWRka-project.git` (to fetch submodules)
-2. Install all dependencies with `./scripts/install_pkgs.sh`
-3. Install all python modules with `requirements.txt` (`pip3 install -U -r requirements.txt`)
-
-> Don't forget to do `git submodule update --init` along with `git pull` to get updates of submodules
-
-## Requirements
-
-- [ROS Noetic](http://wiki.ros.org/noetic)
-- Python 3.x.x
+# ZaWRka project
 
 ## Contents of repository
 
