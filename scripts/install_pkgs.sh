@@ -1,11 +1,5 @@
 #!/bin/bash
 
-CALL_DIR=`dirname $0`
-if [ "$CALL_DIR" != "." ]; then
-	echo "Must be called inside repository"
-	exit 1
-fi
-
 if [ -z "$ROS_DISTRO" ]
 then
 	echo "ROS_DISTRO is not set!"
@@ -33,16 +27,9 @@ sudo apt install ros-$ROS_DISTRO-base-local-planner \
 					ros-$ROS_DISTRO-camera-info-manager \
 					ros-$ROS_DISTRO-roslint \
 					ros-$ROS_DISTRO-image-view \
-					ros-$ROS_DISTRO-uvc-camera \
 					ros-$ROS_DISTRO-pointcloud-to-laserscan \
 					ros-$ROS_DISTRO-usb-cam \
 					ros-$ROS_DISTRO-stereo-image-proc \
-					libsuitesparse-dev
-
+					libsuitesparse-dev \
+					&& \
 sudo apt remove ros-$ROS_DISTRO-key-teleop
-
-git -C teleop_tools pull  						|| git clone https://github.com/KaiL4eK/teleop_tools.git
-git -C madproto pull  							|| git clone https://github.com/KaiL4eK/madproto.git
-git -C wr8_gui_server/smart_vehicle_gui pull 	|| git -C wr8_gui_server clone https://github.com/lilSpeedwagon/smart_vehicle_gui.git
-git -C elp_stereo_camera pull					|| git clone https://github.com/KaiL4eK/elp_stereo_camera.git
-git -C mad_detector							|| git clone https://github.com/KaiL4eK/mad_detector.git

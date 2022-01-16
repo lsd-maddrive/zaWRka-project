@@ -2,16 +2,16 @@
 
 ## How to start (preinstallation)
 
-1. Clone repo with `git clone --recursive https://github.com/lsd-maddrive/zaWRka-project.git` (to fetch submodules)
-2. Install all dependencies with `install_pkgs.sh`
-3. Install all python modules with `requirements.txt` (`pip install -r requirements.txt`)
+1. Clone repo with `git clone https://github.com/lsd-maddrive/zaWRka-project.git` (to fetch submodules)
+2. Install all dependencies with `./scripts/install_pkgs.sh`
+3. Install all python modules with `requirements.txt` (`pip3 install -U -r requirements.txt`)
 
 > Don't forget to do `git submodule update --init` along with `git pull` to get updates of submodules
 
 ## Requirements
 
-- [ROS Melodic](http://wiki.ros.org/melodic)
-- Python 2.7.x
+- [ROS Noetic](http://wiki.ros.org/noetic)
+- Python 3.x.x
 
 ## Contents of repository
 
@@ -19,15 +19,8 @@
 - `wr8_gui_server` - backend (серверная часть) для коммуникации с фронтом на Android (закрыто - переименован package.xml)
 - `wr8_software` - основные скрипты и launch-файлы проекта
 - `world_creator` - утилиты для создания миров для Gazebo
-
-Дополнительные пакеты, добавленные как подмодули:
-- [ydlidar](https://github.com/EAIBOT/ydlidar) - драйвер для используемого лидара
-- [hector_slam](http://wiki.ros.org/hector_slam) - пакет метода hector_slam со всеми сопутствующими
-- [teb_local_planner](http://wiki.ros.org/teb_local_planner) - локальный планнер, который рассчитывает локальный маршрут с учетом минимального радиуса поворота (то ,что требуется для автомобилей)
-
-> Стягиваются и собираются они по причине совместимости или наличия в репозиториях (некоторых пакетов нет, а некоторые не работают при скачивании через `apt`).
-
-Остальные:
+- [docs](docs) - документация по проекту
+    - Инструкции по началу работы (разработке) вы найдете [здесь](docs/DEVELOPMENT.md)
 - `controller_wr_driver` - firmware для контроллера WR, stack: ChibiOS for STM32
 - `math_task` - решение математической задачи по программирования с Autonet2019
 - `install_pkgs.sh` - скрипт установки и скачивания всех необходимых зависимостей
