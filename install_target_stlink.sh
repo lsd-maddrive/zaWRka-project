@@ -2,7 +2,7 @@
 
 mkdir -p deps
 
-git -C deps/stlink pull || git -C deps clone https://github.com/texane/stlink.git
+git -C deps/stlink pull || git -C deps clone https://github.com/texane/stlink.git -b v1.7.0
 
 INSTALL_PATH=/usr/local
 
