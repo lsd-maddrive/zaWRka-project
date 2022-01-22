@@ -76,3 +76,11 @@
 [Форум, посвящённый вопросам по регламенту](http://russianrobotics.ru/competition/autonet/autonet-18/)
 
 [Список участников](https://docs.google.com/spreadsheets/d/e/2PACX-1vQQ2zzrAAbFCBXrUEgEfghzuqSvDOwywB9XMI6uXnDfj5rw4qsn_r54UXMksgU4Eq0onv_xA9ydmw2O/pubhtml?gid=363203216&single=true)
+
+## Connection
+
+Hostname = `zawrka` ~ url (avahi) = `zawrka.local`
+
+Manual IP (ethernet) on zaWRka = 9.9.9.1
+
+Set your IP as 9.9.9.2/24 with gateway 9.9.9.1

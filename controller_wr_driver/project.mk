@@ -1,4 +1,4 @@
-MPROTODIR = ../madproto
+MPROTODIR = ../third_party/madproto
 include $(MPROTODIR)/mproto.mk
 
 PROJECT_MODULES = src/lld_control.c        			\
