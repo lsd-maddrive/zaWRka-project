@@ -2,6 +2,8 @@
 
 mkdir -p deps
 
+sudo apt install -y libusb-1.0-0-dev
+
 git -C deps/stlink pull || git -C deps clone https://github.com/texane/stlink.git -b v1.7.0
 
 INSTALL_PATH=/usr/local

@@ -6,4 +6,7 @@ catkin build \
     wp_global_planner \
 	frequency_converter \
 	parking_detector \
-	car_parking
+	car_parking \
+    ydlidar \
+    elp_stereo_camera \
+    teleop_tools

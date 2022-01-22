@@ -27,6 +27,10 @@
 
 - Создайте виртуальное окружение и в него поставьте с помощью `pip install catkin-tools`
 
+или
+
+- Установить в user-space командой `pip3 install -U -r requirements.txt` и добавить переменную окружения `export PATH=$PATH:$HOME/.local/bin`
+
 ### Преднастройка
 
 - Установите требуемые пакеты командой `./scripts/install_packages.sh`
