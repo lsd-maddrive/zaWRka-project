@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Microcontroller connection -->
+    <include file="$(find wr8_software)/launch/slam.launch">
+        <arg name="x" value="0" />
+        <arg name="y" value="0" />
+    </include>
+</launch>

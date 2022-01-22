@@ -11,6 +11,7 @@
     <arg name="stereo_r" default="false" />
     <arg name="detector" default="false" />
 
+    <!-- Microcontroller connection -->
     <include if="$(arg uc)" file="$(find wr8_software)/launch/base/serial_uc_link.launch">
         <arg name="start_delay_sec" value="0" />
     </include>
