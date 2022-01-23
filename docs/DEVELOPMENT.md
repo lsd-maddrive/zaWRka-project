@@ -5,7 +5,7 @@
 - Ubuntu 20.04
 - Установленный [ROS Noetic](http://wiki.ros.org/noetic/Installation)
 - Готовность разбираться и улучшать систему! =)
-- Установленный плагин в VSCode для чтения drawio диаграмм (или используйте https://app.diagrams.net/)
+- Установленный [плагин в VSCode](https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio) для чтения drawio диаграмм (или используйте https://app.diagrams.net/)
 
 ## Некоторые правила разработки
 

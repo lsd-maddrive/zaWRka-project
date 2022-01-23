@@ -8,6 +8,7 @@
 - `world_creator` - утилиты для создания миров для Gazebo
 - [docs](docs) - документация по проекту
     - Инструкции по началу работы (разработке) вы найдете [здесь](docs/DEVELOPMENT.md)
+    - А описание робота можно найти [здесь](docs/DESCRIPTION.md)
 - `controller_wr_driver` - firmware для контроллера WR, stack: ChibiOS for STM32
 - `math_task` - решение математической задачи по программирования с Autonet2019
 - `install_pkgs.sh` - скрипт установки и скачивания всех необходимых зависимостей
@@ -19,9 +20,8 @@
 
 В основе данного принципа лежит возможность работы как с машинкой, так и с симулятором не изменяя основной составляющих и каналов базового стека:
 
-<!-- Must be `uc` instead of `open` in link! -->
 <p align="center">
-<img src="https://drive.google.com/uc?id=17bvjXzOOoAnjZa1fIjD3zP6hjynYqXl7">
+<img src="docs/rendered/zaWRka-ROS.png">
 </p>
 
 ## Start notes
