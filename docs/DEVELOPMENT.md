@@ -33,7 +33,7 @@
 
 ### Преднастройка
 
-- Установите требуемые пакеты командой `./scripts/install_packages.sh`
+- Установите требуемые пакеты командой `./scripts/install_pkgs.sh`
 - Установите пакеты для сборки командой `./scripts/install_third_party.sh`
 - Соберите требуемые пакеты командой `./scripts/build.sh`
 
