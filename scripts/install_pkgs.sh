@@ -33,5 +33,5 @@ sudo apt install ros-$ROS_DISTRO-base-local-planner \
 					ros-$ROS_DISTRO-teb-local-planner \
 					ros-$ROS_DISTRO-hector-slam \
 					libsuitesparse-dev \
-					$1 && \
+					$@ && \
 sudo apt remove ros-$ROS_DISTRO-key-teleop
