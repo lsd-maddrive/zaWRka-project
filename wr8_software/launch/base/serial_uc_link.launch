@@ -9,13 +9,16 @@
 	<!-- <arg name="device" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0" /> -->
 	<arg name="device" default="/dev/serial/by-id/usb-STMicroelectronics_ChibiOS_RT_Virtual_COM_Port_404-if00" />
     <arg name="start_delay_sec" default="1" />
+    <arg name="publish_tf" default="true" />
 
     <!-- <group ns="robot"> -->
         <!-- <node pkg="rosserial_python" type="serial_node.py" name="ros_link" output="screen" respawn="true"> -->
         <node pkg="wr8_software" type="uc_ros_link" name="uc_ros_link" output="screen" respawn="true">
             <param name="port" value="$(arg device)" /> 
             <param name="start_delay_sec" value="$(arg start_delay_sec)" /> 
+            <param name="publish_tf" value="$(arg publish_tf)" /> 
             <!-- Because USB! -->
+            <remap from="odom" to="wheel_odom" />
             <!-- <param name="baud" value="9600" />  -->
         </node>
     <!-- </group> -->

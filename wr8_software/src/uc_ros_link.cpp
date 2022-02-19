@@ -188,6 +188,11 @@ ros::Publisher                          state_pub;
 ros::Publisher                          encoder_rotation_pub;
 ros::Publisher                          encoder_speed_pub;
 
+/**
+ * Parameters
+ */
+bool publish_tf;
+
 void publishEncoderSpeed(float value)
 {
     std_msgs::Float32 msg;
@@ -262,7 +267,8 @@ void publishOdometryData(float data[5])
     odom_trans.transform.translation.z = 0.0;
     odom_trans.transform.rotation = odom_quat;
 
-    br->sendTransform(odom_trans);
+    if (publish_tf)
+        br->sendTransform(odom_trans);
 }
 
 void mproto_cmd_cb(mpcmd_t cmd, uint8_t *data, size_t len)
@@ -401,6 +407,8 @@ int main (int argc, char **argv)
     
     int start_delay_sec;
     n_pr.param<int>("start_delay_sec", start_delay_sec, 0);
+
+    n_pr.param<bool>("publish_tf", publish_tf, true);
 
     if ( start_delay_sec > 0 )
     {
