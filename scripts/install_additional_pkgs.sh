@@ -10,5 +10,6 @@ sudo apt install \
     ros-$ROS_DISTRO-rtabmap \
     ros-$ROS_DISTRO-rtabmap-ros \
 	ros-$ROS_DISTRO-imu-filter-madgwick \
+	ros-$ROS_DISTRO-depthimage-to-laserscan \
 					
 
