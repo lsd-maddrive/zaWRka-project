@@ -35,43 +35,41 @@
  * Author: Eitan Marder-Eppstein
  *         David V. Lu!!
  *********************************************************************/
-#ifndef _GRADIENT_PATH_H
-#define _GRADIENT_PATH_H
+#ifndef _ASTAR_H
+#define _ASTAR_H
 
-#include<global_planner/traceback.h>
-#include <math.h>
+#include <wp_global_planner/planner_core.h>
+#include <wp_global_planner/expander.h>
+#include <vector>
+#include <algorithm>
 
 namespace wp_global_planner {
-
-class GradientPath : public Traceback {
+class Index {
     public:
-        GradientPath(PotentialCalculator* p_calc);
-        ~GradientPath();
-
-        void setSize(int xs, int ys);
-
-        //
-        // Path construction
-        // Find gradient at array points, interpolate path
-        // Use step size of pathStep, usually 0.5 pixel
-        //
-        // Some sanity checks:
-        //  1. Stuck at same index position
-        //  2. Doesn't get near goal
-        //  3. Surrounded by high potentials
-        //
-        bool getPath(float* potential, double start_x, double start_y, double end_x, double end_y, std::vector<std::pair<float, float> >& path);
-    private:
-        inline int getNearestPoint(int stc, float dx, float dy) {
-            int pt = stc + (int)round(dx) + (int)(xs_ * round(dy));
-            return std::max(0, std::min(xs_ * ys_ - 1, pt));
+        Index(int a, float b) {
+            i = a;
+            cost = b;
         }
-        float gradCell(float* potential, int n);
+        int i;
+        float cost;
+};
 
-        float *gradx_, *grady_; /**< gradient arrays, size of potential array */
+struct greater1 {
+        bool operator()(const Index& a, const Index& b) const {
+            return a.cost > b.cost;
+        }
+};
 
-        float pathStep_; /**< step size for following gradient */
+class AStarExpansion : public Expander {
+    public:
+        AStarExpansion(PotentialCalculator* p_calc, int nx, int ny);
+        bool calculatePotentials(unsigned char* costs, double start_x, double start_y, double end_x, double end_y, int cycles,
+                                float* potential);
+    private:
+        void add(unsigned char* costs, float* potential, float prev_potential, int next_i, int end_x, int end_y);
+        std::vector<Index> queue_;
 };
 
 } //end namespace wp_global_planner
 #endif
+

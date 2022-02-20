@@ -49,11 +49,11 @@
 #include <nav_core/base_global_planner.h>
 #include <nav_msgs/GetPlan.h>
 #include <dynamic_reconfigure/server.h>
-#include <global_planner/potential_calculator.h>
-#include <global_planner/expander.h>
-#include <global_planner/traceback.h>
-#include <global_planner/orientation_filter.h>
-#include <global_planner/GlobalPlannerConfig.h>
+#include <wp_global_planner/potential_calculator.h>
+#include <wp_global_planner/expander.h>
+#include <wp_global_planner/traceback.h>
+#include <wp_global_planner/orientation_filter.h>
+#include <wp_global_planner/WPGlobalPlannerConfig.h>
 
 namespace wp_global_planner {
 
@@ -202,8 +202,8 @@ class WPGlobalPlanner : public nav_core::BaseGlobalPlanner {
         bool old_navfn_behavior_;
         float convert_offset_;
 
-        dynamic_reconfigure::Server<global_planner::GlobalPlannerConfig> *dsrv_;
-        void reconfigureCB(global_planner::GlobalPlannerConfig &config, uint32_t level);
+        dynamic_reconfigure::Server<wp_global_planner::WPGlobalPlannerConfig> *dsrv_;
+        void reconfigureCB(wp_global_planner::WPGlobalPlannerConfig &config, uint32_t level);
 
         void makeDefaultPlan(const geometry_msgs::PoseStamped& start,
                              const geometry_msgs::PoseStamped& goal, 

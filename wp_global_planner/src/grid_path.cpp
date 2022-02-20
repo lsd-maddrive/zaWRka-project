@@ -35,7 +35,7 @@
  * Author: Eitan Marder-Eppstein
  *         David V. Lu!!
  *********************************************************************/
-#include <global_planner/grid_path.h>
+#include <wp_global_planner/grid_path.h>
 #include <algorithm>
 #include <stdio.h>
 namespace wp_global_planner {

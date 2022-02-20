@@ -17,7 +17,7 @@ find_package(catkin REQUIRED
 )
 
 generate_dynamic_reconfigure_options(
-  cfg/GlobalPlanner.cfg
+  cfg/WPGlobalPlanner.cfg
 )
 
 catkin_package(

@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <global_planner/quadratic_calculator.h>
+#include <wp_global_planner/quadratic_calculator.h>
 
 namespace wp_global_planner {
 float QuadraticCalculator::calculatePotential(float* potential, unsigned char cost, int n, float prev_potential) {

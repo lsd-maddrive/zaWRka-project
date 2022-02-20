@@ -35,41 +35,18 @@
  * Author: Eitan Marder-Eppstein
  *         David V. Lu!!
  *********************************************************************/
-#ifndef _ASTAR_H
-#define _ASTAR_H
-
-#include <global_planner/planner_core.h>
-#include <global_planner/expander.h>
-#include <vector>
-#include <algorithm>
+#ifndef _GRID_PATH_H
+#define _GRID_PATH_H
+#include<vector>
+#include<wp_global_planner/traceback.h>
 
 namespace wp_global_planner {
-class Index {
-    public:
-        Index(int a, float b) {
-            i = a;
-            cost = b;
-        }
-        int i;
-        float cost;
-};
 
-struct greater1 {
-        bool operator()(const Index& a, const Index& b) const {
-            return a.cost > b.cost;
-        }
-};
-
-class AStarExpansion : public Expander {
+class GridPath : public Traceback {
     public:
-        AStarExpansion(PotentialCalculator* p_calc, int nx, int ny);
-        bool calculatePotentials(unsigned char* costs, double start_x, double start_y, double end_x, double end_y, int cycles,
-                                float* potential);
-    private:
-        void add(unsigned char* costs, float* potential, float prev_potential, int next_i, int end_x, int end_y);
-        std::vector<Index> queue_;
+        GridPath(PotentialCalculator* p_calc): Traceback(p_calc){}
+        bool getPath(float* potential, double start_x, double start_y, double end_x, double end_y, std::vector<std::pair<float, float> >& path);
 };
 
 } //end namespace wp_global_planner
 #endif
-

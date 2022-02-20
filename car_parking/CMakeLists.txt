@@ -36,3 +36,10 @@ add_executable(car_parking src/parking_node.cpp src/parking_core.cpp)
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
+install(
+  DIRECTORY
+    launch
+    scripts
+    src
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)

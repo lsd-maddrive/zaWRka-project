@@ -35,7 +35,7 @@
  * Author: Eitan Marder-Eppstein
  *         David V. Lu!!
  *********************************************************************/
-#include<global_planner/dijkstra.h>
+#include<wp_global_planner/dijkstra.h>
 #include <algorithm>
 namespace wp_global_planner {
 

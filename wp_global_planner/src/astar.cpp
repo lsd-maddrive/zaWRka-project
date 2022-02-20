@@ -35,7 +35,7 @@
  * Author: Eitan Marder-Eppstein
  *         David V. Lu!!
  *********************************************************************/
-#include<global_planner/astar.h>
+#include<wp_global_planner/astar.h>
 #include<costmap_2d/cost_values.h>
 
 namespace wp_global_planner {

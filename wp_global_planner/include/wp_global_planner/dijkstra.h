@@ -44,8 +44,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <global_planner/planner_core.h>
-#include <global_planner/expander.h>
+#include <wp_global_planner/planner_core.h>
+#include <wp_global_planner/expander.h>
 
 // inserting onto the priority blocks
 #define push_cur(n)  { if (n>=0 && n<ns_ && !pending_[n] && getCost(costs, n)<lethal_cost_ && currentEnd_<PRIORITYBUFSIZE){ currentBuffer_[currentEnd_++]=n; pending_[n]=true; }}

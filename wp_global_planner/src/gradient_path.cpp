@@ -35,10 +35,10 @@
  * Author: Eitan Marder-Eppstein
  *         David V. Lu!!
  *********************************************************************/
-#include <global_planner/gradient_path.h>
+#include <wp_global_planner/gradient_path.h>
 #include <algorithm>
 #include <stdio.h>
-#include <global_planner/planner_core.h>
+#include <wp_global_planner/planner_core.h>
 
 namespace wp_global_planner {
 

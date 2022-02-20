@@ -35,16 +35,16 @@
  * Author: Eitan Marder-Eppstein
  *         David V. Lu!!
  *********************************************************************/
-#include <global_planner/planner_core.h>
+#include <wp_global_planner/planner_core.h>
 #include <pluginlib/class_list_macros.h>
 #include <costmap_2d/cost_values.h>
 #include <costmap_2d/costmap_2d.h>
 
-#include <global_planner/dijkstra.h>
-#include <global_planner/astar.h>
-#include <global_planner/grid_path.h>
-#include <global_planner/gradient_path.h>
-#include <global_planner/quadratic_calculator.h>
+#include <wp_global_planner/dijkstra.h>
+#include <wp_global_planner/astar.h>
+#include <wp_global_planner/grid_path.h>
+#include <wp_global_planner/gradient_path.h>
+#include <wp_global_planner/quadratic_calculator.h>
 
 #include <stdlib.h>
 #include <algorithm>
@@ -172,8 +172,8 @@ void WPGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2D* costma
 
         make_plan_srv_ = private_nh.advertiseService("make_plan", &WPGlobalPlanner::makePlanService, this);
 
-        dsrv_ = new dynamic_reconfigure::Server<global_planner::GlobalPlannerConfig>(ros::NodeHandle("~/" + name));
-        dynamic_reconfigure::Server<global_planner::GlobalPlannerConfig>::CallbackType cb = boost::bind(
+        dsrv_ = new dynamic_reconfigure::Server<wp_global_planner::WPGlobalPlannerConfig>(ros::NodeHandle("~/" + name));
+        dynamic_reconfigure::Server<wp_global_planner::WPGlobalPlannerConfig>::CallbackType cb = boost::bind(
                 &WPGlobalPlanner::reconfigureCB, this, _1, _2);
         dsrv_->setCallback(cb);
 
@@ -182,7 +182,7 @@ void WPGlobalPlanner::initialize(std::string name, costmap_2d::Costmap2D* costma
         ROS_WARN("This planner has already been initialized, you can't call it twice, doing nothing");
 }
 
-void WPGlobalPlanner::reconfigureCB(global_planner::GlobalPlannerConfig& config, uint32_t level) {
+void WPGlobalPlanner::reconfigureCB(wp_global_planner::WPGlobalPlannerConfig& config, uint32_t level) {
     planner_->setLethalCost(config.lethal_cost);
     path_maker_->setLethalCost(config.lethal_cost);
     planner_->setNeutralCost(config.neutral_cost);
