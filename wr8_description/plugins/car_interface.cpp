@@ -67,15 +67,6 @@ void Wr8InterfacePlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
         robot_name_ = std::string("");
     }
 
-    // if (sdf->HasElement("pubTf"))
-    // {
-    //     sdf->GetElement("pubTf")->GetValue()->Get(pub_tf_);
-    // }
-    // else
-    // {
-    //     pub_tf_ = false;
-    // }
-
     if (sdf->HasElement("maxSteerRad"))
     {
         sdf->GetElement("maxSteerRad")->GetValue()->Get(max_steer_rad_);
@@ -223,7 +214,7 @@ void Wr8InterfacePlugin::updateOdometry()
         return;
     }
 
-    last_odom_update_time_ += publish_period_;
+    last_odom_update_time_ = last_update_time_;
 
     const geometry_msgs::Quaternion orientation(tf::createQuaternionMsgFromYaw(yaw_));
 

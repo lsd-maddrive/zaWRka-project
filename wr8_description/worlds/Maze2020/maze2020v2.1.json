@@ -1,0 +1,232 @@
+{
+  "version": 1.0,
+  "map_params": {
+    "cell_cnt": [
+      10,
+      9
+    ],
+    "cell_sz": [
+      2.0,
+      2.0
+    ]
+  },
+  "objects": [
+    {
+      "name": "wall",
+      "pnts": [
+        0,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "name": "wall",
+      "pnts": [
+        0,
+        9,
+        0,
+        2
+      ]
+    },
+    {
+      "name": "wall",
+      "pnts": [
+        10,
+        9,
+        0,
+        9
+      ]
+    },
+    {
+      "name": "wall",
+      "pnts": [
+        10,
+        3,
+        10,
+        9
+      ]
+    },
+    {
+      "name": "wall",
+      "pnts": [
+        7,
+        3,
+        10,
+        3
+      ]
+    },
+    {
+      "name": "wall",
+      "pnts": [
+        6,
+        2,
+        7,
+        3
+      ]
+    },
+    {
+      "name": "wall",
+      "pnts": [
+        3,
+        2,
+        6,
+        2
+      ]
+    },
+    {
+      "name": "square",
+      "pos": [
+        2,
+        6
+      ]
+    },
+    {
+      "name": "square",
+      "pos": [
+        2,
+        7
+      ]
+    },
+    {
+      "name": "square",
+      "pos": [
+        4,
+        6
+      ]
+    },
+    {
+      "name": "square",
+      "pos": [
+        4,
+        7
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        1,
+        2
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        3,
+        2
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        5,
+        2
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        0,
+        4
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        1,
+        4
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        2,
+        4
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        4,
+        4
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        6,
+        4
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        7,
+        4
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        9,
+        4
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        9,
+        6
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        8,
+        7
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        6,
+        6
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        6,
+        7
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        7,
+        7
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        7,
+        6
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        0,
+        6
+      ]
+    },
+    {
+      "name": "box",
+      "pos": [
+        0,
+        7
+      ]
+    }
+  ]
+}

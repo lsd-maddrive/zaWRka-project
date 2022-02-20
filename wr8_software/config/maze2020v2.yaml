@@ -1,0 +1,16 @@
+maze_version: 2
+
+parking_areas: [[[12.4, 14.0], [13.6, 14.0], [15.6, 12.4], [14.4, 12.4]],
+                [[14.4, 14.0], [15.6, 14.0], [17.6, 12.4], [16.4, 12.4]],
+                [[16.4, 14.0], [17.6, 14.0], [19.6, 12.4], [18.4, 12.4]]]
+parking_waiting_goal_pose: [13, 15]
+parking_waiting_goal_dir: 0     # right
+parking_goal_dir: -0.785        # right bot
+
+speed_goal_pose: [18.0, 15.0]
+speed_goal_orientation: 1.57
+
+cell_sz: 2
+maze_target_x: 7
+maze_target_y: 15
+maze_target_yaw: 0

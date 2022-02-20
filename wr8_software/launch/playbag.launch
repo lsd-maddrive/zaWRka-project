@@ -1,0 +1,14 @@
+<launch>
+    <arg name="bag_filename"    default="2020-08-12-09-26-15.bag" />
+    <arg name="args"            default="" />
+    <arg name="run_rviz"        default="true" />
+    <arg name="lidar_x"         default="0.35" />
+    <arg name="lidar_z"         default="0.05" />
+    <param name="/use_sim_time" value="true" />
+
+    <group if="$(arg run_rviz)">
+        <include file="$(find wr8_software)/launch/rviz_localization_view.launch"/>
+    </group>
+
+    <node name="playbag" pkg="rosbag" type="play" args="--clock $(env HOME)/autonet_ws/rosbag/$(arg bag_filename) $(arg args)" />
+</launch>

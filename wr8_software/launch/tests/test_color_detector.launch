@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node pkg="wr8_software" type="get_light.py" name="test_get_light" output="screen">
+    <param name="input"       value="$(find mad_detector)/samples"/>
+    <param name="model_path"  value="$(find mad_detector)/models/Yolov4Tiny_mad_model.pth"/>
+  </node>
+
+</launch>

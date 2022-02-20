@@ -1,0 +1,31 @@
+
+# Common solver params:
+button_topic: cmd
+frame_id: map
+solver/frequency: 3
+feature_handler/median_filter_size: 1
+
+# sign detector params:
+mad_detector/frequency: 3
+mad_detector/signs_camera: cam_top
+mad_detector/signs_image: detected_signs_img
+detected_sign_type_topic: detected_sign_type
+sign_min_size: [10, 10]   # for 1920/1080 [60, 60] is ok, for 245/192 [10, 10]
+tl_min_size: [10, 10]     # for 1920/1080 [60, 60] is ok, for 245/192 [10, 10]
+
+# White line detector params:
+white_line_detector/camera_topic: cam_bottom
+white_line_detector/img_topic: img_with_line
+white_line_detector/status_topic: wl_status
+white_line_detector/img_top_cropping_border: 0.05          # may be 0.618?
+white_line_detector/img_bot_cropping_border: 1
+white_line_detector/min_thetta: 1.37                      # PI * 7 / 16
+white_line_detector/max_thetta: 1.77                      # PI * 9 / 16
+white_line_detector/rho_min_offset: 5                     # min rho between lines to be ok
+white_line_detector/rho_max_offset: 10                    # max rho between lines to be ok
+white_line_detector/theta_similarity_threshold: 0.012265  # PI / 256
+white_line_detector/min_vote: 60                          # for 1280/720 225 is ok, for 256/192 60 is ok
+white_line_detector/frequency: 3
+
+# parking parameters:
+parking_tolerance: 70

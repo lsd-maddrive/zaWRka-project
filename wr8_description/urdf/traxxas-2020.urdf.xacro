@@ -1,0 +1,524 @@
+<?xml version="1.0"?>
+
+
+<robot name="my_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:property name="chassis_mass" value="3.7" />
+  <xacro:property name="chassis_length" value="0.568" />
+  <xacro:property name="chassis_width" value="0.203" />
+  <xacro:property name="chassis_height" value="0.05" />
+
+  <xacro:property name="lidar_height" value="0.02"/>
+  <xacro:property name="lidar_radius" value="0.04"/>
+  <xacro:property name="lidar_mass" value="0.1" />
+  <!-- Taken from physical parameters (wr8_software/launch/base/lidar.launch) -->
+  <xacro:property name="base_link_2_laser_xyz" value="${chassis_length*0.6} 0 0.05" />
+
+  <xacro:property name="box_mass" value="0.5" />
+  <xacro:property name="box_length" value="0.25" />
+  <xacro:property name="box_width" value="${chassis_width}" />
+  <xacro:property name="box_height" value="0.05" />
+
+  <xacro:property name="wheel_width" value="0.046" />
+  <xacro:property name="wheel_radius" value="0.0525" />
+  <xacro:property name="wheel_mass" value="0.056" />
+  <xacro:property name="wheel_chassis_bias" value="${wheel_width/2}" />
+  <xacro:property name="wheelbase" value="0.340" />
+  <xacro:property name="half_wheelbase" value="${wheelbase/2}" />
+
+  <xacro:property name="half_track_width" value="${(chassis_width/2 + wheel_chassis_bias)}" />
+
+
+  <!-- https://github.com/jbpassot/ackermann_vehicle/blob/master/ackermann_vehicle_description/urdf/em_3905.urdf.xacro -->
+  <xacro:property name="degrees_90" value="${pi/2}"/>
+  <xacro:property name="degrees_45" value="${pi/4}"/>
+  <xacro:property name="degrees_35" value="${7*pi/36}"/>
+  <xacro:property name="degrees_30" value="${pi/6}"/>
+  <xacro:property name="degrees_25" value="${5*pi/36}"/>
+  <xacro:property name="degrees_15" value="${pi/12}"/>
+
+  <xacro:property name="mid_wheel_turn_limit" value="${degrees_30}"/>
+  <xacro:property name="wheel_turn_limit" value="${degrees_45}"/>
+
+  <!-- <xacro:property name="servo_stall_torque" value="0.5649"/> -->
+  <!-- <xacro:property name="servo_stall_torque" value="100"/>
+  <xacro:property name="servo_no_load_speed" value="4.553"/> -->
+  <xacro:property name="wheel_friction" value="1.75" />
+
+  <!-- Camera properties -->
+  <xacro:property name="camera_height" value="0.05"/>
+  <xacro:property name="camera_radius" value="0.02"/>
+  <xacro:property name="camera_mass" value="0.05"/>
+
+  <!-- Stereo camera properties -->
+  <xacro:property name="stereo_base_link_lcam_xyz" value="0.05 0.035 0.18"/>
+  <xacro:property name="stereo_base_link_rcam_xyz" value="0.05 -0.035 0.18"/>
+
+
+  <xacro:arg name="odom_enabled" default="false" />
+  <xacro:arg name="pub_tf" default="true" />
+  <xacro:arg name="robot_name" default="" />
+
+  <xacro:arg name="enable_stereo" default="true" />
+
+  <!-- Gazebo plugins -->
+  <gazebo>
+    <!-- Simulated vehicle interface -->
+    <plugin name="wr8_interface_plugin" filename="libautonet_robot_interface_plugin.so" >
+      <robotName>$(arg robot_name)</robotName>
+      <pubTf>$(arg pub_tf)</pubTf>
+      <tfFreq>100.0</tfFreq>
+      <odomEnabled>$(arg odom_enabled)</odomEnabled>
+      <maxSteerRad>${mid_wheel_turn_limit}</maxSteerRad>
+      <wheelbase>${wheelbase}</wheelbase>
+      <wheelRadius>${wheel_radius}</wheelRadius>
+      <trackWidth>${half_track_width*2}</trackWidth>
+    </plugin>
+
+    <!-- Publish current joint angles -->
+    <plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
+        <robotNamespace>$(arg robot_name)</robotNamespace>
+        <jointName>
+            fl_steer_joint,
+            fr_steer_joint,
+            fl_speed_joint,
+            fr_speed_joint,
+            rl_speed_joint,
+            rr_speed_joint
+        </jointName>
+        <updateRate>100</updateRate>
+        <alwaysOn>true</alwaysOn>
+    </plugin>
+  </gazebo>
+
+  <!-- INERTIAL MACROS -->
+  <xacro:macro name="null_inertial">
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.001" ixy="0" ixz="0"
+               iyy="0.001" iyz="0"
+               izz="0.001"/>
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="solid_cuboid_inertial"
+               params="width length height mass *origin">
+    <inertial>
+      <xacro:insert_block name="origin"/>
+      <mass value="${mass}"/>
+      <inertia ixx="${mass * (width * width + height * height) / 12}"
+               ixy="0" ixz="0"
+               iyy="${mass * (length * length + height * height) / 12}"
+               iyz="0"
+               izz="${mass * (width * width + length * length) / 12}"/>
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="solid_cylinder_inertial"
+               params="r h mass *origin">
+    <inertial>
+      <xacro:insert_block name="origin"/>
+      <mass value="${mass}"/>
+      <inertia ixx="${mass / 12 * (3 * r * r + h * h)}" ixy="0.0" ixz="0.0"
+               iyy="${mass / 12 * (3 * r * r + h * h)}" iyz="0.0"
+               izz="${mass / 2 * r * r}" />
+    </inertial>
+  </xacro:macro>
+  <!-- INERTIAL MACROS END -->
+
+
+  <xacro:macro name="wheel_object" params="name">
+    <link name="${name}">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+        </geometry>
+      </visual>
+
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+        </geometry>
+      </collision>
+
+      <xacro:solid_cylinder_inertial
+          r="${wheel_radius}" h="${wheel_width}"
+          mass="${wheel_mass}" >
+        <origin xyz="0 0 0" rpy="0 0 0" />
+      </xacro:solid_cylinder_inertial>
+    </link>
+
+    <gazebo reference="${name}">
+      <mu1>${wheel_friction}</mu1>
+      <mu2>${wheel_friction}</mu2>
+      <material>Gazebo/Black</material>
+      <kp>10000000</kp>
+      <kd>1</kd>
+    </gazebo>
+  </xacro:macro>
+
+
+  <xacro:macro name="speed_wheel" params="name base_name xyz ">
+    <xacro:wheel_object name="wheel_${name}" />
+
+    <joint name="${name}_speed_joint" type="continuous">
+      <parent link="${base_name}"/>
+      <child link="wheel_${name}"/>
+      <origin xyz="${xyz}" rpy="${pi/2} 0 0"/>
+      <axis xyz="0 0 -1"/>
+      <limit effort="1000.0" velocity="22.0" />
+    </joint>
+  </xacro:macro>
+
+
+  <xacro:macro name="steer_wheel" params="name base_name xyz">
+    <xacro:wheel_object name="wheel_${name}" />
+
+    <link name="steer_${name}">
+      <xacro:null_inertial/>
+    </link>
+
+    <joint name="${name}_steer_joint" type="revolute">
+      <limit lower="${-wheel_turn_limit}"
+             upper="${wheel_turn_limit}"
+             effort="0" velocity="0"/>
+      <parent link="${base_name}"/>
+      <child link="steer_${name}"/>
+      <origin xyz="${xyz}" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+    </joint>
+
+    <joint name="${name}_speed_joint" type="continuous">
+      <parent link="steer_${name}"/>
+      <child link="wheel_${name}"/>
+      <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+      <axis xyz="0 0 -1"/>
+      <limit effort="1000.0" velocity="22.0" />
+    </joint>
+
+  </xacro:macro>
+
+
+  <!-- base_footprint - base_link on floor -->
+  <link name="base_footprint">
+  </link>
+  <gazebo reference="base_footprint"/>
+
+  <link name="base_link">
+  </link>
+  <gazebo reference="base_link"/>
+
+  <link name="base_center">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+    </collision>
+    <xacro:solid_cuboid_inertial
+          length="${chassis_length}" width="${chassis_width}"
+          height="${chassis_height}" mass="${chassis_mass}">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+    </xacro:solid_cuboid_inertial>
+  </link>
+  <gazebo reference="base_center">
+      <material>Gazebo/Orange</material>
+  </gazebo>
+
+  <joint name="base_footprint_2_link" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <!-- base_footprint - base_link on floor -->
+    <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="base_link_2_center" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_center"/>
+    <origin xyz="${wheelbase/2} 0 0" rpy="0 0 0"/>
+  </joint>
+
+<link name="base_box">
+    <visual>
+      <origin xyz="0 0 ${box_height}" rpy="0 0 0" />
+      <geometry>
+        <box size="${box_length} ${box_width} ${box_height}"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${box_height}" rpy="0 0 0" />
+      <geometry>
+        <box size="${box_length} ${box_width} ${box_height}"/>
+      </geometry>
+    </collision>
+    <xacro:solid_cuboid_inertial
+          length="${box_length}" width="${box_width}"
+          height="${box_height}" mass="${box_mass}">
+      <origin xyz="0 0 ${box_height}" rpy="0 0 0" />
+    </xacro:solid_cuboid_inertial>
+  </link>
+  <gazebo reference="base_box">
+      <material>Gazebo/Orange</material>
+  </gazebo>
+  <joint name="base_box_link" type="fixed">
+    <parent link="base_center"/>
+    <child link="base_box"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <xacro:speed_wheel name="rl" base_name="base_center"
+                     xyz="${-half_wheelbase} ${-half_track_width} ${-chassis_height/2}" />
+  <xacro:speed_wheel name="rr" base_name="base_center"
+                     xyz="${-half_wheelbase} ${half_track_width} ${-chassis_height/2}" />
+  <xacro:steer_wheel name="fl" base_name="base_center"
+                     xyz="${half_wheelbase} ${-half_track_width} ${-chassis_height/2}" />
+  <xacro:steer_wheel name="fr" base_name="base_center"
+                     xyz="${half_wheelbase} ${half_track_width} ${-chassis_height/2}" />
+
+  <!-- Setup LIDAR -->
+  <link name="laser">
+    <xacro:solid_cylinder_inertial
+        r="${lidar_radius}" h="${lidar_height}"
+        mass="${lidar_mass}" >
+      <origin xyz="0 0 0" rpy="0 0 0" />
+    </xacro:solid_cylinder_inertial>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <cylinder length="${lidar_height}" radius="${lidar_radius}"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <cylinder length="${lidar_height}" radius="${lidar_radius}"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="laser_joint" type="fixed">
+    <child link="laser" />
+    <parent link="base_link" />
+    <origin xyz="${base_link_2_laser_xyz}" />
+  </joint>
+
+  <gazebo reference="laser">
+    <material>Gazebo/Black</material>
+
+    <sensor type="ray" name="head_hokuyo_sensor">
+      <visualize>true</visualize>
+      <update_rate>10</update_rate>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>513</samples>
+            <resolution>1</resolution>
+            <!-- <min_angle>0</min_angle> -->
+            <!-- <max_angle>${2*pi}</max_angle> -->
+            
+            <min_angle>${-2*pi/3}</min_angle>
+            <max_angle>${+2*pi/3}</max_angle>
+            
+            <!-- <min_angle>${-pi/2}</min_angle> -->
+            <!-- <max_angle>${pi/2}</max_angle> -->
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.15</min>
+          <max>4</max>
+          <resolution>0.01</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.02</stddev>
+        </noise>
+      </ray>
+      <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
+        <topicName>$(arg robot_name)/scan</topicName>
+        <frameName>laser</frameName>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <!-- Camera link -->
+  <xacro:macro name="camera_link" params="name">
+    <link name="${name}_frame">
+      <xacro:solid_cylinder_inertial
+          r="${camera_radius}" h="${camera_height}"
+          mass="${camera_mass}" >
+        <origin xyz="0 0 0" rpy="0 ${degrees_90} 0" />
+      </xacro:solid_cylinder_inertial>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 ${degrees_90} 0" />
+        <geometry>
+          <cylinder length="${camera_height}" radius="${camera_radius}"/>
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 ${degrees_90} 0" />
+        <geometry>
+          <cylinder length="${camera_height}" radius="${camera_radius}"/>
+        </geometry>
+      </visual>
+    </link>
+  </xacro:macro>
+
+  <!-- Single camera macro -->
+  <xacro:macro name="single_camera" params="name xyz rpy fov width height">
+    <xacro:camera_link name="${name}" />
+
+    <joint name="${name}_joint" type="fixed">
+      <child link="${name}_frame" />
+      <parent link="base_box" />
+      <origin xyz="${xyz}" rpy="${rpy}" />
+    </joint>
+
+    <link name="${name}_optical_frame"/>
+
+    <joint name="${name}_optical_frame_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="-${degrees_90} 0.0 -${degrees_90}" />
+      <parent link="${name}_frame" />
+      <child link="${name}_optical_frame"/>
+    </joint>
+
+    <gazebo reference="${name}_frame">
+      <material>Gazebo/Black</material>
+
+      <sensor type="camera" name="${name}">
+        <update_rate>30.0</update_rate>
+        <camera name="${name}">
+          <horizontal_fov>${fov}</horizontal_fov>
+          <image>
+            <width>${width}</width>
+            <height>${height}</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.02</near>
+            <far>300</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.001</stddev>
+          </noise>
+        </camera>
+        <plugin name="${name}_controller" filename="libgazebo_ros_camera.so">
+          <alwaysOn>true</alwaysOn>
+          <updateRate>30.0</updateRate>
+          <cameraName>$(arg robot_name)/${name}</cameraName>
+          <imageTopicName></imageTopicName>
+          <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+          <frameName>${name}_optical_frame</frameName>
+          <hackBaseline>0.07</hackBaseline>
+          <distortionK1>0.0</distortionK1>
+          <distortionK2>0.0</distortionK2>
+          <distortionK3>0.0</distortionK3>
+          <distortionT1>0.0</distortionT1>
+          <distortionT2>0.0</distortionT2>
+        </plugin>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- Stereo camera macro -->
+  <xacro:macro name="stereo_camera" params="name fov">
+    <xacro:camera_link name="${name}_left" />
+    <xacro:camera_link name="${name}_right" />
+
+    <joint name="${name}_left_joint" type="fixed">
+      <child link="${name}_left_frame" />
+      <parent link="base_center" />
+      <origin xyz="${stereo_base_link_lcam_xyz}" rpy="0 0 0" />
+    </joint>
+
+    <joint name="${name}_right_joint" type="fixed">
+      <child link="${name}_right_frame" />
+      <parent link="base_center" />
+      <origin xyz="${stereo_base_link_rcam_xyz}" rpy="0 0 0" />
+    </joint>
+
+    <link name="${name}_optical_frame"/>
+
+    <joint name="${name}_optical_frame_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="-${degrees_90} 0.0 -${degrees_90}" />
+      <parent link="${name}_left_frame" />
+      <child link="${name}_optical_frame"/>
+    </joint>
+
+    <gazebo reference="${name}_left_frame">
+      <material>Gazebo/Black</material>
+
+      <sensor type="multicamera" name="${name}">
+        <update_rate>30.0</update_rate>
+        <camera name="left">
+          <horizontal_fov>${fov}</horizontal_fov>
+          <image>
+            <width>800</width>
+            <height>600</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.02</near>
+            <far>300</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.007</stddev>
+          </noise>
+        </camera>
+        <camera name="right">
+          <pose>0 -0.07 0 0 0 0</pose>
+          <!-- <pose>0 -0.035 0 0 0 0</pose> -->
+          <horizontal_fov>${fov}</horizontal_fov>
+          <image>
+            <width>800</width>
+            <height>600</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.02</near>
+            <far>300</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.007</stddev>
+          </noise>
+        </camera>
+        <plugin name="${name}_controller" filename="libgazebo_ros_multicamera.so">
+          <alwaysOn>true</alwaysOn>
+          <updateRate>30.0</updateRate>
+          <cameraName>$(arg robot_name)/${name}</cameraName>
+          <imageTopicName>image_raw</imageTopicName>
+          <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+          <frameName>${name}_optical_frame</frameName>
+          <hackBaseline>0.07</hackBaseline>
+          <distortionK1>0.0</distortionK1>
+          <distortionK2>0.0</distortionK2>
+          <distortionK3>0.0</distortionK3>
+          <distortionT1>0.0</distortionT1>
+          <distortionT2>0.0</distortionT2>
+        </plugin>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:if value="$(arg enable_stereo)">
+    <xacro:stereo_camera name="stereo_camera" fov="1.3962634" />
+  </xacro:if>
+  <xacro:single_camera name="cam_top"     xyz="0.12 0 0.25"               rpy="${pi} -${degrees_25} -${degrees_25}" fov="1.3962634" width="256" height="192" />
+  <xacro:single_camera name="cam_bottom"  xyz="${chassis_length/2} 0 0.1" rpy="0 0 0"                           fov="1.3962634" width="256" height="192" />
+</robot>
+
+

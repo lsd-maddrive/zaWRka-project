@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="x"                       default="19" />
+  <arg name="y"                       default="3" />
+  <arg name="yaw"                     default="-1.57" doc="[0 - right, 1.57 - up]" />
+  <arg name="world_name"              default="maze2020v2" />
+  <arg name="world_minor_version"     default="3" />
+
+  <arg name="localization"            default="false" doc="[false means SLAM, true means localization]" />
+  <arg name="wp_global_planner"       default="true"  doc="[true - wp_global_planner, false - global_planner]"/>
+  <arg name="mapping_algorithm"       default="hector_mapping" doc="[hector_mapping, gmapping]"/>
+  <arg name="run_solver"              default="true" doc="[bool]" />
+
+  <arg name="render_maze"             default="false" />
+
+  <arg name="sim_instead_of_real"     default="true" doc="[true means Gazebo, false means real robot]" />
+  <arg name="gz_gui"                  default="false" />
+
+
+  <!-- 1. Navigation stack -->
+  <group if="$(arg localization)">
+    <include file="$(find wr8_software)/launch/localization.launch">
+      <arg name="wp_global_planner"   value="$(arg wp_global_planner)" />
+      <arg name="map"                 value="$(arg world_name)" />
+      <arg name="x"                   value="$(arg x)"/>
+      <arg name="y"                   value="$(arg y)"/>
+      <arg name="yaw"                 value="$(arg yaw)"/>
+    </include>
+  </group>
+  <group unless="$(arg localization)">
+    <include file="$(find wr8_software)/launch/slam.launch">
+      <arg name="wp_global_planner"   value="$(arg wp_global_planner)"/>
+      <arg name="mapping_algorithm"   value="$(arg mapping_algorithm)"/>
+      <arg name="x"                   value="$(arg x)"/>
+      <arg name="y"                   value="$(arg y)"/>
+      <arg name="yaw"                 value="$(arg yaw)"/>
+    </include>
+  </group>
+
+
+  <!-- 2. Solver -->
+  <group if="$(arg run_solver)">
+    <node pkg="wr8_software" type="solver.py" name="solver" output="screen">
+      <param name="button_topic"        value="cmd"/>
+      <param name="frame_id"            value="map"/>
+      <param name="signs_camera"        value="cam_top"/>
+      <param name="mad_detector/model_path"  value="$(find mad_detector)/models/Yolov4Tiny_mad_model.pth"/>
+      <param name="camera_topic"        value="cam_bottom"/>
+      <param name="img_from_core_topic" value="img_from_core"/>
+      <param name="detected_sign_type_topic" value="detected_sign_type"/>
+      <param name="wl_status_topic"     value="wl_status"/>
+      <param name="parking_tolerance"   value="70"/>
+      <param name="render_maze"         value="$(arg render_maze)"/>
+      <rosparam file="$(find wr8_software)/config/$(arg world_name).yaml" command="load"/>
+    </node>
+    <include file="$(find car_parking)/launch/car_parking.launch">
+    </include>
+  </group>
+
+  <node pkg="wr8_software" type="test_solver.py" name="test_solver" output="screen">
+    <param name="world_name"          value="$(arg world_name)"/>
+    <param name="world_minor_version" value="$(arg world_minor_version)"/>
+  </node>
+
+  <!-- 5. Real robot -->
+  <group unless="$(arg sim_instead_of_real)">
+    <!-- do nothing yet -->
+  </group>
+
+  <!-- Publish START! -->
+  <node pkg="rostopic" type="rostopic" name="arbitrary_name" args="pub /cmd std_msgs/String START -l" output="screen"/>
+</launch>

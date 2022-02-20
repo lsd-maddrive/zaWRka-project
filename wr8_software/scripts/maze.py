@@ -1,8 +1,15 @@
+#!/usr/bin/env python2
 import numpy as np
-import pygame
+try:
+    import pygame
+    from pygame.locals import *
+    pygame_imported = True
+except:
+    print('Failed to import pygame - render disabled')
+    pygame_imported = False
 import itertools as it
-from pygame.locals import *
 import time
+from enum import Enum
 
 from Queue import PriorityQueue
 
@@ -22,13 +29,6 @@ class MazePoint:
 
     def invert_direction(self):
         return MazePoint(-self.x, -self.y)
-
-    # local TF -> ROS: (x1, y1) = (2*y, -2*x)
-    # ROS -> local TF: (x, y) = (-y1/2, x1/2)
-    def get_ros_point(self):
-        ros_x = 2 * self.y
-        ros_y = -2 * self.x
-        return np.array([ros_x, ros_y])
 
     def __str__(self):
         return '[{}; {}]'.format(self.x, self.y)
@@ -80,6 +80,7 @@ from_directions = {
 }
 
 
+
 def getLetterFromDirPnt(fromDirPnt):
     for direction in from_directions:
         if from_directions[direction] == fromDirPnt:
@@ -90,7 +91,7 @@ def getLetterFromDirPnt(fromDirPnt):
 # With dir letter
 
 
-class PointDir:
+class PointDir(object):
     def __init__(self, x=0, y=0, d='-'):
         self.x = x
         self.y = y
@@ -105,19 +106,6 @@ class PointDir:
     def as_array(self):
         return np.array([self.x, self.y])
 
-    # local TF -> ROS: (x1, y1) = (2*y, -2*x)
-    # ROS -> local TF: (x, y) = (-y1/2, x1/2)
-    def get_ros_point(self):
-        ros_x = 2 * self.y
-        ros_y = -2 * self.x
-
-        if self.d == from_direction_letters[-1]:
-            logging.error('Invalid direction in get_ros_point()!')
-
-        ros_angle_deg = g_direction_angle[self.d]
-
-        return np.array([ros_x, ros_y, ros_angle_deg])
-
     def __str__(self):
         return '[{}; {}; {}]'.format(self.x, self.y, self.d)
 
@@ -126,6 +114,21 @@ class PointDir:
 
     def __hash__(self):
         return hash((self.x, self.y, self.d))
+
+
+class InitialDirection(Enum):
+    DOWN = 0
+    LEFT = 1
+    UP = 2
+    RIGHT = 3
+
+
+class MazePointDir(PointDir):
+    def __init__(self, x, y, dir):
+        assert isinstance(dir, InitialDirection)
+        
+        dir_letter = from_direction_letters[dir.value]
+        super(MazePointDir, self).__init__(x, y, dir_letter)
 
 
 def get_manhattan_dist(cur_node, oNode):
@@ -141,10 +144,6 @@ class Node:
                   MazePoint(1, 0),
                   MazePoint(0, -1),
                   MazePoint(-1, 0)]
-
-    NEXT_IDX_LEFT = 2
-    NEXT_IDX_FRWD = 1
-    NEXT_IDX_RGHT = 0
 
     def __init__(self, pnt_coord):
         # Up, right, down, left
@@ -501,17 +500,6 @@ class Maze:
         self._update_path()
         return self._current_path
 
-    # local TF -> ROS: (x1, y1) = (2*y, -2*x)
-    # ROS -> local TF: (x, y) = (-y1/2, x1/2)
-    @staticmethod
-    def ext_point_2_point(ext_point):
-        return MazePoint(-ext_point[1]/2., ext_point[0]/2.)
-
-    @staticmethod
-    def ext_point_2_pointdir(ext_point, ext_angle):
-        fromdir_ltr = Maze._angle_2_fromdir(ext_angle)
-        pnt = Maze.ext_point_2_point(ext_point)
-        return PointDir(pnt.x, pnt.y, fromdir_ltr)
 
     @staticmethod
     def _angle_2_fromdir(ext_angle):
@@ -590,6 +578,9 @@ class Maze:
         ])
 
     def render_maze(self):
+        if not pygame_imported:
+            return
+
         cell_colors = (255, 255, 255), (0, 255, 0), (128, 128, 255)
 
         cell_margin = 2
@@ -640,9 +631,20 @@ class Maze:
 
 
 if __name__ == "__main__":
-    pygame.init()
+    if pygame_imported:
+        pygame.init()
 
-    logging.basicConfig(level=logging.INFO)
+    ## ROS - 2 meters cell, x goes up, y goes left
+    ## Maze - normalized cells, x goes right, y goes up
+
+    ## These functions must be realized by yourself
+    ## local TF -> ROS: (x1, y1) = (2*y, -2*x)
+    ## ROS -> local TF: (x, y) = (-y1/2, x1/2)
+    def ros2maze_point(ext_point):
+        return MazePoint(-ext_point[1]/2., ext_point[0]/2.)   
+
+    # logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
 
     structure = [
         [0, 0, 0, 0, 0, 0, 0],
@@ -662,8 +664,13 @@ if __name__ == "__main__":
     maze.render_maze()
     maze.set_target(MazePoint(6.5, 1))
 
-    # Sample [y = 0.25] just for representation
-    initial_pose = Maze.ext_point_2_pointdir([0, 0.25], 0)
+    ## (0,0) point is lower-left corner
+    ## Sample [y = 0.25] just for representation
+    # initial_pose = ros2maze_pointdir([0, 0.25], 0)
+    ## Change to new direction
+    maze_initial_pnt = ros2maze_point([6.2*2, -1.2*2])
+    initial_pose = MazePointDir(maze_initial_pnt.x, maze_initial_pnt.y, InitialDirection.LEFT)
+    print('Initial: {}'.format(initial_pose))
     maze.set_state(initial_pose)
 
     while True:
@@ -688,7 +695,7 @@ if __name__ == "__main__":
 
         maze.next_local_target()
 
-        time.sleep(1)
+        time.sleep(3)
 
     time.sleep(10)
 

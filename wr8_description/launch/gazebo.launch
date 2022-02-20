@@ -8,10 +8,12 @@
   <arg name="world_name" default="RFMaze.v2.world" />
   <arg name="gz_gui" default="false" />
   <arg name="urdf_file" default="$(find wr8_description)/urdf/model.urdf.xacro" />
+  <!-- Model parameters -->
   <arg name="enable_stereo" default="false" />
+  <arg name="odom_enabled" default="false" />
 
   <!-- Set environment variable that contains robot model description -->
-  <param name="robot_description" command="$(find xacro)/xacro '$(arg urdf_file)' enable_stereo:=$(arg enable_stereo)" />
+  <param name="robot_description" command="$(find xacro)/xacro '$(arg urdf_file)' enable_stereo:=$(arg enable_stereo) odom_enabled:=$(arg odom_enabled)" />
 
   <!-- Spawn robot -->
   <node name="spawn_base_model" pkg="gazebo_ros" type="spawn_model"

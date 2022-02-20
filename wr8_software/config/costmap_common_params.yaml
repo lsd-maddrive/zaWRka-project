@@ -4,6 +4,8 @@
 # robot_radius: 0.20  # distance a circular robot should be clear of the obstacle (kobuki: 0.18)
 # footprint: [[x0, y0], [x1, y1], ... [xn, yn]]  # if the robot is not circular
 footprint: [ [0.4, 0.17], [-0.08, 0.17], [-0.08, -0.17], [0.4, -0.17] ]
+# footprint from 2020
+# footprint: [ [0.45, 0.15], [-0.125, 0.15], [-0.125, -0.15], [0.45, -0.15] ]
 
 # map_type: voxel
 

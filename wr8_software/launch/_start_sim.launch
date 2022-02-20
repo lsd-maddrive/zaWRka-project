@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="x"                       default="19" />
+  <arg name="y"                       default="3" />
+  <arg name="yaw"                     default="-1.57" doc="[0 - right, 1.57 - up]" />
+  <arg name="world_name"              default="maze2020v2" />
+  <arg name="world_minor_version"     default="3" />
+
+  <arg name="localization"            default="true" doc="[false means SLAM, true means localization]" />
+  <arg name="wp_global_planner"       default="true"  doc="[true - wp_global_planner, false - global_planner]"/>
+  <arg name="mapping_algorithm"       default="hector_mapping" doc="[hector_mapping, gmapping]"/>
+  <arg name="run_solver"              default="true" doc="[bool]" />
+
+  <arg name="render_maze"             default="false" />
+
+  <arg name="sim_instead_of_real"     default="true" doc="[true means Gazebo, false means real robot]" />
+  <arg name="gz_gui"                  default="false" />
+
+  <!-- 3. Visualization using rviz -->
+  <group if="$(arg localization)">
+    <include file="$(find wr8_software)/launch/rviz_localization_view.launch"/>
+  </group>
+  <group unless="$(arg localization)">
+    <include file="$(find wr8_software)/launch/rviz_slam_view.launch"/>
+  </group>
+
+
+  <!-- 4. Gazebo simulation -->
+  <group if="$(arg sim_instead_of_real)">
+    <include file="$(find wr8_description)/launch/gazebo.launch">
+      <arg name="world_name"          value="$(arg world_name).$(arg world_minor_version).world"/>
+      <arg name="x"                   value="$(arg x)"/>
+      <arg name="y"                   value="$(arg y)"/>
+      <arg name="yaw"                 value="$(arg yaw)"/>
+      <arg name="gz_gui"              value="$(arg gz_gui)"/>
+    </include>
+  </group>
+
+
+  <!-- 5. Real robot -->
+  <group unless="$(arg sim_instead_of_real)">
+    <!-- do nothing yet -->
+  </group>
+</launch>

@@ -28,6 +28,9 @@
     <param name="map_update_angle_thresh" value="0.06" />
     <param name="laser_z_min_value" value="-1.0" />
     <param name="laser_z_max_value" value="1.0" />
+
+    <param name="laser_min_dist" value="0.15" />
+    <param name="laser_z_max_value" value="6.5" />
     
     <param name="output_timing" value="false" />
 
