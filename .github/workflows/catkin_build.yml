@@ -1,0 +1,58 @@
+name: catkin_build
+
+on: [push]
+
+defaults:
+  run:
+    shell: bash
+jobs:
+  catkin_build:
+    runs-on: ubuntu-20.04
+    container:
+      image: ros:noetic
+    steps:
+      # 1. Install basic requirements
+      - name: Force Install GIT latest since actions/checkout@v2 has some problems on ubuntu-18.04 with submodules. The default git version 2.17.1, but it requires at least 2.18.
+        run: |
+          apt-get update                                                    &&  \
+          apt-get upgrade -y                                                &&  \
+          apt-get install -y software-properties-common                     &&  \
+          add-apt-repository -y ppa:git-core/ppa                            &&  \
+          apt-get update                                                    &&  \
+          apt-get install -y git
+      - name: Default ubuntu-18.04 version of python3 is 3.6.9. But numpy==1.12.1 from requirements.txt is supported only since 3.7.
+        run: |
+          apt-get install -y python3.8-dev python3-pip
+
+      # 2. Init workspace
+      - name: Create the folder for the repo
+        run: mkdir -p catkin_ws/src/zaWRka-project
+      - name: Init workspace
+        run: |
+          apt-get install -y python3-catkin-tools                           &&  \
+          cd catkin_ws                                                      &&  \
+          catkin init                                                       &&  \
+          wstool init src                                                   &&  \
+          rosdep update
+
+      # 3. Checkout repo with submodules
+      - uses: actions/checkout@v2
+        with:
+          path: catkin_ws/src/zaWRka-project
+          submodules: recursive
+
+      # 4. Install requirements
+      - name: Install requirements
+        run: |
+          cd catkin_ws/src/zaWRka-project                                   &&  \
+          python3.8 -m pip install Cython                                   &&  \
+          python3.8 -m pip install -r requirements.txt                      &&  \
+          ./scripts/install_pkgs.sh -y                                      &&  \
+          ./scripts/install_third_party.sh
+
+      # 5. Build
+      - name: catkin build
+        run: |
+          source /opt/ros/$ROS_DISTRO/setup.bash                            &&  \
+          cd catkin_ws/src/zaWRka-project                                   &&  \
+          ./scripts/build.sh
