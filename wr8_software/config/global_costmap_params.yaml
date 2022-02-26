@@ -5,6 +5,6 @@ global_costmap:
    always_send_full_costmap: true
    plugins:
      - {name: static_layer,            type: "costmap_2d::StaticLayer"}
-     - {name: obstacle_layer,          type: "costmap_2d::VoxelLayer"}
+     - {name: lidar_layer,          type: "costmap_2d::VoxelLayer"}
      - {name: inflation_layer,         type: "costmap_2d::InflationLayer"}
 

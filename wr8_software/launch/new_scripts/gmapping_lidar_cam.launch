@@ -1,0 +1,40 @@
+<launch>
+
+    <arg name="lidar" default="true" />
+    <arg name="uc" default="false" />
+
+    <!-- Microcontroller connection -->
+    <include file="$(find wr8_software)/launch/base/serial_uc_link.launch">
+        <arg name="publish_tf" default="true" />
+    </include>
+    
+
+    <!-- camera connection -->
+    <include file="$(find wr8_software)/launch/new_scripts/rs_camera.launch" />
+    <arg name="rgb_topic" default="/camera/color/image_raw" />
+    <arg name="depth_topic" default="/camera/aligned_depth_to_color/image_raw" />
+    <arg name="camera_info_topic" default="/camera/color/camera_info" />
+
+    <!-- lidar connection -->
+    <include if="$(arg lidar)" file="$(find wr8_software)/launch/base/lidar.launch">
+        <!-- All defaults -->
+    </include>
+
+    <!-- Pointcloud to laser scan-->
+    <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan_node">
+        <remap from="cloud_in" to="/camera/depth/color/points" />
+        <remap from="scan" to="/rs_scan" />
+        <rosparam>
+            target_frame: camera_link
+            min_height: -0.15
+            max_height: 0.0
+        </rosparam>
+    </node>
+
+    <!-- SLAM connection -->
+    <include file="$(find wr8_software)/launch/slam.launch">
+        <arg name="x" value="0" />
+        <arg name="y" value="0" />
+    </include>
+
+</launch>
