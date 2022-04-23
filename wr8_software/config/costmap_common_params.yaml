@@ -3,7 +3,7 @@
 # Obstacle Cost Shaping (http://wiki.ros.org/costmap_2d/hydro/inflation)
 # robot_radius: 0.20  # distance a circular robot should be clear of the obstacle (kobuki: 0.18)
 # footprint: [[x0, y0], [x1, y1], ... [xn, yn]]  # if the robot is not circular
-footprint: [ [0.4, 0.17], [-0.08, 0.17], [-0.08, -0.17], [0.4, -0.17] ]
+footprint: [ [0.4, 0.12], [-0.08, 0.12], [-0.08, -0.12], [0.4, -0.12] ]
 
 # map_type: voxel
 
@@ -61,7 +61,7 @@ lidar_layer:
 #cost_scaling_factor and inflation_radius were now moved to the inflation_layer ns
 inflation_layer:
   enabled:              true
-  cost_scaling_factor:   20 # exponential rate at which the obstacle cost drops off (default: 10)
+  cost_scaling_factor:   10 # exponential rate at which the obstacle cost drops off (default: 10)
   inflation_radius:     0.4 # max. distance from an obstacle at which costs are incurred for planning paths.
   # For fast
   # cost_scaling_factor:  3.5  # exponential rate at which the obstacle cost drops off (default: 10)
