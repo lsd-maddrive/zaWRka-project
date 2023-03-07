@@ -1,12 +1,13 @@
 <?xml version="1.0"?>
 <launch>
 
-    <arg name="lidar" default="false" />
-    <arg name="uc" default="false" />
+    <arg name="lidar" default="true" />
+    <arg name="uc" default="true" />
 
     <!-- Microcontroller connection -->
     <include if="$(arg uc)" file="$(find wr8_software)/launch/base/serial_uc_link.launch">
-        <arg name="start_delay_sec" value="0" />
+        <arg name="start_delay_sec" value="1" />
+        <arg name="publish_tf" default="true" />
     </include>
 
     <include if="$(arg lidar)" file="$(find wr8_software)/launch/base/lidar.launch">
