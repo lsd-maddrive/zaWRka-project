@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <node pkg="key_teleop" type="key_teleop.py" name="keyboard_cmd" output="screen" respawn="false">
+  <node pkg="wr8_software" type="key_teleop.py" name="keyboard_cmd" output="screen" respawn="false">
     <param name="turbo/steps" value="10" />
     <param name="turbo/linear_forward_min" value="0.04" />
     <param name="turbo/linear_forward_max" value="0.4" />
