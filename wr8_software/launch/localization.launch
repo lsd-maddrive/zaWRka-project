@@ -1,38 +1,38 @@
 <?xml version="1.0"?>
 <!-- Run Localization stack -->
 <launch>
-  <arg name="wp_global_planner" default="false" doc="[true - wp_global_planner, false - global_planner]"/>
-  <arg name="x" default="0"/>
-  <arg name="y" default="0"/>
-  <arg name="yaw" default="0"/>
-  <arg name="map" default="maze2020v1" doc="[maze2020v1, map2_h, depart]"/>
+  <arg name="wp_global_planner"   default="false" doc="[true - wp_global_planner, false - global_planner]"/>
+  <arg name="x"                   default="0"/>
+  <arg name="y"                   default="0"/>
+  <arg name="yaw"                 default="0"/>
+  <arg name="map"                 default="maze2020v1" doc="[maze2020v1, map2_h, depart]"/>
 
-  <node name="map_server" pkg="map_server" type="map_server" args="$(find wr8_software)/maps/$(arg map).yaml" />
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find wr8_software)/maps/$(arg map).yaml"/>
 
-  <include file="$(find wr8_software)/launch/base/move_base.launch">
-    <arg name="base_frame"    value="base_link" />
-    <arg name="odom_frame"    value="odom"/>
-    <arg name="global_frame"  value="map"/>
-    <arg name="odom_topic"    value="odom" />
-    <arg name="cmd_topic"     value="cmd_vel" />
-    <arg name="laser_topic"   value="scan" />
-    <arg name="wp_global_planner" value="$(arg wp_global_planner)" />
-  </include>
+  <!-- <include file="$(find wr8_software)/launch/base/move_base.launch">
+    <arg name="base_frame"        value="base_link"/>
+    <arg name="odom_frame"        value="odom"/>
+    <arg name="global_frame"      value="map"/>
+    <arg name="odom_topic"        value="odom"/>
+    <arg name="cmd_topic"         value="cmd_vel"/>
+    <arg name="laser_topic"       value="scan"/>
+    <arg name="wp_global_planner" value="$(arg wp_global_planner)"/>
+  </include> -->
 
   <include file="$(find wr8_software)/launch/base/amcl.launch">
-    <arg name="base_frame"    value="base_link" />
-    <arg name="odom_frame"    value="odom" />
-    <arg name="global_frame"  value="map" />
-    <arg name="scan_topic"    value="scan" />
-    <arg name="x"             value="$(arg x)"/>
-    <arg name="y"             value="$(arg y)"/>
-    <arg name="yaw"           value="$(arg yaw)"/>
+    <arg name="base_frame"        value="base_link"/>
+    <arg name="odom_frame"        value="odom"/>
+    <arg name="global_frame"      value="map"/>
+    <arg name="scan_topic"        value="scan"/>
+    <arg name="x"                 value="$(arg x)"/>
+    <arg name="y"                 value="$(arg y)"/>
+    <arg name="yaw"               value="$(arg yaw)"/>
   </include>
 
-  <include file="$(find wr8_software)/launch/base/trajectory.launch">
-    <arg name="global_frame"  value="map" />
-    <arg name="track_frame"   value="base_link"/>
-    <arg name="update_rate"   value="10" />
-    <arg name="publish_rate"  value="6.0" />
-  </include>
+  <!-- <include file="$(find wr8_software)/launch/base/trajectory.launch">
+    <arg name="global_frame"      value="map"/>
+    <arg name="track_frame"       value="base_link"/>
+    <arg name="update_rate"       value="10"/>
+    <arg name="publish_rate"      value="6.0"/>
+  </include> -->
 </launch>
