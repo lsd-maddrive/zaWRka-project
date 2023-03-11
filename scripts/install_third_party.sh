@@ -26,4 +26,4 @@ git -C $THIRD_PARTY_DIR clone https://github.com/EAIBOT/ydlidar.git -b 1.3.9
 
 # World Creator package
 
-git -C $THIRD_PARTY_DIR clone https://github.com/PonomarevDA/world_creator.git && git -C $THIRD_PARTY_DIR/world_creator checkout 3817204
+git -C $THIRD_PARTY_DIR clone https://github.com/PonomarevDA/world_creator.git
