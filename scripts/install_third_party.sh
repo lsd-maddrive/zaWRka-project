@@ -5,7 +5,7 @@ mkdir -p $THIRD_PARTY_DIR
 
 # Mad Detector (package for signs detection)
 
-git -C $THIRD_PARTY_DIR clone  https://github.com/KaiL4eK/mad_detector.git
+git -C $THIRD_PARTY_DIR clone  https://github.com/lsd-maddrive/mad_detector.git
 
 # ELP stereocamera driver
 #   NB - version not set as driver is under our development
@@ -26,4 +26,4 @@ git -C $THIRD_PARTY_DIR clone https://github.com/EAIBOT/ydlidar.git -b 1.3.9
 
 # World Creator package
 
-git -C $THIRD_PARTY_DIR clone https://github.com/PonomarevDA/world_creator.git && git -C $THIRD_PARTY_DIR/world_creator checkout 3817204
+git -C $THIRD_PARTY_DIR clone https://github.com/PonomarevDA/world_creator.git && git -C $THIRD_PARTY_DIR/world_creator checkout a713b13
