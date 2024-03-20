@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
 
-    <arg name="lidar" default="false" />
-    <arg name="uc" default="false" />
+    <arg name="lidar" default="true" />
+    <arg name="uc" default="true" />
 
     <!-- Microcontroller connection -->
     <include if="$(arg uc)" file="$(find wr8_software)/launch/base/serial_uc_link.launch">

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+  <group ns="rs_camera">
+    <include file="$(find maddrive_hardware_tools)/launch/driver_realsense.launch">
+      <arg name="tf_prefix" value="rs_camera" />
+      <arg name="align_depth" value="true" /> 
+      <arg name="linear_accel_cov" value="0.01" />
+      <arg name="unite_imu_method" value="copy" />
+      <arg name="depth_fps" value="30" />
+      <arg name="color_fps" value="30" />
+      <arg name="enable_gyro" value="true" />
+      <arg name="enable_accel" value="true" />
+      <arg name="initial_reset" default="false" />
+    </include>
+  </group>
+
+  <include file="$(find maddrive_hardware_tools)/launch/imu_filter.launch">
+    <arg name="in_topic" value="rs_camera/imu" />
+    <arg name="out_topic" value="rs_camera/imu/filtered" />
+  </include>
+</launch>

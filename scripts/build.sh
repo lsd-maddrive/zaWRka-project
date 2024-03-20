@@ -8,6 +8,6 @@ catkin build \
 	frequency_converter \
 	parking_detector \
 	car_parking \
-    ydlidar \
-    elp_stereo_camera \
-    teleop_tools
+    ydlidar_ros_driver \
+    realsense2_camera \
+    realsense2_description \

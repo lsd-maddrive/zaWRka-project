@@ -1,0 +1,13 @@
+<launch>
+    <arg name="rviz"       default="true" />
+
+    <include file="$(find wr8_software)/launch/real_robot_start.launch" >
+            <arg name="uc" value="true"/>
+            <arg name="lidar" value="true"/>
+    </include>
+
+    <include file="$(find wr8_software)/launch/real_slam_start.launch" />
+
+    <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find wr8_software)/rviz/slam.rviz" />
+
+</launch>
