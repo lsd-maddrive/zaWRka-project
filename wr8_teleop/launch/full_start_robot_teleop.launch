@@ -11,6 +11,9 @@
     <include file="$(find wr8_bringup)/launch/start_rs_camera.launch" >
 
     </include>
+    <include file="$(find wr8_bringup)/launch/start_rs_camera.launch"/>
+    <node pkg="web_video_server" type="web_video_server" name="web_video_server" output="screen"/>
+
 
 
 

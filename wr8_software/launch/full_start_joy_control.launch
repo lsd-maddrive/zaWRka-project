@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+    <include file="$(find wr8_software)/launch/real_robot_start.launch" >
+        <arg name="uc" value="true"/>
+        <arg name="lidar" value="false"/>
+
+    </include>
+    <!-- <include file="$(find maddrive_teleop)/launch/start_joy_teleop.launch" >
+        <arg name="speed/frwd_limit" value="0.4"/>
+        <arg name="speed/bkwrd_limit" value="-0.3"/>
+        <arg name="steer/limit" value="25"/>
+        <arg name="dev" default="/dev/input/js0" />
+
+    </include> -->
+
+    <node if="False" pkg="maddrive_teleop" type="steering_filter" name="steering_filter" ns="tigra" output="screen">
+        <param name="steering_alpha" value="0.3"/>
+        <!-- NB - Disabled filter -->
+        <param name="steering_alpha" value="1.0" />
+        <remap from="cmd_vel_raw" to="cmd_vel_raw" />
+        <remap from="cmd_vel" to="cmd_vel" />
+    </node>
+
+</launch>
