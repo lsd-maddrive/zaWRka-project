@@ -1,5 +1,5 @@
 <launch>
-    <arg name="rviz"       default="true" />
+    <arg name="rviz"       default="false" />
 
     <include file="$(find wr8_software)/launch/real_robot_start.launch" >
             <arg name="uc" value="true"/>

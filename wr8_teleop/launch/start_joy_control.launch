@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+   <include file="$(find maddrive_teleop)/launch/start_joy_teleop.launch" >
+        <arg name="speed/frwd_limit" value="0.4"/>
+        <arg name="speed/bkwrd_limit" value="-0.3"/>
+        <arg name="steer/limit" value="25"/>
+        <arg name="dev" default="/dev/input/js1" />
+
+    </include>
+</launch>

@@ -4,6 +4,8 @@ catkin build \
     -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-O3" --env-cache \
     wr8_description \
     wr8_software \
+    wr8_bringup \
+    wr8_teleop \
     wp_global_planner \
 	frequency_converter \
 	parking_detector \
