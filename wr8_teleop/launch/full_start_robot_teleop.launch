@@ -1,0 +1,17 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+    <include file="$(find wr8_software)/launch/real_robot_start.launch" >
+        <arg name="uc" value="true"/>
+        <arg name="lidar" value="false"/>
+
+    </include>
+
+    <include file="$(find wr8_bringup)/launch/start_rs_camera.launch" >
+
+    </include>
+
+
+
+</launch>
