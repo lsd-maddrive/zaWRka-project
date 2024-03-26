@@ -10,6 +10,8 @@
     </include>
 
     <include if="$(arg lidar)" file="$(find wr8_software)/launch/base/lidar.launch">
+    <!-- <include if="$(arg lidar)" file="$(find wr8_software)/launch/base/lidar.launch"> -->
+
         <!-- All defaults -->
     </include>
 </launch>
